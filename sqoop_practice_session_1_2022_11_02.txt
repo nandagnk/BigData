@@ -1,0 +1,1654 @@
+[nandagnk2141@cxln5 ~]$ sqoop help
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/02 13:08:45 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+usage: sqoop COMMAND [ARGS]
+Available commands:
+  codegen            Generate code to interact with database records
+  create-hive-table  Import a table definition into Hive
+  eval               Evaluate a SQL statement and display the results
+  export             Export an HDFS directory to a database table
+  help               List available commands
+  import             Import a table from a database to HDFS
+  import-all-tables  Import tables from a database to HDFS
+  import-mainframe   Import datasets from a mainframe server to HDFS
+  job                Work with saved jobs
+  list-databases     List available databases on a server
+  list-tables        List available tables in a database
+  merge              Merge results of incremental imports
+  metastore          Run a standalone Sqoop metastore
+  version            Display version information
+See 'sqoop help COMMAND' for information on a specific command.
+
+
+Argument	Description
+--append	Append data to an existing dataset in HDFS
+--as-avrodatafile	Imports data to Avro Data Files
+--as-sequencefile	Imports data to SequenceFiles
+--as-textfile	Imports data as plain text (default)
+--boundary-query <statement>	Boundary query to use for creating splits
+--columns <col,col,col…>	Columns to import from table
+--direct	Use direct import fast path
+--direct-split-size <n>	Split the input stream every n bytes when importing in direct mode
+--inline-lob-limit <n>	Set the maximum size for an inline LOB
+-m,--num-mappers <n>	Use n map tasks to import in parallel
+-e,--query <statement>	Import the results of statement.
+--split-by <column-name>	Column of the table used to split work units
+--table <table-name>	Table to read
+--target-dir <dir>	HDFS destination dir
+--warehouse-dir <dir>	HDFS parent for table destination
+--where <where clause>	WHERE clause to use during import
+-z,--compress	Enable compression
+--compression-codec <c>	Use Hadoop codec (default gzip)
+--null-string <null-string>	The string to be written for a null value for string columns
+--null-non-string <null-string>	The string to be written for a null value for non-string columns
+
+
+================================================================================
+
+Command to login to mysql in cloudxlab is show below ...
+Host:cxln2.c.thelab-240901.internal
+Command for MYSQL in cluster:
+mysql -h cxln2.c.thelab-240901.internal -u sqoopuser -pNHkkP876rp
+====
+
+creating a new table for my own purpose
+
+create table ycustomer_1 as select distinct * from ycustomersk2;
+
+mysql> select * from ycustomer_1;
++------+-------+------+-----------+---------+
+| id   | name  | age  | address   | salary  |
++------+-------+------+-----------+---------+
+|    1 | raj   |   25 | chennai   | 2000.00 |
+|    2 | ram   |   25 | bangalore | 2000.00 |
+|    3 | raj   |   25 | chennai   | 2000.00 |
+|    4 | raja  |   25 | madurai   | 2000.00 |
+
+mysql> desc ycustomer_1;
++---------+---------------+------+-----+---------+-------+
+| Field   | Type          | Null | Key | Default | Extra |
++---------+---------------+------+-----+---------+-------+
+| id      | int(11)       | YES  |     | NULL    |       |
+| name    | varchar(20)   | YES  |     | NULL    |       |
+| age     | int(11)       | YES  |     | NULL    |       |
+| address | char(25)      | YES  |     | NULL    |       |
+| salary  | decimal(18,2) | YES  |     | NULL    |       |
++---------+---------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+Use Case 1
+==========
+note this table doesn't have any primary key column, if we are using a table without primary key then either we should go for single mapper or --split-by <column_name> using an integer column.
+
+--delete-target-dir allows to re-execute the command by deleting the directory(if exists), otherwise the command will fail with file already exists.
+
+assume this table has only 4 rows(ids 1,2,3,4) in the below export we are using 5 mappers but it will create only 4 part files.
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomersk2 -m 5 --split-by id  --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case1 --delete-target-dir
+
+[nandagnk2141@cxln5 ~]$ sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomersk2 -m 5 --split-by id  -
+-target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case1 --delete-target-dir
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/02 03:15:48 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/02 03:15:48 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/02 03:15:48 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/02 03:15:48 INFO tool.CodeGenTool: Beginning code generation
+22/11/02 03:15:49 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/02 03:15:49 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/02 03:15:49 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/9132b136eb2cd897b1d6b19ccce1fc02/ycustomersk2.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/02 03:15:51 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/9132b136eb2cd897b1d6b19ccce1fc02/ycustomersk2.jar
+22/11/02 03:15:52 INFO tool.ImportTool: Destination directory /user/nandagnk2141/nanda/sqoop_lab/lab1/case1 is not present, hence not deleting.
+22/11/02 03:15:52 WARN manager.MySQLManager: It looks like you are importing from mysql.
+22/11/02 03:15:52 WARN manager.MySQLManager: This transfer can be faster! Use the --direct
+22/11/02 03:15:52 WARN manager.MySQLManager: option to exercise a MySQL-specific fast path.
+22/11/02 03:15:52 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+22/11/02 03:15:52 INFO mapreduce.ImportJobBase: Beginning import of ycustomersk2
+22/11/02 03:15:53 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/02 03:15:53 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/02 03:15:54 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/02 03:15:54 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`id`), MAX(`id`) FROM `ycustomersk2`
+22/11/02 03:15:54 INFO db.IntegerSplitter: Split size: 0; Num splits: 5 from: 1 to: 4
+22/11/02 03:15:54 INFO mapreduce.JobSubmitter: number of splits:4
+22/11/02 03:15:55 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_16689
+22/11/02 03:15:55 INFO impl.YarnClientImpl: Submitted application application_1648130833540_16689
+22/11/02 03:15:55 INFO mapreduce.Job: The url to track the job: http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_16689/
+22/11/02 03:15:55 INFO mapreduce.Job: Running job: job_1648130833540_16689
+22/11/02 03:16:04 INFO mapreduce.Job: Job job_1648130833540_16689 running in uber mode : false
+22/11/02 03:16:04 INFO mapreduce.Job:  map 0% reduce 0%
+22/11/02 03:16:12 INFO mapreduce.Job:  map 25% reduce 0%
+22/11/02 03:16:13 INFO mapreduce.Job:  map 100% reduce 0%
+22/11/02 03:16:14 INFO mapreduce.Job: Job job_1648130833540_16689 completed successfully
+22/11/02 03:16:14 INFO mapreduce.Job: Counters: 30
+        File System Counters
+FILE: Number of bytes read=0
+                FILE: Number of bytes written=681956
+                FILE: Number of read operations=0
+                FILE: Number of large read operations=0
+                FILE: Number of write operations=0
+                HDFS: Number of bytes read=393
+                HDFS: Number of bytes written=206
+                HDFS: Number of read operations=16
+                HDFS: Number of large read operations=0
+                HDFS: Number of write operations=8
+        Job Counters 
+                Launched map tasks=4
+                Other local map tasks=4
+                Total time spent by all maps in occupied slots (ms)=243852
+                Total time spent by all reduces in occupied slots (ms)=0
+                Total time spent by all map tasks (ms)=20321
+                Total vcore-milliseconds taken by all map tasks=20321
+                Total megabyte-milliseconds taken by all map tasks=31213056
+        Map-Reduce Framework
+                Map input records=8
+                Map output records=8
+                Input split bytes=393
+                Spilled Records=0
+                Failed Shuffles=0
+                Merged Map outputs=0
+                GC time elapsed (ms)=291
+                CPU time spent (ms)=6580
+                Physical memory (bytes) snapshot=935448576
+                Virtual memory (bytes) snapshot=18371252224
+                Total committed heap usage (bytes)=776470528
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=206
+22/11/02 03:16:14 INFO mapreduce.ImportJobBase: Transferred 206 bytes in 21.3138 seconds (9.6651 bytes/sec)
+22/11/02 03:16:14 INFO mapreduce.ImportJobBase: Retrieved 4 records.
+
+
+Though we gave 5 mappers only 4 mappers are getting created
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case1
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 03:16 /user/nandagnk2141/nanda/sqoop_lab/lab1/case1/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141         50 2022-11-02 03:16 /user/nandagnk2141/nanda/sqoop_lab/lab1/case1/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         54 2022-11-02 03:16 /user/nandagnk2141/nanda/sqoop_lab/lab1/case1/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         50 2022-11-02 03:16 /user/nandagnk2141/nanda/sqoop_lab/lab1/case1/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141         52 2022-11-02 03:16 /user/nandagnk2141/nanda/sqoop_lab/lab1/case1/part-m-00003
+
+Use Case 2   Inserting record from sqoop using sqoop eval and import using sqoop import
+==========
+
+now I'm inserting a new row with id value as 40 after this we will have 5 records and try use 5 mappers in the sqoop import.
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into ycustomersk2 values (40, 'shyam', 30, 'hyderabad', 4000.00)"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into ycustomersk2 values (4
+0, 'shyam', 30, 'hyderabad', 4000.00)"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/02 03:19:45 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/02 03:19:45 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/02 03:19:45 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/02 03:19:45 INFO tool.EvalSqlTool: 1 row(s) updated.
+
+after this we will have 5 records and try use 5 mappers in the sqoop import.
+
+mysql> select * from ycustomer_1;
++------+-------+------+-----------+---------+
+| id   | name  | age  | address   | salary  |
++------+-------+------+-----------+---------+
+|    1 | raj   |   25 | chennai   | 2000.00 |
+|    2 | ram   |   25 | bangalore | 2000.00 |
+|    3 | raj   |   25 | chennai   | 2000.00 |
+|    4 | raja  |   25 | madurai   | 2000.00 |
+|   40 | shyam |   30 | hyderabad | 4000.00 |
++------+-------+------+-----------+---------+
+5 rows in set (0.00 sec)
+
+
+now tryig to run the sqoop import with 5 mappers
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomer_1 -m 5 --split-by id  --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case2 --delete-target-dir
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case2
+Found 6 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 03:24 /user/nandagnk2141/nanda/sqoop_lab/lab1/case2/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        103 2022-11-02 03:24 /user/nandagnk2141/nanda/sqoop_lab/lab1/case2/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 03:24 /user/nandagnk2141/nanda/sqoop_lab/lab1/case2/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 03:24 /user/nandagnk2141/nanda/sqoop_lab/lab1/case2/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 03:24 /user/nandagnk2141/nanda/sqoop_lab/lab1/case2/part-m-00003
+-rw-r--r--   3 nandagnk2141 nandagnk2141         30 2022-11-02 03:24 /user/nandagnk2141/nanda/sqoop_lab/lab1/case2/part-m-00004
+
+now it created 5 mappers however the data is available only in the first and last part of the file reason is in the boundary query we got min 1 and max 40 so it splits the data by 8 records for each part so records 1 till 4 get into first part and as there is no data for ids from 4 till 32 the part files 2,3 and 4 doesn't have any data and in the last part it should take if there is any data with the ids from 33 till 40. It took the 40th record there.
+
+
+======================================================================================
+
+Use Case 3
+==========
+
+below is the example for import with non primary key column table with single mapper so no need for split-by
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomersk2 -m 1 --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case3 --delete-target-dir
+
+Use Case 4 - import with duplicate records
+==========
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from ycustomersk2"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from ycustomer_1"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "update ycustomer_1 set id = 40"
+
+--------------------------------------------------------------------------------------------------
+| id          | name                 | age         | address              | salary               | 
+--------------------------------------------------------------------------------------------------
+| 40          | raj                  | 25          | chennai              | 2000.00              | 
+| 40          | ram                  | 25          | bangalore            | 2000.00              | 
+| 40          | raj                  | 25          | chennai              | 2000.00              | 
+| 40          | raja                 | 25          | madurai              | 2000.00              | 
+| 40          | shyam                | 30          | hyderabad            | 4000.00              | 
+--------------------------------------------------------------------------------------------------
+
+now try to import this table with 5 mappers but it creates only one map file
+
+22/11/02 09:45:46 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`id`), MAX(`id`) FROM `ycustomer_1`
+22/11/02 09:45:46 INFO db.IntegerSplitter: Split size: 0; Num splits: 5 from: 40 to: 40
+22/11/02 09:45:46 INFO mapreduce.JobSubmitter: number of splits:1
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomer_1 -m 5 --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case4 --delete-target-dir
+
+==============================================================================
+Use Case 5
+==========
+created the table ycustomer_1 with only 3 records and create the import with default mapper 
+
+mysql> select * from ycustomer_1;
++------+------+------+-----------+---------+
+| id   | name | age  | address   | salary  |
++------+------+------+-----------+---------+
+|    1 | raj  |   25 | chennai   | 2000.00 |
+|    2 | ram  |   25 | bangalore | 2000.00 |
+|    3 | raj  |   25 | chennai   | 2000.00 |
++------+------+------+-----------+---------+
+3 rows in set (0.00 sec)
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomer_1 --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case5 --delete-target-dir
+
+it creates only 3 mappers and generates 3 part files
+
+22/11/02 09:54:50 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`id`), MAX(`id`) FROM `ycustomer_1`
+22/11/02 09:54:50 INFO db.IntegerSplitter: Split size: 0; Num splits: 5 from: 1 to: 3
+22/11/02 09:54:50 INFO mapreduce.JobSubmitter: number of splits:3
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case5
+Found 4 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 09:55 /user/nandagnk2141/nanda/sqoop_lab/lab1/case5/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141         25 2022-11-02 09:55 /user/nandagnk2141/nanda/sqoop_lab/lab1/case5/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         27 2022-11-02 09:55 /user/nandagnk2141/nanda/sqoop_lab/lab1/case5/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         25 2022-11-02 09:55 /user/nandagnk2141/nanda/sqoop_lab/lab1/case5/part-m-00002
+
+====================================================================
+Use Case 6
+==========
+use case 6 table has 8 rows but split with 5 mappers
+
+mysql> select id,name,age,address,salary from ycustomer_1;
++------+------+------+-----------+---------+
+| id   | name | age  | address   | salary  |
++------+------+------+-----------+---------+
+|    1 | raj  |   25 | chennai   | 2000.00 |
+|    2 | ram  |   25 | bangalore | 2000.00 |
+|    3 | raj  |   25 | chennai   | 2000.00 |
+|    4 | raja |   25 | madurai   | 2000.00 |
+|    5 | raj  |   25 | chennai   | 2000.00 |
+|    6 | ram  |   25 | bangalore | 2000.00 |
+|    7 | raj  |   25 | chennai   | 2000.00 |
+|    8 | raja |   25 | madurai   | 2000.00 |
++------+------+------+-----------+---------+
+8 rows in set (0.00 sec)
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table ycustomer_1 --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case6 --delete-target-dir
+
+22/11/02 10:02:20 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`id`), MAX(`id`) FROM `ycustomer_1`
+22/11/02 10:02:20 INFO db.IntegerSplitter: Split size: 1; Num splits: 4 from: 1 to: 8
+22/11/02 10:02:20 INFO mapreduce.JobSubmitter: number of splits:4
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case6
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 10:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/case6/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141         52 2022-11-02 10:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/case6/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         51 2022-11-02 10:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/case6/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         52 2022-11-02 10:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/case6/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141         51 2022-11-02 10:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/case6/part-m-00003
+
+=====================================
+simplylearn
+
+[nandagnk2141@cxln5 ~]$ hostname -f
+cxln5.c.thelab-240901.internal
+
+list databases from hdfs using sqoop
+
+sqoop list-databases --connect jdbc:mysql://cxln2.c.thelab-240901.internal/ -username sqoopuser --password NHkkP876rp;
+
+list the tables in retail_db from hdfs using sqoop
+
+sqoop list-tables --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp;
+
+Use Case 7
+==========
+
+filtering records with where clause
+
+mysql> select * from departments;
++---------------+-----------------+
+| department_id | department_name |
++---------------+-----------------+
+|             2 | Fitness         |
+|             3 | Footwear        |
+|             4 | Apparel         |
+|             5 | Golf            |
+|             6 | Outdoors        |
+|             7 | Fan Shop        |
++---------------+-----------------+
+6 rows in set (0.00 sec)
+
+import the data where deptarment_id > 4
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/ -username sqoopuser --password NHkkP876rp --table departments –-m 3 --where “department_id>4” --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case7 --delete-target-dir
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp -table departments --m 3 --where "department_id>4" --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case7 --delete-target-dir
+
+22/11/02 12:36:10 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`department_id`), MAX(`department_id`) FROM `departments` WHERE ( department_id>4 )
+22/11/02 12:36:10 INFO db.IntegerSplitter: Split size: 0; Num splits: 3 from: 5 to: 7
+22/11/02 12:36:10 INFO mapreduce.JobSubmitter: number of splits:3
+
+22/11/02 12:36:37 INFO mapreduce.ImportJobBase: Transferred 29 bytes in 29.5326 seconds (0.982 bytes/sec)
+22/11/02 12:36:37 INFO mapreduce.ImportJobBase: Retrieved 3 records.
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case7
+Found 4 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-02 12:36 /user/nandagnk2141/nanda/sqoop_lab/lab1/case7/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141          7 2022-11-02 12:36 /user/nandagnk2141/nanda/sqoop_lab/lab1/case7/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         11 2022-11-02 12:36 /user/nandagnk2141/nanda/sqoop_lab/lab1/case7/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         11 2022-11-02 12:36 /user/nandagnk2141/nanda/sqoop_lab/lab1/case7/part-m-00002
+===================================================================================================
+Use Case 8
+==========
+importing data(partial import) using a query with where clause instead of table name 
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from ycustomer_1 WHERE address='chennai' AND \$CONDITIONS"  -m 4 --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case8
+
+22/11/02 13:17:13 INFO manager.SqlManager: Executing SQL statement: select * from ycustomer_1 WHERE address='chennai' AND  (1 = 0) 
+22/11/02 13:17:13 INFO manager.SqlManager: Executing SQL statement: select * from ycustomer_1 WHERE address='chennai' AND  (1 = 0) 
+22/11/02 13:17:13 INFO manager.SqlManager: Executing SQL statement: select * from ycustomer_1 WHERE address='chennai' AND  (1 = 0) 
+22/11/02 13:17:13 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/1ff4d50b7c14463052bb33af75490a8e/QueryResult.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/02 13:17:15 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/1ff4d50b7c14463052bb33af75490a8e/QueryResult.jar
+22/11/02 13:17:15 INFO mapreduce.ImportJobBase: Beginning query import.
+22/11/02 13:17:16 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/02 13:17:16 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/02 13:17:18 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/02 13:17:18 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(id), MAX(id) FROM (select * from ycustomer_1 WHERE address='chennai' AND  (1 = 1) ) AS t1
+22/11/02 13:17:18 INFO db.IntegerSplitter: Split size: 1; Num splits: 4 from: 1 to: 7
+22/11/02 13:17:18 INFO mapreduce.JobSubmitter: number of splits:4
+22/11/02 13:17:35 INFO mapreduce.ImportJobBase: Transferred 100 bytes in 19.4105 seconds (5.1518 bytes/sec)
+22/11/02 13:17:35 INFO mapreduce.ImportJobBase: Retrieved 4 records.
+
+====================================================================================================
+Use Case 9
+==========
+Split by using varchar field
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table ycustomer_1 --split-by name --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case9
+
+
+This will throw the error as we are using varchar field in the split by 
+
+22/11/06 01:37:58 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`name`), MAX(`name`) FROM `ycustomer_1`
+22/11/06 01:37:58 INFO mapreduce.JobSubmitter: Cleaning up the staging area /user/nandagnk2141/.staging/job_1648130833540_17066
+22/11/06 01:37:58 ERROR tool.ImportTool: Encountered IOException running import job: java.io.IOException: Generating splits for a textual index column allowed only in case of "-Dorg.apache.sqoop.splitter.allow_text_splitter=true" property passed as a parameter
+
+Caused by: Generating splits for a textual index column allowed only in case of "-Dorg.apache.sqoop.splitter.allow_text_splitter=true" property passed as a parameter
+        at org.apache.sqoop.mapreduce.db.TextSplitter.split(TextSplitter.java:67)
+        at org.apache.sqoop.mapreduce.db.DataDrivenDBInputFormat.getSplits(DataDrivenDBInputFormat.java:201)
+        ... 23 more
+		
+fixing the issue by applying the parameter "-Dorg.apache.sqoop.splitter.allow_text_splitter=true"
+
+sqoop import "-Dorg.apache.sqoop.splitter.allow_text_splitter=true" --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table ycustomer_1 --split-by name --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case9
+
+
+22/11/06 01:42:44 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`name`), MAX(`name`) FROM `ycustomer_1`
+22/11/06 01:42:44 WARN db.TextSplitter: Generating splits for a textual index column.
+22/11/06 01:42:44 WARN db.TextSplitter: If your database sorts in a case-insensitive order, this may result in a partial import or duplicate records.
+22/11/06 01:42:44 WARN db.TextSplitter: You are strongly encouraged to choose an integral split column.
+22/11/06 01:42:44 INFO mapreduce.JobSubmitter: number of splits:4
+
+This creates uneven splitting
+22/11/06 01:43:04 INFO mapreduce.ImportJobBase: Transferred 206 bytes in 22.2776 seconds (9.2469 bytes/sec)
+22/11/06 01:43:04 INFO mapreduce.ImportJobBase: Retrieved 8 records.
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case9
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-06 01:43 /user/nandagnk2141/nanda/sqoop_lab/lab1/case9/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        100 2022-11-06 01:42 /user/nandagnk2141/nanda/sqoop_lab/lab1/case9/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         52 2022-11-06 01:43 /user/nandagnk2141/nanda/sqoop_lab/lab1/case9/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-06 01:43 /user/nandagnk2141/nanda/sqoop_lab/lab1/case9/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141         54 2022-11-06 01:43 /user/nandagnk2141/nanda/sqoop_lab/lab1/case9/part-m-00003
+
+================================================================
+Use Case 10
+===========
+
+Using Direct mode of data import, 
+
+--direct	Use direct import fast path
+--direct-split-size <n>	Split the input stream every n bytes when importing in direct mode
+
+Controlling the Import Process
+By default, the import process will use JDBC which provides a reasonable cross-vendor import channel. Some databases can perform imports in a more high-performance fashion by using database-specific data movement tools. For example, MySQL provides the mysqldump tool which can export data from MySQL to other systems very quickly. By supplying the --direct argument, you are specifying that Sqoop should attempt the direct import channel. This channel may be higher performance than using JDBC. Currently, direct mode does not support imports of large object columns.
+
+When importing from PostgreSQL in conjunction with direct mode, you can split the import into separate files after individual files reach a certain size. This size limit is controlled with the --direct-split-size argument.
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table customers --direct --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case10
+
+
+22/11/06 01:52:52 INFO mapreduce.ImportJobBase: Transferred 931.1768 KB in 17.6085 seconds (52.8821 KB/sec)
+22/11/06 01:52:52 INFO mapreduce.ImportJobBase: Retrieved 12435 records.
+
+with this import is fast we can see the difference when loading a huge volumns of data
+
+rerun the same without direct
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table customers --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case10 --delete-target-dir
+
+22/11/06 01:55:08 INFO mapreduce.ImportJobBase: Transferred 931.1768 KB in 21.2177 seconds (43.8867 KB/sec)
+22/11/06 01:55:08 INFO mapreduce.ImportJobBase: Retrieved 12435 records.
+[nandagnk2141@cxln5 ~]$ 
+
+================================================================
+Use Case 11
+============
+
+mysql> create view cust_view as select * from customers;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> desc cust_view;
++-------------------+--------------+------+-----+---------+-------+
+| Field             | Type         | Null | Key | Default | Extra |
++-------------------+--------------+------+-----+---------+-------+
+| customer_id       | int(11)      | NO   |     | 0       |       |
+| customer_fname    | varchar(45)  | NO   |     | NULL    |       |
+| customer_lname    | varchar(45)  | NO   |     | NULL    |       |
+| customer_email    | varchar(45)  | NO   |     | NULL    |       |
+| customer_password | varchar(45)  | NO   |     | NULL    |       |
+| customer_street   | varchar(255) | NO   |     | NULL    |       |
+| customer_city     | varchar(45)  | NO   |     | NULL    |       |
+| customer_state    | varchar(45)  | NO   |     | NULL    |       |
+| customer_zipcode  | varchar(45)  | NO   |     | NULL    |       |
++-------------------+--------------+------+-----+---------+-------+
+9 rows in set (0.00 sec)
+
+mysql> select count(1) from cust_view
+    -> ;
++----------+
+| count(1) |
++----------+
+|    12435 |
++----------+
+1 row in set (0.00 sec)
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_view --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case11 --delete-target-dir
+
+22/11/06 02:10:07 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+22/11/06 02:10:07 ERROR tool.ImportTool: Error during import: No primary key could be found for table cust_view. Please specify one with --split-by or perform a sequential import with 
+'-m 1'.
+
+This will fail, as sqoop could find the primary key from this view so, we need to explicitily specify the split-by column while importing data from views.
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_view --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case11 --delete-target-dir
+
+22/11/06 02:10:59 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`customer_id`), MAX(`customer_id`) FROM `cust_view`
+22/11/06 02:10:59 INFO db.IntegerSplitter: Split size: 3108; Num splits: 4 from: 1 to: 12435
+22/11/06 02:10:59 INFO mapreduce.JobSubmitter: number of splits:4
+
+==========================================================
+DDL using sqoop EvalSqlTool
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "create table temp (id int, value varchar(1000))"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "create table temp (id int, value varchar(1000))"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/06 03:08:16 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/06 03:08:17 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/06 03:08:17 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/06 03:08:17 INFO tool.EvalSqlTool: 0 row(s) updated.
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into temp values (1, 'Nanda')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into temp values (2, 'Kumar')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into temp values (3, 'Govindan')"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from temp"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from temp"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/06 03:10:20 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/06 03:10:20 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/06 03:10:20 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+--------------------------------------
+| id          | value                | 
+--------------------------------------
+| 1           | Nanda                | 
+| 2           | Kumar                | 
+| 3           | Govindan             | 
+--------------------------------------
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "drop table temp"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "drop table temp"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/06 03:14:19 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/06 03:14:19 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/06 03:14:20 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/06 03:14:20 INFO tool.EvalSqlTool: 0 row(s) updated.
+
+==============================================================================
+Use Case 12
+===========
+
+Sqoop Validation
+================
+a. Sqoop validation simply means validate the data copied. Basically, either import or Export by comparing the row counts from the source as well as the target post copy.
+b. Moreover, we use this option to compare the row counts between source as well as the target just after data imported into HDFS.
+c. While during the imports, all the rows are deleted or added, Sqoop tracks this change. Also updates the log file.
+
+Interfaces of Sqoop Validation
+Basically, there are 3 interfaces of Sqoop Validation such as:
+
+a. ValidationThreshold
+We use the ValidationThreshold to determine whether the error margin between the source and target are acceptable: Absolute, Percentage Tolerant and many more. However, the default implementation is AbsoluteValidationThreshold.
+Basically, that ensures that the row counts from source as well as targets are the same.
+
+b. ValidationFailureHandler
+Also, it has once interface with ValidationFailureHandler, that is responsible for handling failures here. Such as log an error/warning, abort and many more. Although default implementation is LogOnFailureHandler. Here that logs a warning message to the configured logger.
+
+c. Validator
+Basically, by delegating the decision to ValidationThreshold Validator drives the validation logic. Also delegates failure handling to ValidationFailureHandler. Moreover, the default implementation is RowCountValidator here. That validates the row counts from source as well as the target.
+
+mysql> create table cust_nanda as select * from customers;
+Query OK, 12435 rows affected (0.23 sec)
+Records: 12435  Duplicates: 0  Warnings: 0
+
+mysql> select count(1) from cust_nanda;
++----------+
+| count(1) |
++----------+
+|    12435 |
++----------+
+1 row in set (0.00 sec)
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --m 1 --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case12b --delete-target-dir  --validate
+
+22/11/06 03:30:43 INFO mapreduce.ImportJobBase: Transferred 931.1768 KB in 37.0403 seconds (25.1396 KB/sec)
+22/11/06 03:30:43 INFO mapreduce.ImportJobBase: Retrieved 12435 records.
+22/11/06 03:30:43 INFO mapreduce.JobBase: Validating the integrity of the import using the following configuration
+        Validator : org.apache.sqoop.validation.RowCountValidator
+        Threshold Specifier : org.apache.sqoop.validation.AbsoluteValidationThreshold
+        Failure Handler : org.apache.sqoop.validation.AbortOnFailureHandler
+22/11/06 03:30:43 INFO validation.RowCountValidator: Data successfully validated
+
+We will retry this and in parallel will delete some of the records from the table in another sesssion and see what happens
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --m 1 --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case12b --delete-target-dir  --validate
+
+================================================================================
+Use Case 13
+===========
+Handling Static Data (only new records keeps created no amendments to the existing data(Delta Data), like logs, comments, feedback, notes, etc)
+Day 1
+1,
+2,
+3,
+4, and
+5
+
+Day 2
+6,
+7, and 
+8
+
+Delta Data
+
+Day 1
+1,
+2,
+3,
+4, and 
+5,
+
+Day 2
+4,   --amendment
+6,
+7,
+2,   -amendment 
+and
+8
+
+How to handle static data is use incremental append, check column and last value parameters in the sqoop import command
+
+drop table cust_nanda;
+
+create table cust_nanda as select * from customers where customer_id <1001;
+
+Note: don't use delete-target-dir, also success marker won't get created for incremental import
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 0
+
+22/11/07 09:25:45 INFO mapreduce.ImportJobBase: Transferred 928.5596 KB in 27.15 seconds (34.2011 KB/sec)
+22/11/07 09:25:45 INFO mapreduce.ImportJobBase: Retrieved 12400 records.
+22/11/07 09:25:45 INFO util.AppendUtils: Creating missing output directory - case16
+22/11/07 09:25:45 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/07 09:25:45 INFO tool.ImportTool:  --incremental append
+22/11/07 09:25:45 INFO tool.ImportTool:   --check-column customer_id
+22/11/07 09:25:45 INFO tool.ImportTool:   --last-value 12400
+22/11/07 09:25:45 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case16
+Found 4 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236455 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237289 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237456 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     239645 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00003
+
+
+==============================================================================
+Use Case 14
+===========
+
+Importing selective columns from a table
+
+checking the table defenition from hdfs using sqoop
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "describe cust_nanda"
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --columns "customer_id,customer_fname,customer_lname"  --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case14 --delete-target-dir  --validate
+
+
+22/11/07 08:46:10 INFO mapreduce.JobBase: Validating the integrity of the import using the following configuration
+        Validator : org.apache.sqoop.validation.RowCountValidator
+        Threshold Specifier : org.apache.sqoop.validation.AbsoluteValidationThreshold
+        Failure Handler : org.apache.sqoop.validation.AbortOnFailureHandler
+22/11/07 08:46:10 INFO validation.RowCountValidator: Data successfully validated
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case14
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-07 08:46 /user/nandagnk2141/nanda/sqoop_lab/lab1/case14/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141      54473 2022-11-07 08:46 /user/nandagnk2141/nanda/sqoop_lab/lab1/case14/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141      55630 2022-11-07 08:46 /user/nandagnk2141/nanda/sqoop_lab/lab1/case14/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141      55538 2022-11-07 08:46 /user/nandagnk2141/nanda/sqoop_lab/lab1/case14/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141      57857 2022-11-07 08:46 /user/nandagnk2141/nanda/sqoop_lab/lab1/case14/part-m-00003
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case14/part-m-00000 | tail -10
+3091,Carolyn,Rodriguez
+3092,Mary,Yoder
+3093,Brian,Smith
+3094,Mary,Jenkins
+3095,Patricia,Hayes
+3096,Stephanie,Larson
+3097,Douglas,Hanna
+3098,Mary,Smith
+3099,Brittany,Copeland
+3100,Mary,Smith
+[nandagnk2141@cxln5 ~]$ 
+
+==============================================================================
+Use Case 15
+===========
+
+Changing the delimeter in the import file
+Note:default delimiter is comma","
+
+in the below example we are trying to change the delimeter to '|'
+
+use the parameter --fieds-terminated-by "symbol"
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --columns "customer_id,customer_fname,customer_lname"  --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case15 --delete-target-dir --fields-terminated-by "|" --validate
+
+22/11/07 08:54:00 INFO mapreduce.JobBase: Validating the integrity of the import using the following configuration
+        Validator : org.apache.sqoop.validation.RowCountValidator
+        Threshold Specifier : org.apache.sqoop.validation.AbsoluteValidationThreshold
+        Failure Handler : org.apache.sqoop.validation.AbortOnFailureHandler
+22/11/07 08:54:00 INFO validation.RowCountValidator: Data successfully validated
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case15
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-07 08:53 /user/nandagnk2141/nanda/sqoop_lab/lab1/case15/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141      54473 2022-11-07 08:53 /user/nandagnk2141/nanda/sqoop_lab/lab1/case15/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141      55630 2022-11-07 08:53 /user/nandagnk2141/nanda/sqoop_lab/lab1/case15/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141      55538 2022-11-07 08:53 /user/nandagnk2141/nanda/sqoop_lab/lab1/case15/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141      57857 2022-11-07 08:53 /user/nandagnk2141/nanda/sqoop_lab/lab1/case15/part-m-00003
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case15/part-m-00000 | head 
+1|Richard|Hernandez
+2|Mary|Barrett
+3|Ann|Smith
+4|Mary|Jones
+5|Robert|Hudson
+6|Mary|Smith
+7|Melissa|Wilcox
+8|Megan|Smith
+9|Mary|Perez
+10|Melissa|Smith
+
+=======================================================================
+Use Case 16
+===========
+
+Static load --- loading new data set  
+
+note: don't use delete-target-dir
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_nanda limit 10"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select max(customer_id) from cust_nanda limit 10"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select customer_id+12400,customer_fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select customer_id+12400,customer_
+fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/07 09:40:18 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/07 09:40:18 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/07 09:40:18 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------
+| customer_id+12400 | customer_fname       | customer_lname       | customer_email       | customer_password    | customer_street      | customer_city        | customer_state       | c
+ustomer_zipcode     | 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------
+| 12401        | Richard              | Hernandez            | XXXXXXXXX            | XXXXXXXXX            | 6303 Heather Plaza   | Brownsville          | TX                   | 78521 
+               | 
+| 12402        | Mary                 | Barrett              | XXXXXXXXX            | XXXXXXXXX            | 9526 Noble Embers Ridge | Littleton            | CO                   | 801
+26                | 
+| 12403        | Ann                  | Smith                | XXXXXXXXX            | XXXXXXXXX            | 3422 Blue Pioneer Bend | Caguas               | PR                   | 0072
+5                | 
+| 12404        | Mary                 | Jones                | XXXXXXXXX            | XXXXXXXXX            | 8324 Little Common   | San Marcos           | CA                   | 92069 
+               | 
+| 12405        | Robert               | Hudson               | XXXXXXXXX            | XXXXXXXXX            | 10 Crystal River Mall  | Caguas               | PR                   | 0072
+5                | 
+| 12406        | Mary                 | Smith                | XXXXXXXXX            | XXXXXXXXX            | 3151 Sleepy Quail Promenade | Passaic              | NJ                   |
+ 07055                | 
+| 12407        | Melissa              | Wilcox               | XXXXXXXXX            | XXXXXXXXX            | 9453 High Concession | Caguas               | PR                   | 00725 
+               | 
+| 12408        | Megan                | Smith                | XXXXXXXXX            | XXXXXXXXX            | 3047 Foggy Forest Plaza | Lawrence             | MA                   | 018
+41                | 
+| 12409        | Mary                 | Perez                | XXXXXXXXX            | XXXXXXXXX            | 3616 Quaking Street  | Caguas               | PR                   | 00725 
+               | 
+| 12410        | Melissa              | Smith                | XXXXXXXXX            | XXXXXXXXX            | 8598 Harvest Beacon Plaza | Stafford             | VA                   | 2
+2554                | 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_nanda select customer_id+12400,customer_fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_nanda select cust
+omer_id+12400,customer_fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/07 09:40:58 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/07 09:40:58 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/07 09:40:58 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/07 09:40:58 INFO tool.EvalSqlTool: 10 row(s) updated.
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 0
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select max(customer_id) from cust_
+nanda limit 10"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/07 09:41:15 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/07 09:41:15 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/07 09:41:15 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+---------------
+| max(customer_id) | 
+---------------
+| 12410       | 
+---------------
+
+
+append the newly added 10 rows with incremental append command
+
+first check with last_value is 0, expected to throw error as already 12400 records were imported, but it creates a another set of import for all records starting from 1 till 12410
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 0
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case16
+Found 8 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236455 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237289 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237456 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     239645 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00003
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236695 2022-11-07 09:45 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00004
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237424 2022-11-07 09:45 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00005
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237615 2022-11-07 09:45 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00006
+-rw-r--r--   3 nandagnk2141 nandagnk2141     239904 2022-11-07 09:45 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00007
+
+deleted the files from 4 to 7 and re-importing the data by giving last-value as 12400
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 12400
+
+22/11/08 09:18:24 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/08 09:18:24 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`customer_id`), MAX(`customer_id`) FROM `cust_nanda` WHERE ( `customer_id` > 12400 AND `customer_id` <=
+ 12410 )
+22/11/08 09:18:24 INFO db.IntegerSplitter: Split size: 2; Num splits: 4 from: 12401 to: 12410
+22/11/08 09:18:24 INFO mapreduce.JobSubmitter: number of splits:4
+
+22/11/08 09:18:46 INFO mapreduce.ImportJobBase: Transferred 793 bytes in 24.3937 seconds (32.5084 bytes/sec)
+22/11/08 09:18:46 INFO mapreduce.ImportJobBase: Retrieved 10 records.
+22/11/08 09:18:46 INFO util.AppendUtils: Appending to directory case16
+22/11/08 09:18:46 INFO util.AppendUtils: Using found partition 4
+22/11/08 09:18:46 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/08 09:18:46 INFO tool.ImportTool:  --incremental append
+22/11/08 09:18:46 INFO tool.ImportTool:   --check-column customer_id
+22/11/08 09:18:46 INFO tool.ImportTool:   --last-value 12410
+22/11/08 09:18:46 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case16
+Found 8 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236455 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237289 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237456 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     239645 2022-11-07 09:25 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00003
+-rw-r--r--   3 nandagnk2141 nandagnk2141        241 2022-11-08 09:18 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00004
+-rw-r--r--   3 nandagnk2141 nandagnk2141        155 2022-11-08 09:18 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00005
+-rw-r--r--   3 nandagnk2141 nandagnk2141        160 2022-11-08 09:18 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00006
+-rw-r--r--   3 nandagnk2141 nandagnk2141        237 2022-11-08 09:18 /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00007
+
+try re-importing the data by giving last-value as 12410, expected it should not import anything as already all the records were imported.
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 12410
+
+[nandagnk2141@cxln5 ~]$ sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id
+ --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 12410
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 09:21:17 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/08 09:21:17 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/08 09:21:17 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/08 09:21:17 INFO tool.CodeGenTool: Beginning code generation
+22/11/08 09:21:18 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 09:21:18 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 09:21:18 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/4bb12f4042c9b38ac8aac20e5c39457e/cust_nanda.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/08 09:21:20 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/4bb12f4042c9b38ac8aac20e5c39457e/cust_nanda.jar
+22/11/08 09:21:21 INFO tool.ImportTool: Maximal id query for free form incremental import: SELECT MAX(`customer_id`) FROM `cust_nanda`
+22/11/08 09:21:21 INFO tool.ImportTool: Incremental import based on column `customer_id`
+22/11/08 09:21:21 INFO tool.ImportTool: No new rows detected since last import.
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case16/part-m-00004 | head
+12401,Richard,Hernandez,XXXXXXXXX,XXXXXXXXX,6303 Heather Plaza,Brownsville,TX,78521
+12402,Mary,Barrett,XXXXXXXXX,XXXXXXXXX,9526 Noble Embers Ridge,Littleton,CO,80126
+12403,Ann,Smith,XXXXXXXXX,XXXXXXXXX,3422 Blue Pioneer Bend,Caguas,PR,00725
+[nandagnk2141@cxln5 ~]$ 
+
+===================================================================================================================
+Use Case 17
+===========
+
+creating sqoop job
+
+purpose of sqoop job is to maintain the last-value of the incremental append import in the system itself, so that we don't need to remember/key in the value everytime.
+
+sqoop job --create sqoop_job_1_il_cust_nanda -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case17 --incremental append --check-column customer_id --last-value 0
+
+[nandagnk2141@cxln5 ~]$ sqoop job --create sqoop_job_1_il_cust_nanda -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp
+ --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case17 --incremental append --check-column customer_id --last-value 0
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 09:59:21 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/08 09:59:21 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+
+
+To list the sqoop jobs use the command sqoop job --list
+
+[nandagnk2141@cxln5 ~]$ sqoop job --list
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 09:59:49 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Available jobs:
+  sqoop_job_1_il_cust_nanda
+  
+  
+To execute a sqoop job use the command sqoop job --exec <sqoop_job_name>
+
+
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_1_il_cust_nanda
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 10:05:48 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Enter password: 
+22/11/08 10:05:52 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/08 10:05:52 INFO tool.CodeGenTool: Beginning code generation
+22/11/08 10:05:52 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 10:05:52 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 10:05:52 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/1071d8552d5da652b2805c178ccf21ed/cust_nanda.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/08 10:05:54 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/1071d8552d5da652b2805c178ccf21ed/cust_nanda.jar
+22/11/08 10:05:55 INFO tool.ImportTool: Maximal id query for free form incremental import: SELECT MAX(`customer_id`) FROM `cust_nanda`
+22/11/08 10:05:55 INFO tool.ImportTool: Incremental import based on column `customer_id`
+22/11/08 10:05:55 INFO tool.ImportTool: Lower bound value: 0
+22/11/08 10:05:55 INFO tool.ImportTool: Upper bound value: 12410
+
+22/11/08 10:05:57 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`customer_id`), MAX(`customer_id`) FROM `cust_nanda` WHERE ( `customer_id` > 0 AND `customer_id` <= 124
+10 )
+22/11/08 10:05:57 INFO db.IntegerSplitter: Split size: 3102; Num splits: 4 from: 1 to: 12410
+22/11/08 10:05:57 INFO mapreduce.JobSubmitter: number of splits:4
+
+22/11/08 10:06:16 INFO mapreduce.ImportJobBase: Transferred 929.334 KB in 20.4347 seconds (45.4782 KB/sec)
+22/11/08 10:06:16 INFO mapreduce.ImportJobBase: Retrieved 12410 records.
+22/11/08 10:06:16 INFO util.AppendUtils: Creating missing output directory - case17
+22/11/08 10:06:16 INFO tool.ImportTool: Saving incremental import state to the metastore
+22/11/08 10:06:16 INFO tool.ImportTool: Updated data for job: sqoop_job_1_il_cust_nanda
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case17
+Found 4 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236695 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237424 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237615 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     239904 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00003
+
+
+insert 10 new records and then reexecute the job again to import the newly added 10 records
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_nanda select customer_id+12410,customer_fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_nanda select cust
+omer_id+12410,customer_fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 10:09:25 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/08 10:09:25 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/08 10:09:26 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/08 10:09:26 INFO tool.EvalSqlTool: 10 row(s) updated.
+
+run the job now
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_1_il_cust_nanda
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 10:09:51 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Enter password: 
+22/11/08 10:09:59 INFO tool.ImportTool: Incremental import based on column `customer_id`
+22/11/08 10:09:59 INFO tool.ImportTool: Lower bound value: 12410
+22/11/08 10:09:59 INFO tool.ImportTool: Upper bound value: 12420
+22/11/08 10:09:59 WARN manager.MySQLManager: It looks like you are importing from mysql.
+22/11/08 10:09:59 WARN manager.MySQLManager: This transfer can be faster! Use the --direct
+22/11/08 10:09:59 WARN manager.MySQLManager: option to exercise a MySQL-specific fast path.
+22/11/08 10:09:59 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+22/11/08 10:09:59 INFO mapreduce.ImportJobBase: Beginning import of cust_nanda
+22/11/08 10:10:00 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/08 10:10:00 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/08 10:10:02 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/08 10:10:02 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`customer_id`), MAX(`customer_id`) FROM `cust_nanda` WHERE ( `customer_id` > 12410 AND `customer_id` <=
+ 12420 )
+22/11/08 10:10:02 INFO db.IntegerSplitter: Split size: 2; Num splits: 4 from: 12411 to: 12420
+22/11/08 10:10:02 INFO mapreduce.JobSubmitter: number of splits:4
+
+22/11/08 10:10:19 INFO mapreduce.ImportJobBase: Transferred 793 bytes in 19.576 seconds (40.5088 bytes/sec)
+22/11/08 10:10:19 INFO mapreduce.ImportJobBase: Retrieved 10 records.
+22/11/08 10:10:19 INFO util.AppendUtils: Appending to directory case17
+22/11/08 10:10:19 INFO util.AppendUtils: Using found partition 4
+22/11/08 10:10:19 INFO tool.ImportTool: Saving incremental import state to the metastore
+22/11/08 10:10:19 INFO tool.ImportTool: Updated data for job: sqoop_job_1_il_cust_nanda
+
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case17
+Found 8 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236695 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237424 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237615 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     239904 2022-11-08 10:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00003
+-rw-r--r--   3 nandagnk2141 nandagnk2141        241 2022-11-08 10:10 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00004
+-rw-r--r--   3 nandagnk2141 nandagnk2141        155 2022-11-08 10:10 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00005
+-rw-r--r--   3 nandagnk2141 nandagnk2141        160 2022-11-08 10:10 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00006
+-rw-r--r--   3 nandagnk2141 nandagnk2141        237 2022-11-08 10:10 /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00007
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case17/part-m-00007
+12418,Megan,Smith,XXXXXXXXX,XXXXXXXXX,3047 Foggy Forest Plaza,Lawrence,MA,01841
+12419,Mary,Perez,XXXXXXXXX,XXXXXXXXX,3616 Quaking Street,Caguas,PR,00725
+12420,Melissa,Smith,XXXXXXXXX,XXXXXXXXX,8598 Harvest Beacon Plaza,Stafford,VA,22554
+
+The last-value is getting stored in the edgenote in the form of metadata
+
+will be there in the hidden folder .sqoop
+
+-rw-------     1 nandagnk2141 nandagnk2141    5448 Nov  8 06:00 .viminfo
+-rw-------     1 nandagnk2141 nandagnk2141   14961 Nov  8 08:25 .bash_history
+drwx------    18 nandagnk2141 nandagnk2141    4096 Nov  8 09:59 .
+drwxr-xr-x     2 nandagnk2141 nandagnk2141    4096 Nov  8 10:10 .sqoop
+
+[nandagnk2141@cxln5 ~]$ whoami
+nandagnk2141
+[nandagnk2141@cxln5 ~]$ cd .sqoop
+[nandagnk2141@cxln5 .sqoop]$ ls -ltr
+total 12
+-rw-r--r-- 1 nandagnk2141 nandagnk2141 7387 Nov  8 10:10 metastore.db.script
+-rw-r--r-- 1 nandagnk2141 nandagnk2141  419 Nov  8 10:10 metastore.db.properties
+
+the value is stored in the file metastore.db.script
+
+
+INSERT INTO SQOOP_SESSIONS VALUES('sqoop_job_1_il_cust_nanda','incremental.last.value','12420','SqoopOptions')
+INSERT INTO SQOOP_SESSIONS VALUES('sqoop_job_1_il_cust_nanda','db.connect.string','jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db','SqoopOptions')
+INSERT INTO SQOOP_SESSIONS VALUES('sqoop_job_1_il_cust_nanda','codegen.output.delimiters.escape','0','SqoopOptions')
+INSERT INTO SQOOP_SESSIONS VALUES('sqoop_job_1_il_cust_nanda','codegen.output.delimiters.enclose.required','false','SqoopOptions')
+INSERT INTO SQOOP_SESSIONS VALUES('sqoop_job_1_il_cust_nanda','codegen.input.delimiters.field','0','SqoopOptions')
+INSERT INTO SQOOP_SESSIONS VALUES('sqoop_job_1_il_cust_nanda','mainframe.input.dataset.type','p','SqoopOptions')
+=================================================================================================================
+
+Use Case 18
+===========
+
+Here everytime when we run the job manully we need enter the password, but in real time it should get automated
+
+This can be achieved by serialzing the the password 
+
+echo -n NHkkP876rp > sqoopuser.password
+chmod 400 sqoopuser.password
+hdfs dfs -mkdir /user/nandagnk2141/nanda/sqoopuser
+hdfs dfs -put sqoopuser.password /user/nandagnk2141/nanda/sqoopuser
+
+[nandagnk2141@cxln5 ~]$ echo -n NHkkP876rp > sqoopuser.password
+[nandagnk2141@cxln5 ~]$ ls -ltr sqoop*
+-rw-r--r-- 1 nandagnk2141 nandagnk2141 10 Nov  8 14:01 sqoopuser.password
+[nandagnk2141@cxln5 ~]$ chmod 400 sqoopuser.password
+[nandagnk2141@cxln5 ~]$ ls -ltr sqoop*
+-r-------- 1 nandagnk2141 nandagnk2141 10 Nov  8 14:01 sqoopuser.password
+[nandagnk2141@cxln5 ~]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/sqoopuser
+[nandagnk2141@cxln5 ~]$ hdfs dfs -put sqoopuser.password /user/nandagnk2141/nanda/sqoopuser
+
+
+-----creating job with password serialization 
+
+sqoop job --create sqoop_job_2_il_cust_nanda -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case18 --incremental append --check-column customer_id --last-value 0
+
+[nandagnk2141@cxln5 ~]$ sqoop job --create sqoop_job_2_il_cust_nanda -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user
+/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case18 --incremental append --check-colu
+mn customer_id --last-value 0
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 14:05:59 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+[nandagnk2141@cxln5 ~]$ sqoop job --list
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 14:06:25 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Available jobs:
+  sqoop_job_1_il_cust_nanda
+  sqoop_job_2_il_cust_nanda
+  
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_2_il_cust_nanda
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 14:08:22 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/08 14:08:24 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/08 14:08:24 INFO tool.CodeGenTool: Beginning code generation
+22/11/08 14:08:24 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 14:08:24 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 14:08:24 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/a79c188de7b596a7cb19a66b509538f3/cust_nanda.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/08 14:08:26 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/a79c188de7b596a7cb19a66b509538f3/cust_nanda.jar
+22/11/08 14:08:26 INFO tool.ImportTool: Maximal id query for free form incremental import: SELECT MAX(`customer_id`) FROM `cust_nanda`
+22/11/08 14:08:26 INFO tool.ImportTool: Incremental import based on column `customer_id`
+22/11/08 14:08:26 INFO tool.ImportTool: Lower bound value: 0
+22/11/08 14:08:26 INFO tool.ImportTool: Upper bound value: 12420
+22/11/08 14:08:28 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`customer_id`), MAX(`customer_id`) FROM `cust_nanda` WHERE ( `customer_id` > 0 AND `customer_id` <= 124
+20 )
+22/11/08 14:08:28 INFO db.IntegerSplitter: Split size: 3104; Num splits: 4 from: 1 to: 12420
+22/11/08 14:08:28 INFO mapreduce.JobSubmitter: number of splits:4
+22/11/08 14:08:28 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_17542
+22/11/08 14:08:29 INFO impl.YarnClientImpl: Submitted application application_1648130833540_17542
+                Total committed heap usage (bytes)=782761984
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=952431
+22/11/08 14:08:44 INFO mapreduce.ImportJobBase: Transferred 930.1084 KB in 18.5064 seconds (50.2587 KB/sec)
+22/11/08 14:08:44 INFO mapreduce.ImportJobBase: Retrieved 12420 records.
+22/11/08 14:08:44 INFO util.AppendUtils: Creating missing output directory - case18
+22/11/08 14:08:44 INFO tool.ImportTool: Saving incremental import state to the metastore
+22/11/08 14:08:44 INFO tool.ImportTool: Updated data for job: sqoop_job_2_il_cust_nanda
+
+  
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case18
+Found 4 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141     236846 2022-11-08 14:08 /user/nandagnk2141/nanda/sqoop_lab/lab1/case18/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237645 2022-11-08 14:08 /user/nandagnk2141/nanda/sqoop_lab/lab1/case18/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237879 2022-11-08 14:08 /user/nandagnk2141/nanda/sqoop_lab/lab1/case18/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     240061 2022-11-08 14:08 /user/nandagnk2141/nanda/sqoop_lab/lab1/case18/part-m-00003
+
+
+creating a shell script to run the job and schedule the job in crontab
+
+[nandagnk2141@cxln5 nanda]$ cat cust_nanda.sh
+#!/bin/bash
+sqoop job --exec sqoop_job_2_il_cust_nanda
+
+[nandagnk2141@cxln5 nanda]$ sh cust_nanda.sh
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/08 14:27:17 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/08 14:27:19 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/08 14:27:19 INFO tool.CodeGenTool: Beginning code generation
+22/11/08 14:27:19 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 14:27:20 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_nanda` AS t LIMIT 1
+22/11/08 14:27:20 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/be992cc037a35f704b71a76e51842280/cust_nanda.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/08 14:27:21 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/be992cc037a35f704b71a76e51842280/cust_nanda.jar
+22/11/08 14:27:21 INFO tool.ImportTool: Maximal id query for free form incremental import: SELECT MAX(`customer_id`) FROM `cust_nanda`
+22/11/08 14:27:21 INFO tool.ImportTool: Incremental import based on column `customer_id`
+22/11/08 14:27:21 INFO tool.ImportTool: No new rows detected since last import.
+
+
+[nandagnk2141@cxln5 nanda]$ crontab -l
+no crontab for nandagnk2141
+[nandagnk2141@cxln5 nanda]$ date
+Tue Nov  8 14:32:59 UTC 2022
+[nandagnk2141@cxln5 nanda]$ crontab -e
+no crontab for nandagnk2141 - using an empty one
+crontab: installing new crontab
+[nandagnk2141@cxln5 nanda]$ crontab -l
+35 14 * * * /user/nandagnk2141/nanda/cust_nanda.sh
+[nandagnk2141@cxln5 nanda]$ date
+Tue Nov  8 14:34:25 UTC 2022
+
+
+adding 10 more records to see whether the sheduler job picks the newly inserted records
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select max(customer_id) from cust_nanda"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_nanda select customer_id+12430,customer_fname,customer_lname,customer_email, customer_password, customer_street, customer_city, customer_state, customer_zipcode from cust_nanda limit 10"
+
+==================================================================================================================
+
+
+Use Case 19
+===========
+
+Handling Delta load import
+
+Note:  Delta load or incremental lastmodified import requires  a date/timestamp column present in the table to use in the last-value parameter.
+
+key words
+
+--incremental lastmodified
+--merge-key (primary key column)  ---This is required for the delta records to update the file
+--check-column (should be the date/timestamp column based on which the data is going be filtered/identified for import)
+
+Creating a table
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "create table cust_test_im (id int,name varchar(30),salary float,deptno int, created_dt date, last_modified date)"
+
+inserting 10 records
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (1,'aaaa',4500,10,'2015-09-20','2015-09-20')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (2,'aaaa',4500,10,'2015-09-20','2015-09-23')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (3,'aaaa',4500,10,'2015-09-22','2015-09-22')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (4,'aaaa',4500,10,'2016-01-20','2016-01-20')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (5,'aaaa',4500,10,'2016-01-25','2016-01-25')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (6,'aaaa',4500,10,'2016-01-29','2016-01-29')"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_test_im"
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case19 --incremental lastmodified --check-column last_modified --last-value 0
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case19
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 09:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141         78 2022-11-09 09:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         39 2022-11-09 09:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         39 2022-11-09 09:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141         78 2022-11-09 09:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-m-00003
+
+inserting another 2 records and then try importing the incremental data with an import 
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (7,'aaaa',4500,10,'2016-02-25','2016-02-25')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (8,'aaaa',4500,10,'2016-02-29','2016-02-29')"
+
+now importing the last 2 records inserted
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case19 --merge-key id --incremental lastmodified --check-column last_modified --last-value 2016-02-01
+
+22/11/09 09:55:51 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/09 09:55:51 INFO tool.ImportTool:  --incremental lastmodified
+22/11/09 09:55:51 INFO tool.ImportTool:   --check-column last_modified
+22/11/09 09:55:51 INFO tool.ImportTool:   --last-value 2022-11-09 09:55:08.0
+22/11/09 09:55:51 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case19
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 09:55 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        312 2022-11-09 09:55 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-r-00000
+
+now insert two new records and update two existing records and then apply import
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (9,'aaaa',4500,10,'2016-03-12','2016-03-15')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_im values (10,'aaaa',4500,10,'2016-03-25','2016-03-25')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "update cust_test_im set salary = 5000 where id = 5"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "update cust_test_im set salary = 5000,last_modified = '2016-03-20' where id = 6"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_test_im"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 10:05:59 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/09 10:05:59 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/09 10:05:59 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+---------------------------------------------------------------------------------------------
+| id          | name                 | salary       | deptno      | created_dt | last_modified | 
+---------------------------------------------------------------------------------------------
+| 1           | aaaa                 | 4500         | 10          | 2015-09-20 | 2015-09-20 | 
+| 2           | aaaa                 | 4500         | 10          | 2015-09-20 | 2015-09-23 | 
+| 3           | aaaa                 | 4500         | 10          | 2015-09-22 | 2015-09-22 | 
+| 4           | aaaa                 | 4500         | 10          | 2016-01-20 | 2016-01-20 | 
+| 5           | aaaa                 | 5000         | 10          | 2016-01-25 | 2016-01-25 | 
+| 6           | aaaa                 | 5000         | 10          | 2016-01-29 | 2016-03-20 | 
+| 7           | aaaa                 | 4500         | 10          | 2016-02-25 | 2016-02-25 | 
+| 8           | aaaa                 | 4500         | 10          | 2016-02-29 | 2016-02-29 | 
+| 9           | aaaa                 | 4500         | 10          | 2016-03-12 | 2016-03-15 | 
+| 10          | aaaa                 | 4500         | 10          | 2016-03-25 | 2016-03-25 | 
+---------------------------------------------------------------------------------------------
+
+now import the data using incremental lastmodified command
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case19 --merge-key id --incremental lastmodified --check-column last_modified --last-value 2016-03-01
+
+Note: /tmp/sqoop-nandagnk2141/compile/0b835b76a3d864994f473428357f53fc/cust_test_im.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/09 10:07:03 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/0b835b76a3d864994f473428357f53fc/cust_test_im.jar
+22/11/09 10:07:03 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_test_im` AS t LIMIT 1
+22/11/09 10:07:03 INFO tool.ImportTool: Incremental import based on column `last_modified`
+22/11/09 10:07:03 INFO tool.ImportTool: Lower bound value: '2016-03-01'
+22/11/09 10:07:03 INFO tool.ImportTool: Upper bound value: '2022-11-09 10:07:03.0'
+22/11/09 10:07:03 WARN manager.MySQLManager: It looks like you are importing from mysql.
+
+22/11/09 10:07:43 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/09 10:07:43 INFO tool.ImportTool:  --incremental lastmodified
+22/11/09 10:07:43 INFO tool.ImportTool:   --check-column last_modified
+22/11/09 10:07:43 INFO tool.ImportTool:   --last-value 2022-11-09 10:07:03.0
+22/11/09 10:07:43 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case19
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 10:07 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        391 2022-11-09 10:07 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-r-00000
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-r-00000
+1,aaaa,4500.0,10,2015-09-20,2015-09-20
+10,aaaa,4500.0,10,2016-03-25,2016-03-25
+2,aaaa,4500.0,10,2015-09-20,2015-09-23
+3,aaaa,4500.0,10,2015-09-22,2015-09-22
+4,aaaa,4500.0,10,2016-01-20,2016-01-20
+5,aaaa,4500.0,10,2016-01-25,2016-01-25
+6,aaaa,5000.0,10,2016-01-29,2016-03-20
+7,aaaa,4500.0,10,2016-02-25,2016-02-25
+8,aaaa,4500.0,10,2016-02-29,2016-02-29
+9,aaaa,4500.0,10,2016-03-12,2016-03-15
+
+5th record is not updated as the last_modified column was not updated in the record
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case19 --merge-key id --incremental lastmodified --check-column last_modified --last-value 2016-01-20
+
+
+22/11/09 10:15:13 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/09 10:15:13 INFO tool.ImportTool:  --incremental lastmodified
+22/11/09 10:15:13 INFO tool.ImportTool:   --check-column last_modified
+22/11/09 10:15:13 INFO tool.ImportTool:   --last-value 2022-11-09 10:14:29.0
+22/11/09 10:15:13 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case19
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 10:15 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        391 2022-11-09 10:15 /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-r-00000
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case19/part-r-00000
+1,aaaa,4500.0,10,2015-09-20,2015-09-20
+10,aaaa,4500.0,10,2016-03-25,2016-03-25
+2,aaaa,4500.0,10,2015-09-20,2015-09-23
+3,aaaa,4500.0,10,2015-09-22,2015-09-22
+4,aaaa,4500.0,10,2016-01-20,2016-01-20
+5,aaaa,5000.0,10,2016-01-25,2016-01-25
+6,aaaa,5000.0,10,2016-01-29,2016-03-20
+7,aaaa,4500.0,10,2016-02-25,2016-02-25
+8,aaaa,4500.0,10,2016-02-29,2016-02-29
+9,aaaa,4500.0,10,2016-03-12,2016-03-15
+
+==================================================================================================
+Assignments
+==================================================================================================
+
+Task 1 
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "create table cust_test_task1 (cust_id int,cust_name varchar(30),cust_loc varchar(30), cust_doj timestamp)"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "describe cust_test_task1"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "describe cust_test_task1"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 13:37:26 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/09 13:37:26 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/09 13:37:27 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+---------------------------------------------------------------------------------------------------------
+| Field                | Type                 | Null | Key | Default              | Extra                | 
+---------------------------------------------------------------------------------------------------------
+| cust_id              | int(11)              | YES |     | (null)               |                      | 
+| cust_name            | varchar(30)          | YES |     | (null)               |                      | 
+| cust_loc             | varchar(30)          | YES |     | (null)               |                      | 
+| cust_doj             | timestamp            | NO  |     | CURRENT_TIMESTAMP    | on update CURRENT_TIMESTAMP | 
+---------------------------------------------------------------------------------------------------------
+
+inserting 5 records
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values (1,'Nanda','Chennai','2015-09-21 14:10:15')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values
+(2,'Kumar','Madurai','2015-09-25 08:10:15')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values (3,'Govindnk','Sydney','2016-01-02 08:10:15')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values (4,'Nanda Kumar','Sydney','2019-01-02 08:10:15')"
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values (5,'Nanda Govindan','Sydney','2019-06-09 08:10:15')"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "update cust_test_task1 set cust_doj = '2019-06-09 08:10:15' where cust_id = 5"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_test_task1"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_test_task1"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 13:31:03 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/09 13:31:03 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/09 13:31:03 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+-----------------------------------------------------------------------------------
+| cust_id     | cust_name            | cust_loc             | cust_doj            | 
+-----------------------------------------------------------------------------------
+| 1           | Nanda                | Chennai              | 2015-09-21 14:10:15.0 | 
+| 2           | Kumar                | Madurai              | 2015-09-25 08:10:15.0 | 
+| 3           | Govindnk             | Sydney               | 2016-01-02 08:10:15.0 | 
+| 4           | Nanda Kumar          | Sydney               | 2019-01-02 08:10:15.0 | 
+| 5           | Nanda Govindan       | Sydney               | 2019-06-09 08:10:15.0 | 
+-----------------------------------------------------------------------------------
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_task1 --split-by cust_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task1 --merge-key cust_id --incremental lastmodified --check-column cust_doj --last-value '2015-01-01 00:00:00'
+
+22/11/09 13:34:40 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/09 13:34:40 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/09 13:34:41 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/09 13:34:41 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`cust_id`), MAX(`cust_id`) FROM `cust_test_task1` WHERE ( `cust_doj` >= '2015-01-01 00:00:00' AND `cust
+_doj` < '2022-11-09 13:34:39.0' )
+22/11/09 13:34:41 INFO db.IntegerSplitter: Split size: 1; Num splits: 4 from: 1 to: 5
+22/11/09 13:34:41 INFO mapreduce.JobSubmitter: number of splits:5
+
+22/11/09 13:35:07 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/09 13:35:07 INFO tool.ImportTool:  --incremental lastmodified
+22/11/09 13:35:07 INFO tool.ImportTool:   --check-column cust_doj
+22/11/09 13:35:07 INFO tool.ImportTool:   --last-value 2022-11-09 13:34:39.0
+22/11/09 13:35:07 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task1
+Found 6 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 13:35 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141         38 2022-11-09 13:34 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         38 2022-11-09 13:35 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         40 2022-11-09 13:34 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141         43 2022-11-09 13:34 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-m-00003
+-rw-r--r--   3 nandagnk2141 nandagnk2141         46 2022-11-09 13:35 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-m-00004
+
+additing one new record and updating an existing record
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values (5,'Nanda Kumar Govindan','Sydney','2022-11-09 08:10:15')"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "update cust_test_task1 set cust_loc = 'Melbourne' where cust_id = 3"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_test_task1"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 13:42:35 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/09 13:42:35 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/09 13:42:35 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+-----------------------------------------------------------------------------------
+| cust_id     | cust_name            | cust_loc             | cust_doj            | 
+-----------------------------------------------------------------------------------
+| 1           | Nanda                | Chennai              | 2015-09-21 14:10:15.0 | 
+| 2           | Kumar                | Madurai              | 2015-09-25 08:10:15.0 | 
+| 3           | Govindnk             | Melbourne            | 2022-11-09 13:40:52.0 | 
+| 4           | Nanda Kumar          | Sydney               | 2019-01-02 08:10:15.0 | 
+| 5           | Nanda Govindan       | Sydney               | 2019-06-09 08:10:15.0 | 
+| 5           | Nanda Kumar Govindan | Sydney               | 2022-11-09 08:10:15.0 | 
+-----------------------------------------------------------------------------------
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_task1 --split-by cust_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task1 --merge-key cust_id --incremental lastmodified --check-column cust_doj --last-value '2019-11-09 00:00:00'
+
+22/11/09 13:43:37 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/09 13:43:39 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/09 13:43:39 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`cust_id`), MAX(`cust_id`) FROM `cust_test_task1` WHERE ( `cust_doj` >= '2019-11-09 00:00:00' AND `cust
+_doj` < '2022-11-09 13:43:37.0' )
+22/11/09 13:43:39 INFO db.IntegerSplitter: Split size: 0; Num splits: 4 from: 3 to: 5
+22/11/09 13:43:39 INFO mapreduce.JobSubmitter: number of splits:3
+
+22/11/09 13:44:21 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/09 13:44:21 INFO tool.ImportTool:  --incremental lastmodified
+22/11/09 13:44:21 INFO tool.ImportTool:   --check-column cust_doj
+22/11/09 13:44:21 INFO tool.ImportTool:   --last-value 2022-11-09 13:43:37.0
+22/11/09 13:44:21 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task1
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 13:44 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        214 2022-11-09 13:44 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-r-00000
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task1
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 13:44 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        214 2022-11-09 13:44 /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-r-00000
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/task1/part-r-00000
+1,Nanda,Chennai,2015-09-21 14:10:15.0
+2,Kumar,Madurai,2015-09-25 08:10:15.0
+3,Govindnk,Melbourne,2022-11-09 13:40:52.0
+4,Nanda Kumar,Sydney,2019-01-02 08:10:15.0
+5,Nanda Kumar Govindan,Sydney,2022-11-09 08:10:15.0
+
+========================================================================================================================================
+Task 2 -- Repeat task 1 by creating a sqoop job
+
+sqoop job --create sqoop_job_task2 -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_task1 --split-by cust_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task2 --merge-key cust_id --incremental lastmodified --check-column cust_doj --last-value '2015-01-01 00:00:00'
+
+[nandagnk2141@cxln5 ~]$ sqoop job --create sqoop_job_task2 -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2
+141/nanda/sqoopuser/sqoopuser.password --table cust_test_task1 --split-by cust_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task2 --merge-key cust_id --incremental lastmodif
+ied --check-column cust_doj --last-value '2015-01-01 00:00:00'
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 13:55:34 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+
+[nandagnk2141@cxln5 ~]$ sqoop job --list
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 13:55:59 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Available jobs:
+  sqoop_job_1_il_cust_nanda
+  sqoop_job_2_il_cust_nanda
+  sqoop_job_task2
+  
+executing sqoop job
+
+sqoop job --exec sqoop_job_task2 
+
+22/11/09 13:57:23 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/09 13:57:25 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/09 13:57:25 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`cust_id`), MAX(`cust_id`) FROM `cust_test_task1` WHERE ( `cust_doj` >= '2015-01-01 00:00:00' AND `cust
+_doj` < '2022-11-09 13:57:22.0' )
+22/11/09 13:57:25 INFO db.IntegerSplitter: Split size: 1; Num splits: 4 from: 1 to: 5
+22/11/09 13:57:25 INFO mapreduce.JobSubmitter: number of splits:5
+22/11/09 13:57:25 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_17707
+22/11/09 13:57:26 INFO impl.YarnClientImpl: Submitted application application_1648130833540_17707
+
+22/11/09 13:57:41 INFO mapreduce.ImportJobBase: Transferred 260 bytes in 18.5874 seconds (13.988 bytes/sec)
+22/11/09 13:57:41 INFO mapreduce.ImportJobBase: Retrieved 6 records.
+22/11/09 13:57:41 INFO tool.ImportTool: Final destination exists, will run merge job.
+22/11/09 13:57:41 INFO tool.ImportTool: Moving data from temporary directory _sqoop/65eb59de22924b1d93593f7830d32d15_cust_test_task1 to final destination /user/nandagnk2141/nanda/sqoop
+_lab/lab1/task2
+22/11/09 13:57:41 INFO tool.ImportTool: Saving incremental import state to the metastore
+22/11/09 13:57:41 INFO tool.ImportTool: Updated data for job: sqoop_job_task2
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task2
+Found 6 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 13:57 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141         38 2022-11-09 13:57 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141         38 2022-11-09 13:57 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141         43 2022-11-09 13:57 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141         43 2022-11-09 13:57 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-m-00003
+-rw-r--r--   3 nandagnk2141 nandagnk2141         98 2022-11-09 13:57 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-m-00004
+
+insert a new record and update one of the existing record and try executing the job again.
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "insert into cust_test_task1 values (6,'NandaGNK2141','Perth',null)"
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "update cust_test_task1 set cust_loc = 'NSW' where cust_id = 3"
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from cust_test_task1"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 14:02:01 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/09 14:02:01 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+22/11/09 14:02:01 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+-----------------------------------------------------------------------------------
+| cust_id     | cust_name            | cust_loc             | cust_doj            | 
+-----------------------------------------------------------------------------------
+| 1           | Nanda                | Chennai              | 2015-09-21 14:10:15.0 | 
+| 2           | Kumar                | Madurai              | 2015-09-25 08:10:15.0 | 
+| 3           | Govindnk             | NSW                  | 2022-11-09 14:01:31.0 | 
+| 4           | Nanda Kumar          | Sydney               | 2019-01-02 08:10:15.0 | 
+| 5           | Nanda Govindan       | Sydney               | 2019-06-09 08:10:15.0 | 
+| 5           | Nanda Kumar Govindan | Sydney               | 2022-11-09 08:10:15.0 | 
+| 6           | NandaGNK2141         | Perth                | 2022-11-09 14:01:19.0 | 
+-----------------------------------------------------------------------------------
+
+running the sqoop job again
+
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_task2
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/09 14:02:33 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+
+22/11/09 14:02:37 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `cust_test_task1` AS t LIMIT 1
+22/11/09 14:02:37 INFO tool.ImportTool: Incremental import based on column `cust_doj`
+22/11/09 14:02:37 INFO tool.ImportTool: Lower bound value: '2022-11-09 13:57:22.0'
+22/11/09 14:02:37 INFO tool.ImportTool: Upper bound value: '2022-11-09 14:02:37.0'
+
+                IO_ERROR=0
+                WRONG_LENGTH=0
+                WRONG_MAP=0
+                WRONG_REDUCE=0
+        File Input Format Counters 
+                Bytes Read=340
+        File Output Format Counters 
+                Bytes Written=251
+22/11/09 14:03:24 INFO tool.ImportTool: Saving incremental import state to the metastore
+22/11/09 14:03:24 INFO tool.ImportTool: Updated data for job: sqoop_job_task2
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task2
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 14:03 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        251 2022-11-09 14:03 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-r-00000
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task2
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-09 14:03 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        251 2022-11-09 14:03 /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-r-00000
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/task2/part-r-00000
+1,Nanda,Chennai,2015-09-21 14:10:15.0
+2,Kumar,Madurai,2015-09-25 08:10:15.0
+3,Govindnk,NSW,2022-11-09 14:01:31.0
+4,Nanda Kumar,Sydney,2019-01-02 08:10:15.0
+5,Nanda Kumar Govindan,Sydney,2022-11-09 08:10:15.0
+6,NandaGNK2141,Perth,2022-11-09 14:01:19.0
+
