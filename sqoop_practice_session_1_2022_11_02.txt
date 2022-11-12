@@ -385,7 +385,7 @@ Use Case 8
 ==========
 importing data(partial import) using a query with where clause instead of table name 
 
-sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from ycustomer_1 WHERE address='chennai' AND \$CONDITIONS"  -m 4 --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case8
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --query "select * from ycustomer_1 WHERE address='chennai' \$CONDITIONS"  -m 4 --split-by id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case8
 
 22/11/02 13:17:13 INFO manager.SqlManager: Executing SQL statement: select * from ycustomer_1 WHERE address='chennai' AND  (1 = 0) 
 22/11/02 13:17:13 INFO manager.SqlManager: Executing SQL statement: select * from ycustomer_1 WHERE address='chennai' AND  (1 = 0) 
@@ -398,7 +398,7 @@ Note: Recompile with -Xlint:deprecation for details.
 22/11/02 13:17:16 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
 22/11/02 13:17:16 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
 22/11/02 13:17:18 INFO db.DBInputFormat: Using read commited transaction isolation
-22/11/02 13:17:18 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(id), MAX(id) FROM (select * from ycustomer_1 WHERE address='chennai' AND  (1 = 1) ) AS t1
+22/11/02 13:17:18 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(id), MAX(id) FROM (select * from ycustomer_1 WHERE address='chennai' (1 = 1) ) AS t1
 22/11/02 13:17:18 INFO db.IntegerSplitter: Split size: 1; Num splits: 4 from: 1 to: 7
 22/11/02 13:17:18 INFO mapreduce.JobSubmitter: number of splits:4
 22/11/02 13:17:35 INFO mapreduce.ImportJobBase: Transferred 100 bytes in 19.4105 seconds (5.1518 bytes/sec)
@@ -929,6 +929,38 @@ Use Case 17
 ===========
 
 creating sqoop job
+
+[nandagnk2141@cxln5 ~]$ sqoop job --help
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 07:20:01 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+usage: sqoop job [GENERIC-ARGS] [JOB-ARGS] [-- [<tool-name>] [TOOL-ARGS]]
+Job management arguments:
+   --create <job-id>            Create a new saved job
+   --delete <job-id>            Delete a saved job
+   --exec <job-id>              Run a saved job
+   --help                       Print usage instructions
+   --list                       List saved jobs
+   --meta-connect <jdbc-uri>    Specify JDBC connect string for the
+                                metastore
+   --show <job-id>              Show the parameters for a saved job
+   --verbose                    Print more information while working
+Generic Hadoop command-line arguments:
+(must preceed any tool-specific arguments)
+Generic options supported are
+-conf <configuration file>     specify an application configuration file
+-D <property=value>            use value for given property
+-fs <local|namenode:port>      specify a namenode
+-jt <local|resourcemanager:port>    specify a ResourceManager
+-files <comma separated list of files>    specify comma separated files to be copied to the map reduce cluster
+-libjars <comma separated list of jars>    specify comma separated jar files to include in the classpath.
+-archives <comma separated list of archives>    specify comma separated archives to be unarchived on the compute machines.
+The general command line syntax is
+bin/hadoop command [genericOptions] [commandOptions]
+
 
 purpose of sqoop job is to maintain the last-value of the incremental append import in the system itself, so that we don't need to remember/key in the value everytime.
 
@@ -1652,3 +1684,538 @@ Found 2 items
 5,Nanda Kumar Govindan,Sydney,2022-11-09 08:10:15.0
 6,NandaGNK2141,Perth,2022-11-09 14:01:19.0
 
+=======================================================================================================================================
+Use Case 20
+===========
+
+Importing files into AVRO format.
+
+for avro file format 3 parameters are mandate
+
+1. -Dmapreduce.job.user.classpath.first=true
+2. --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec
+3. --as-avrodatafile
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table ycustomersk2 -m 1 --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case20 --delete-target-dir --as-avrodatafile
+
+[nandagnk2141@cxln5 ~]$ sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user
+/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table ycustomersk2 -m 1 --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case20 --delete-target-dir --as-avrodatafile
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/10 02:53:56 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/10 02:53:58 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/10 02:53:58 INFO tool.CodeGenTool: Beginning code generation
+22/11/10 02:53:58 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 02:53:58 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 02:53:58 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/e3fa7379049eac451c50497b643d1157/ycustomersk2.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/10 02:54:00 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/e3fa7379049eac451c50497b643d1157/ycustomersk2.jar
+22/11/10 02:54:00 INFO tool.ImportTool: Destination directory /user/nandagnk2141/nanda/sqoop_lab/lab1/case20 deleted.
+22/11/10 02:54:00 WARN manager.MySQLManager: It looks like you are importing from mysql.
+22/11/10 02:54:00 WARN manager.MySQLManager: This transfer can be faster! Use the --direct
+22/11/10 02:54:00 WARN manager.MySQLManager: option to exercise a MySQL-specific fast path.
+22/11/10 02:54:00 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+22/11/10 02:54:00 INFO mapreduce.ImportJobBase: Beginning import of ycustomersk2
+22/11/10 02:54:00 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 02:54:00 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 02:54:00 INFO mapreduce.DataDrivenImportJob: Writing Avro schema file: /tmp/sqoop-nandagnk2141/compile/e3fa7379049eac451c50497b643d1157/ycustomersk2.avsc
+22/11/10 02:54:01 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/10 02:54:01 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/10 02:54:02 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/10 02:54:02 INFO mapreduce.JobSubmitter: number of splits:1
+22/11/10 02:54:03 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_17766
+22/11/10 02:54:03 INFO impl.YarnClientImpl: Submitted application application_1648130833540_17766
+22/11/10 02:54:03 INFO mapreduce.Job: The url to track the job: http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_17766/
+22/11/10 02:54:03 INFO mapreduce.Job: Running job: job_1648130833540_17766
+22/11/10 02:54:11 INFO mapreduce.Job: Job job_1648130833540_17766 running in uber mode : false
+22/11/10 02:54:01 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/10 02:54:11 INFO mapreduce.Job:  map 0% reduce 0%
+22/11/10 02:54:17 INFO mapreduce.Job:  map 100% reduce 0%
+22/11/10 02:54:17 INFO mapreduce.Job: Job job_1648130833540_17766 completed successfully
+22/11/10 02:54:18 INFO mapreduce.Job: Counters: 30
+        File System Counters
+                FILE: Number of bytes read=0
+                FILE: Number of bytes written=170988
+                FILE: Number of read operations=0
+                FILE: Number of large read operations=0
+                FILE: Number of write operations=0
+                HDFS: Number of bytes read=87
+                HDFS: Number of bytes written=756
+                HDFS: Number of read operations=4
+                HDFS: Number of large read operations=0
+                HDFS: Number of write operations=2
+        Job Counters 
+                Launched map tasks=1
+                Other local map tasks=1
+                Total time spent by all maps in occupied slots (ms)=47928
+                Total time spent by all reduces in occupied slots (ms)=0
+                Total time spent by all map tasks (ms)=3994
+                Total vcore-milliseconds taken by all map tasks=3994
+                Total megabyte-milliseconds taken by all map tasks=6134784
+        Map-Reduce Framework
+                Map input records=12
+                Map output records=12
+                Input split bytes=87
+                Spilled Records=0
+                Failed Shuffles=0
+                Merged Map outputs=0
+                GC time elapsed (ms)=54
+                CPU time spent (ms)=1860
+                Physical memory (bytes) snapshot=236994560
+                Virtual memory (bytes) snapshot=4595445760
+                Total committed heap usage (bytes)=200802304
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=756
+22/11/10 02:54:18 INFO mapreduce.ImportJobBase: Transferred 756 bytes in 17.1661 seconds (44.0402 bytes/sec)
+22/11/10 02:54:18 INFO mapreduce.ImportJobBase: Retrieved 12 records.
+
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case20
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-10 02:54 /user/nandagnk2141/nanda/sqoop_lab/lab1/case20/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        756 2022-11-10 02:54 /user/nandagnk2141/nanda/sqoop_lab/lab1/case20/part-m-00000.avro
+[nandagnk2141@cxln5 ~]$ hdfs dfs -text /user/nandagnk2141/nanda/sqoop_lab/lab1/case20/part-m-00000.avro
+{"id":{"int":1},"name":{"string":"raj"},"age":{"int":25},"address":{"string":"chennai"},"salary":{"string":"2000.00"}}
+{"id":{"int":2},"name":{"string":"ram"},"age":{"int":25},"address":{"string":"bangalore"},"salary":{"string":"2000.00"}}
+{"id":{"int":3},"name":{"string":"raj"},"age":{"int":25},"address":{"string":"chennai"},"salary":{"string":"2000.00"}}
+{"id":{"int":4},"name":{"string":"raja"},"age":{"int":25},"address":{"string":"madurai"},"salary":{"string":"2000.00"}}
+{"id":{"int":1},"name":{"string":"raj"},"age":{"int":25},"address":{"string":"chennai"},"salary":{"string":"2000.00"}}
+{"id":{"int":2},"name":{"string":"ram"},"age":{"int":25},"address":{"string":"bangalore"},"salary":{"string":"2000.00"}}
+{"id":{"int":3},"name":{"string":"raj"},"age":{"int":25},"address":{"string":"chennai"},"salary":{"string":"2000.00"}}
+{"id":{"int":4},"name":{"string":"raja"},"age":{"int":25},"address":{"string":"madurai"},"salary":{"string":"2000.00"}}
+{"id":{"int":40},"name":{"string":"shyam"},"age":{"int":30},"address":{"string":"hyderabad"},"salary":{"string":"4000.00"}}
+{"id":{"int":40},"name":{"string":"shyam"},"age":{"int":30},"address":{"string":"hyderabad"},"salary":{"string":"4000.00"}}
+{"id":{"int":40},"name":{"string":"shyam"},"age":{"int":30},"address":{"string":"hyderabad"},"salary":{"string":"4000.00"}}
+{"id":{"int":40},"name":{"string":"shyam"},"age":{"int":30},"address":{"string":"hyderabad"},"salary":{"string":"4000.00"}}
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case20/part-m-00000.avro
+Objavro.sch{"type":"record","name":"ycustomersk2","doc":"Sqoop import of ycustomersk2","fields":[{"name":"id","type":["null","int"],"default":null,"columnName":"id","sqlType":"4"},{
+"name":"name","type":["null","string"],"default":null,"columnName":"name","sqlType":"12"},{"name":"age","type":["null","int"],"default":null,"columnName":"age","sqlType":"4"},{"name":"
+address","type":["null","string"],"default":null,"columnName":"address","sqlType":"1"},{"name":"salary","type":["null","string"],"default":null,"columnName":"salary","sqlType":"3"}],"t
+ableName":"ycustomersk2"}avro.codec
+                                   snappy��Bms��0��z(>�?��p␌␤␊┼┼▒␋2000.00└2␉▒┼±▒┌V⎼▒┘▒T└▒␍┤⎼�⎺�⎺\P
+��┼��␍��B└⎽��0��≥(>�[┼▒┼␍▒±┼┐2141@␌│┌┼5 ·]$ 
+
+use case 21
+===========
+
+using free form query into avrodatafile
+
+sqoop import using free from query requires WHERE 1=1 \$CONDITIONS mandate
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -query "select * from ycustomersk2 WHERE 1=1 \$CONDITIONS" -m 1 --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case21 --delete-target-dir --as-avrodatafile
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case21
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-10 03:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case21/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141        761 2022-11-10 03:06 /user/nandagnk2141/nanda/sqoop_lab/lab1/case21/part-m-00000.avro
+
+avro file format generate the .avsc file as well which can be found in edge node
+drwxr-xr-x     2 nandagnk2141 nandagnk2141    4096 Nov  9 14:03 .sqoop
+-rw-r--r--     1 nandagnk2141 mail             154 Nov  9 14:35 dead.letter
+-rw-r--r--     1 nandagnk2141 nandagnk2141     800 Nov 10 01:14 ycustomersk2.avsc
+-rw-r--r--     1 nandagnk2141 nandagnk2141     805 Nov 10 03:05 AutoGeneratedSchema.avsc
+
+
+=============================================================================================
+
+use case 22 parquet file format
+
+note: parquet file format generate the data in the form for columnar
+also it generates a metadata file and signal file.
+
+when we want import process few columns then parquet is best
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table ycustomersk2 -m 1 --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case22 --delete-target-dir --as-parquetfile
+
+[nandagnk2141@cxln5 ~]$ sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user
+/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table ycustomersk2 -m 1 --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda
+/sqoop_lab/lab1/case22 --delete-target-dir --as-parquetfile
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/10 03:11:26 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/10 03:11:27 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/10 03:11:27 INFO tool.CodeGenTool: Beginning code generation
+22/11/10 03:11:27 INFO tool.CodeGenTool: Will generate java class as codegen_ycustomersk2
+22/11/10 03:11:27 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 03:11:28 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 03:11:28 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-nandagnk2141/compile/19a998605c350b34f4fd225e1fb16f43/codegen_ycustomersk2.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+22/11/10 03:11:29 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-nandagnk2141/compile/19a998605c350b34f4fd225e1fb16f43/codegen_ycustomersk2.jar
+22/11/10 03:11:29 INFO tool.ImportTool: Destination directory /user/nandagnk2141/nanda/sqoop_lab/lab1/case22 is not present, hence not deleting.
+22/11/10 03:11:29 WARN manager.MySQLManager: It looks like you are importing from mysql.
+22/11/10 03:11:29 WARN manager.MySQLManager: This transfer can be faster! Use the --direct
+22/11/10 03:11:29 WARN manager.MySQLManager: option to exercise a MySQL-specific fast path.
+22/11/10 03:11:29 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+22/11/10 03:11:29 INFO mapreduce.ImportJobBase: Beginning import of ycustomersk2
+22/11/10 03:11:29 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 03:11:29 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `ycustomersk2` AS t LIMIT 1
+22/11/10 03:11:31 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+22/11/10 03:11:31 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+22/11/10 03:11:32 INFO db.DBInputFormat: Using read commited transaction isolation
+22/11/10 03:11:32 INFO mapreduce.JobSubmitter: number of splits:1
+22/11/10 03:11:32 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_17768
+22/11/10 03:11:33 INFO impl.YarnClientImpl: Submitted application application_1648130833540_17768
+22/11/10 03:11:33 INFO mapreduce.Job: The url to track the job: http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_17768/
+22/11/10 03:11:33 INFO mapreduce.Job: Running job: job_1648130833540_17768
+22/11/10 03:11:43 INFO mapreduce.Job: Job job_1648130833540_17768 running in uber mode : false
+22/11/10 03:11:43 INFO mapreduce.Job:  map 0% reduce 0%
+22/11/10 03:11:50 INFO mapreduce.Job:  map 100% reduce 0%
+22/11/10 03:11:50 INFO mapreduce.Job: Job job_1648130833540_17768 completed successfully
+22/11/10 03:11:50 INFO mapreduce.Job: Counters: 30
+        File System Counters
+                FILE: Number of bytes read=0
+                FILE: Number of bytes written=171752
+
+        Map-Reduce Framework
+                Map input records=12
+                Map output records=12
+                Input split bytes=87
+                Spilled Records=0
+                Failed Shuffles=0
+                Merged Map outputs=0
+                GC time elapsed (ms)=145
+                CPU time spent (ms)=2740
+                Physical memory (bytes) snapshot=303267840
+                Virtual memory (bytes) snapshot=4601335808
+                Total committed heap usage (bytes)=320864256
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=0
+22/11/10 03:11:50 INFO mapreduce.ImportJobBase: Transferred 3.3291 KB in 20.0699 seconds (169.8562 bytes/sec)
+22/11/10 03:11:50 INFO mapreduce.ImportJobBase: Retrieved 12 records.
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/case22
+Found 3 items
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-11-10 03:11 /user/nandagnk2141/nanda/sqoop_lab/lab1/case22/.metadata
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-11-10 03:11 /user/nandagnk2141/nanda/sqoop_lab/lab1/case22/.signals
+-rw-r--r--   3 nandagnk2141 nandagnk2141       1466 2022-11-10 03:11 /user/nandagnk2141/nanda/sqoop_lab/lab1/case22/0162b5ff-3749-4b88-bc58-f6e02991cac8.parquet
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -text /user/nandagnk2141/nanda/sqoop_lab/lab1/case22/0162b5ff-3749-4b88-bc58-f6e02991cac8.parquet
+PAR1(,L
+L( ,?(?4?��␤$   >?⎼▒┘  └       $▒⎽␤≤▒└?,?⎽␤≤▒└?⎼▒┘
+                                                   ,?���?,??
+                                                            (?`0�chennai       bangaloremadurai        hyderabad?,?madurai?    bangalore
+                                                                                                                                         ,?���,0T2000.004000.00?,?4000.00?2000.00
+                                                                                                                                                                                  (?lH
+                                                                                                                                                                                      yc
+ustomersk2
+%?id
+    %?name%%?age
+                %?address%
+                          %?salary%?\?id?�<?(?&�
+                                                 ?name?��?shyam?raj&�?age?��??&�
+                                                                                      ?address?��?madurai?   bangalore&�
+                                                                                                                           ?salary?��<?4000.00?2000.00�??parquet.avro.schema?�{"type"
+"record","name":"ycustomersk2","doc":"Sqoop import of ycustomersk2","fields":[{"name":"id","type":["null","int"],"default":null,"columnName":"id","sqlType":"4"},{"name":"name","type":[
+"null","string"],"default":null,"columnName":"name","sqlType":"12"},{"name":"age","type":["null","int"],"default":null,"columnName":"age","sqlType":"4"},{"name":"address","type":["null
+","string"],"default":null,"columnName":"address","sqlType":"1"},{"name":"salary","type":["null","string"],"default":null,"columnName":"salary","sqlType":"3"}],"tableName":"ycustomersk
+2"}?;parquet-mr (build 6aa21f8776625b5fa6b18059cfebe7549f2e00cb)�PAR1
+[nandagnk2141@cxln5 ~]$	
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/nandagnk2141/nanda/sqoop_lab/lab1/case22/0162b5ff-3749-4b88-bc58-f6e02991cac8.parquet
+PAR1(,L
+L( ,?(?4?��␤$   >?⎼▒┘  └       $▒⎽␤≤▒└?,?⎽␤≤▒└?⎼▒┘
+                                                   ,?���?,??
+                                                            (?`0�chennai       bangaloremadurai        hyderabad?,?madurai?    bangalore
+                                                                                                                                         ,?���,0T2000.004000.00?,?4000.00?2000.00
+                                                                                                                                                                                  (?lH
+                                                                                                                                                                                      yc
+ustomersk2
+%?id
+    %?name%%?age
+                %?address%
+                          %?salary%?\?id?�<?(?&�
+                                                 ?name?��?shyam?raj&�?age?��??&�
+                                                                                      ?address?��?madurai?   bangalore&�
+                                                                                                                           ?salary?��<?4000.00?2000.00�??parquet.avro.schema?�{"type"
+"record","name":"ycustomersk2","doc":"Sqoop import of ycustomersk2","fields":[{"name":"id","type":["null","int"],"default":null,"columnName":"id","sqlType":"4"},{"name":"name","type":[
+"null","string"],"default":null,"columnName":"name","sqlType":"12"},{"name":"age","type":["null","int"],"default":null,"columnName":"age","sqlType":"4"},{"name":"address","type":["null
+","string"],"default":null,"columnName":"address","sqlType":"1"},{"name":"salary","type":["null","string"],"default":null,"columnName":"salary","sqlType":"3"}],"tableName":"ycustomersk
+2"}?;parquet-mr (build 6aa21f8776625b5fa6b18059cfebe7549f2e00cb)�PAR1
+[nandagnk2141@cxln5 ~]$ 
+
+
+ORC is columnar and most performance one if we want to compress very deep to reduce the price, but problem here is decompression will take more time.
+
+ORC is used in Hive.
+
+
+==========================================================================================================================================
+use case 23
+===========
+Handling null values with --null-string and --null-non-string
+
+--null-string parameter will pass the value to be replaced when a string column has null values and
+--null-non-string parameter will pass the value to be replaced when a non-string (int,number,float,decimal) column has null value.
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table ycustomer_1 -m 1 --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case23 --null-non-string '0' --null-string 'NA' --delete-target-dir
+
+==========================================================================================================================================
+use case 24
+===========
+importing all tables
+
+sqoop import-all-tables
+
+sqoop import-all-tables -Dorg.apache.sqoop.splitter.allow_text_splitter=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password  --warehouse-dir /user/nandagnk2141/nanda/sqoop_lab/warehouse_dir --autoreset-to-one-mapper 
+
+How to excludes a set of tables using config files?
+
+refer the below link
+https://community.cloudera.com/t5/Community-Articles/Using-Sqoop-to-fetch-many-tables-in-parallel/ta-p/245709
+https://github.com/sourygnahtw/hadoopUtils/blob/master/scripts/sqoop/sqoopTables.sh
+
+==========================================================================================================================================
+
+Task 3
+=======
+
+Create a sqoop job to import customer table in retail_db in AVRO file format with password serialization
+
+[nandagnk2141@cxln5 ~]$ sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.pass
+word -query "Describe customers"
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:37:23 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/11 06:37:28 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+---------------------------------------------------------------------------------------------------------
+| Field                | Type                 | Null | Key | Default              | Extra                | 
+---------------------------------------------------------------------------------------------------------
+| customer_id          | int(11)              | NO  | PRI | (null)               | auto_increment       | 
+| customer_fname       | varchar(45)          | NO  |     | (null)               |                      | 
+| customer_lname       | varchar(45)          | NO  |     | (null)               |                      | 
+| customer_email       | varchar(45)          | NO  |     | (null)               |                      | 
+| customer_password    | varchar(45)          | NO  |     | (null)               |                      | 
+| customer_street      | varchar(255)         | NO  |     | (null)               |                      | 
+| customer_city        | varchar(45)          | NO  |     | (null)               |                      | 
+| customer_state       | varchar(45)          | NO  |     | (null)               |                      | 
+| customer_zipcode     | varchar(45)          | NO  |     | (null)               |                      | 
+---------------------------------------------------------------------------------------------------------
+
+sqoop eval --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -query "Describe customers"
+
+sqoop job -Dmapreduce.job.user.classpath.first=true  --create sqoop_job_task3 -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task3 --delete-target-dir --as-avrodatafile
+
+[nandagnk2141@cxln5 ~]$ sqoop job --list
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:49:39 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Available jobs:
+  sqoop_job_1_il_cust_nanda
+  sqoop_job_2_il_cust_nanda
+  sqoop_job_task2
+  sqoop_job_task3
+  
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_task3
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:48:21 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/11 06:48:24 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/11 06:48:24 INFO tool.CodeGenTool: Beginning code generation  
+                GC time elapsed (ms)=346
+                CPU time spent (ms)=10220
+                Physical memory (bytes) snapshot=1145171968
+                Virtual memory (bytes) snapshot=18404327424
+                Total committed heap usage (bytes)=931135488
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=437724
+22/11/11 06:48:56 INFO mapreduce.ImportJobBase: Transferred 427.4648 KB in 26.2264 seconds (16.299 KB/sec)
+22/11/11 06:48:56 INFO mapreduce.ImportJobBase: Retrieved 12435 records.
+  
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task3
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-11 06:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141     109045 2022-11-11 06:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/part-m-00000.avro
+-rw-r--r--   3 nandagnk2141 nandagnk2141     108455 2022-11-11 06:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/part-m-00001.avro
+-rw-r--r--   3 nandagnk2141 nandagnk2141     109809 2022-11-11 06:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/part-m-00002.avro
+-rw-r--r--   3 nandagnk2141 nandagnk2141     110415 2022-11-11 06:48 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/part-m-00003.avro
+
+===========================================================================================================================================  
+Task 4 
+======
+Create a sqoop job to import customer table in retail_db in parquet file format with password serialization
+
+sqoop job -Dmapreduce.job.user.classpath.first=true  --create sqoop_job_task4 -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task4 --delete-target-dir --as-parquetfile
+
+[nandagnk2141@cxln5 ~]$ sqoop job -Dmapreduce.job.user.classpath.first=true  --create sqoop_job_task4 -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -usernam
+e sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir
+ /user/nandagnk2141/nanda/sqoop_lab/lab1/task4 --delete-target-dir --as-parquetfile
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:51:55 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+[nandagnk2141@cxln5 ~]$ 
+
+[nandagnk2141@cxln5 ~]$ sqoop job --list
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:52:29 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Available jobs:
+  sqoop_job_1_il_cust_nanda
+  sqoop_job_2_il_cust_nanda
+  sqoop_job_task2
+  sqoop_job_task3
+  sqoop_job_task4
+  
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_task4
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:53:31 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/11/11 06:53:34 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+22/11/11 06:53:34 INFO tool.CodeGenTool: Beginning code generation
+22/11/11 06:53:34 INFO tool.CodeGenTool: Will generate java class as codegen_customers
+22/11/11 06:53:34 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `customers` AS t LIMIT 1
+22/11/11 06:53:34 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `customers` AS t LIMIT 1
+22/11/11 06:53:34 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+                CPU time spent (ms)=14520
+                Physical memory (bytes) snapshot=1386258432
+                Virtual memory (bytes) snapshot=18464653312
+                Total committed heap usage (bytes)=1314914304
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=0
+22/11/11 06:54:00 INFO mapreduce.ImportJobBase: Transferred 355.4111 KB in 21.4067 seconds (16.6028 KB/sec)
+22/11/11 06:54:00 INFO mapreduce.ImportJobBase: Retrieved 12435 records.  
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task4
+Found 6 items
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-11-11 07:03 /user/nandagnk2141/nanda/sqoop_lab/lab1/task4/.metadata
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-11-11 07:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task4/.signals
+-rw-r--r--   3 nandagnk2141 nandagnk2141      87592 2022-11-11 07:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task4/12bc6542-f71e-4a2e-97b7-610af3b167af.parquet
+-rw-r--r--   3 nandagnk2141 nandagnk2141      87406 2022-11-11 07:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task4/802049a8-01cb-4e8a-84b5-2fc2a7e9ed5a.parquet
+-rw-r--r--   3 nandagnk2141 nandagnk2141      87755 2022-11-11 07:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task4/e3a7dbeb-abf6-43ab-b9f2-478bba1b38c5.parquet
+-rw-r--r--   3 nandagnk2141 nandagnk2141      87793 2022-11-11 07:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task4/fd5b140c-f15a-4b4c-93eb-57cafcbc52a8.parquet
+
+comparing the performance against text file by creating a separate task for text file format
+
+sqoop job --create sqoop_job_task -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task --delete-target-dir
+
+[nandagnk2141@cxln5 ~]$ sqoop job --create sqoop_job_task -- import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk21
+41/nanda/sqoopuser/sqoopuser.password -table customers --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task4 --delete-target-dir
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 06:57:24 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+
+[nandagnk2141@cxln5 ~]$ sqoop job --exec sqoop_job_task
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=953525
+22/11/11 06:58:22 INFO mapreduce.ImportJobBase: Transferred 931.1768 KB in 20.0955 seconds (46.3375 KB/sec)
+22/11/11 06:58:22 INFO mapreduce.ImportJobBase: Retrieved 12435 records.
+
+Text format files
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task
+Found 5 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-11-11 07:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/task/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237145 2022-11-11 07:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/task/part-m-00000
+-rw-r--r--   3 nandagnk2141 nandagnk2141     237965 2022-11-11 07:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/task/part-m-00001
+-rw-r--r--   3 nandagnk2141 nandagnk2141     238092 2022-11-11 07:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/task/part-m-00002
+-rw-r--r--   3 nandagnk2141 nandagnk2141     240323 2022-11-11 07:02 /user/nandagnk2141/nanda/sqoop_lab/lab1/task/part-m-00003
+
+==============================================================================================================================
+Task 5 creating a shell script to run the sqoop jobs 
+
+#!/bin/bash
+sqoop job --exec sqoop_job_task3 > /home/nandagnk2141/nanda/sqoop/sqoop_job_task3.log
+sqoop job --exec sqoop_job_task4 > /home/nandagnk2141/nanda/sqoop/sqoop_job_task4.log
+sqoop job --exec sqoop_job_task > /home/nandagnk2141/nanda/sqoop/sqoop_job_task.log
+
+===============================================================================================================================
+
+Use case tyring incremental append and incremental lastmodifed with AVRO format
+
+incremental append in avro
+--------------------------
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 0
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table cust_nanda --split-by customer_id --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task3_im_app_avro --incremental append --check-column customer_id --last-value 0 --as-avrodatafile
+
+incremental append in parquet
+-----------------------------
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password NHkkP876rp --table cust_nanda --split-by customer_id --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/case16 --incremental append --check-column customer_id --last-value 0
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table cust_nanda --split-by customer_id --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task3_im_app_ --incremental append --check-column customer_id --last-value 0 --as-parquetfile
+
+
+incremental lastmodifed in avro
+-------------------------------
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task3_avro --incremental lastmodified --check-column last_modified --last-value 0 --as-avrodatafile
+
+[nandagnk2141@cxln5 ~]$ sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user
+/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_l
+ab/lab1/task3_avro --incremental lastmodified --check-column last_modified --last-value 0 --as-avrodatafile
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/11/11 13:14:33 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+--incremental lastmodified cannot be used in conjunction with --as-avrodatafile.
+Try --help for usage instructions.
+
+incremental lastmodifed in parquet
+----------------------------------
+
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task3_parq --incremental lastmodified --check-column last_modified --last-value 0 --as-parquetfile
+
+[nandagnk2141@cxln5 ~]$ sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user
+/nandagnk2141/nanda/sqoopuser/sqoopuser.password --table cust_test_im --split-by id --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk
+2141/nanda/sqoop_lab/lab1/task3_parq --incremental lastmodified --check-column last_modified --last-value 0 --as-parquetfile
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+
+22/11/11 13:30:47 INFO mapreduce.ImportJobBase: Transferred 14.9365 KB in 24.3533 seconds (628.0474 bytes/sec)
+22/11/11 13:30:47 INFO mapreduce.ImportJobBase: Retrieved 10 records.
+22/11/11 13:30:47 INFO tool.ImportTool: Final destination exists, will run merge job.
+22/11/11 13:30:47 INFO tool.ImportTool: Moving data from temporary directory _sqoop/488b6363d6fa4af1ae6b195912d40bf4_cust_test_im to final destination /user/nandagnk2141/nanda/sqoop_la
+b/lab1/task3_parq
+22/11/11 13:30:47 INFO tool.ImportTool: Incremental import complete! To run another incremental import of all data following this import, supply the following arguments:
+22/11/11 13:30:47 INFO tool.ImportTool:  --incremental lastmodified
+22/11/11 13:30:47 INFO tool.ImportTool:   --check-column last_modified
+22/11/11 13:30:47 INFO tool.ImportTool:   --last-value 2022-11-11 13:30:22.0
+22/11/11 13:30:47 INFO tool.ImportTool: (Consider saving this with 'sqoop job --create')
