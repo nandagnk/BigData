@@ -1,0 +1,1826 @@
+Refereces
+=========
+
+https://www.simplilearn.com/tutorials/hadoop-tutorial/hive
+https://www.guru99.com/hive-tutorials.html
+https://sparkbyexamples.com/apache-hive-tutorial/
+https://data-flair.training/blogs/apache-hive-tutorial/
+https://hive.apache.org/
+
+My Learnings
+============
+
+Hive - Hive is HDFS Datawarehouse
+Hive is Dabase Framework
+
+Hive Allows to create table on top of hadoop HDFS directory. It allows to convert the semi-structured data to structured data.  We can insert/load the data from local directory or from HDFS directory.
+
+Hive was identified by FB, it's a warehouse kind of framework allows to perform sequal kind of analysis on semi-structured data.
+
+DWH - OLAP
+DB  - OLTP
+
+Hive can be connected to Power BI, Tableau and SSIS to provide the result of SQL analysis.
+
+Hadoop 	Hive
+AWS		Athena Hive service
+Azure   HDInsight cluster (Hive)
+
+Hive is the cheapest warehouse.
+
+Hive / Terra data / Snowflake all are used to perform DWH analysis.
+
+Hive - Cheapest - Consume time
+Terradata - Medidum 
+Snowflake - High cost - Performance will be very good.
+
+Hive is bit slower compare to other DWH, as it uses MR to analyse the data.
+
+
+Data ingestion pipeline (common)
+
+Take the data to Hadoop, create a table in Hive on top of the data, process the data present in Hive table using spark keep the output as per Business requirement through Spark.
+
+History
+=======
+Introduced in 2005, when the hadoop was introduced the MAP Reducer programs were writton on java. The major vendors like Yahoo and FB doesn't have more java developers to write Map Reduce programs to process the data. FB had more SQL developers and decided to develop a tool which process the hadoop data in the form of RDBMS data. 
+
+Yahoo started a project and came up with Apache PIG (using scripting language) - PIG Framework converts the scripts into MR programs and process the data. (in 2010 it was famous framework)
+Facebook started a project and developed Hive (SQL) - Run SQL query - Hive Framework convert the SQL queries into MR programs and process the data. Hive came in to market in 2011 once hive came to market, all the projects were migrated to Hive from PIG as it is very simple and developers can use SQL queries to process data. Hive is only a DWH and can perform only OLAP kind of analysis not for OLTP.
+
+Hive DWH/Framework can be connected to any visualization tools(POWER BI, Tableau and SSIS)
+
+Later FB sold Hive to Apache.
+
+2008 CLOUDERA 
+
+Hive  --->  Hadoop (MR) --> SLOW
+
+Phase 1 Mapper   --> Read data from disk, load it into RAM and process it in RAM and store the Output back into Disk
+Phase 2 Sort & Suffle   --> Read data from disk, load it into RAM and process it in RAM and store the Output back into Disk
+Phase 3 Reducer --> Read data from disk, load it into RAM and process it in RAM and store the Output back into Disk
+
+In 2012 Hortonworks --> uses/sell the original version of Hadoop -- cameup with a concept - TEZ(execution engine) - Technique - Inmemory processing - Reduces Disk IOPs
+
+Phase 1 Mapper   --> Read data from disk, load it into RAM and process it in RAM and store the Output back into RAM
+Phase 2 Sort & Suffle   --> Read data from RAM(phase 1), load it into RAM and process it in RAM and store the Output back into RAM
+Phase 3 Reducer --> Read data from RAM(phase 2), load it into RAM and process it in RAM and store the Output back into Disk
+
+Hartonwork recomanded to use TEZ in Hive which improved the performance hive. In 2016 and 2017 70% customers started using Hartonwork and Hive with TEZ
+
+In 2018, CLOUDERA recomanded to use impala(Daemon services) to query data from Hive for analysis(perform analysis from Impala) which will improve the performance. However, in 2020 CLOUDERA bought Hortonworks and in become CDP.
+
+Difference between Hive and Terradata
+
+Hive is a open source, IS DWH framework and it follows ELT, Hive uses MR to process the data hence it will be slower compare the other DWH tools.
+
+Terradata is licenced, and which is very fast query analysis. Terradata follows ETL.
+
+Migration from Terradata to HaaS (Hadoop as a service)
+
+Hot Data (Frequently used and data need to analysed and retrived very fast, so this will be kept on Terradata)
+Cold Data (Not much frequently used data (last six month data) and not required immdediately so we can keep it in Hive and perform analysis)
+Warm Data (Historical Data, this can be migrated from Terradata and kept in Hive)
+
+Initially Warm data will get migrated from TD to Hadoop (Hive) and reports can be generated from Hive.
+Then Cold Data will get migrated from TD to Hadoop (Hive) and reports can be generated from Hive.
+Then Hot data will get migrated from TD to Hadoop (Hive) and data will get queried using Impala for faster retrival from Hive.
+
+===============================================================================================================
+
+Hive Architecture
+=================
+
+Hive is a Datawarehouse Framework, which is allow to create the schema and access the data using schema.
+
+How to connect to Hive
+
+1. command line interface (CLI)
+	a. Hive terminal
+	
+	Type hive and press enter which will take you to hive. This is for practice perpose in realtime projects not allow to use this CLI as it is the original CLI to access hive and hence hive command may not work and blocked in real time.
+
+	b. beeline terminal
+	
+	beeline is the CLI used in real time, it uses proper jdbc client to connect to hive. This is the secured way of accessing hive.
+	
+	[nandagnk2141@cxln5 hive]$ beeline
+	Beeline version 1.2.1000.2.6.2.0-205 by Apache Hive
+	beeline> 
+	
+	This will open the beeline terminal, now enter !connect jdbc:hive2:// to connect to hive, which will prompt for username and password. 
+	
+	beeline> !connect jdbc:hive2://
+	Connecting to jdbc:hive2://
+	Enter username for jdbc:hive2://: nandagnk2141
+	Enter password for jdbc:hive2://: ********
+	22/11/28 12:56:15 [main]: WARN session.HiveSessionImpl: The operation log root directory is not writable: /tmp/hive/operation_logs
+	22/11/28 12:56:15 [main]: WARN session.HiveSessionImpl: Unable to create operation log session directory: /tmp/hive/operation_logs/9b273fe9-ae4f-49c5-9b63-06b85d975247
+	Connected to: Apache Hive (version 1.2.1000.2.6.2.0-205)
+	Driver: Hive JDBC (version 1.2.1000.2.6.2.0-205)
+	Transaction isolation: TRANSACTION_REPEATABLE_READ
+	0: jdbc:hive2://> 
+
+2. Using HUE (User Interface of Hadoop, even some companies/clients won't provide access for HUE)
+3. Using IDEs (very rare) Standard charted uses this approach (but there are chances that this create more connection issues while connecting from JDBC/ODBC client)
+   Eclipse --> write Hive Query --> Convert into Jar --> deploy the jar into Edge node  --> run the jar using JDBC or ODBC client
+   
+What is hive2?
+
+When Hive acts as a DWH, there should be server components, when a CLI access the hive it will hit the hive server and which is take care of processing the request(managing the connections, optimising the queries, prearing execution plans, executing the query, compilation, running the map reducer jobs).
+
+Hive Server 1 (old server came with hadoop 1.x framework)
+Hive Server 2 (from 2.x 100% projects use Hive server2 and we connect to it using secured jdbc connection called beeline), but not only beeline any connection to hive goes to Hive Server2.
+
+creating hive table from CLI
+
+create table t1(id int, name string, location string,salary decimal) row format delimited fields terminated by ',';
+
+0: jdbc:hive2://> create table t1(id int, name string, location string,salary decimal) row format delimited fields terminated by ',';
+OK
+
+0: jdbc:hive2://> desc t1;
+OK
++-----------+----------------+----------+--+
+| col_name  |   data_type    | comment  |
++-----------+----------------+----------+--+
+| id        | int            |          |
+| name      | string         |          |
+| location  | string         |          |
+| salary    | decimal(10,0)  |          |
++-----------+----------------+----------+--+
+4 rows selected (0.074 seconds)
+
+now loading data into the table from local system(edge node)
+
+create a file in edgenode t1.csv
+
+1,aaaa,chennai,20500
+2,bbbb,madurai,25000
+3,cccc,salem,15000
+4,dddd,trichy,22000
+
+[nandagnk2141@cxln5 hive]$ ls -ltr
+total 4
+-rwxrwxrwx 1 nandagnk2141 nandagnk2141 81 Nov 28 13:35 t1.csv
+[nandagnk2141@cxln5 hive]$ cat t1.csv
+1,aaaa,chennai,20500
+2,bbbb,madurai,25000
+3,cccc,salem,15000
+4,dddd,trichy,22000
+[nandagnk2141@cxln5 hive]$ 
+
+now load the data from the file to the newly created table t1 in hive.
+
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table t1;
+
+0: jdbc:hive2://> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table t1;
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=1, numRows=0, totalSize=81, rawDataSize=0]
+OK
+
+now query the table 
+
+0: jdbc:hive2://> select * from t1;
+OK
++--------+----------+--------------+------------+--+
+| t1.id  | t1.name  | t1.location  | t1.salary  |
++--------+----------+--------------+------------+--+
+| 1      | aaaa     | chennai      | 20500      |
+| 2      | bbbb     | madurai      | 25000      |
+| 3      | cccc     | salem        | 15000      |
+| 4      | dddd     | trichy       | 22000      |
++--------+----------+--------------+------------+--+
+4 rows selected (0.076 seconds)
+
+Hive only creates the schema and store the schema information in meta data, this meta data will be available in meta store(central repository).
+
+to get the meta data data info, use 
+
+describe formated <tablename>
+
+
+0: jdbc:hive2://> desc formatted t1;
+OK
+
++-------------------------------+--------------------------------------------------------------------------------+-----------------------+--+
+|           col_name            |                                   data_type                                    |        comment        |
++-------------------------------+--------------------------------------------------------------------------------+-----------------------+--+
+| # col_name                    | data_type                                                                      | comment               |
+|                               | NULL                                                                           | NULL                  |
+| id                            | int                                                                            |                       |
+| name                          | string                                                                         |                       |
+| location                      | string                                                                         |                       |
+| salary                        | decimal(10,0)                                                                  |                       |
+|                               | NULL                                                                           | NULL                  |
+| # Detailed Table Information  | NULL                                                                           | NULL                  |
+| Database:                     | gnanda80                                                                       | NULL                  |
+| Owner:                        | nandagnk2141                                                                   | NULL                  |
+| CreateTime:                   | Mon Nov 28 13:31:17 UTC 2022                                                   | NULL                  |
+| LastAccessTime:               | UNKNOWN                                                                        | NULL                  |
+| Protect Mode:                 | None                                                                           | NULL                  |
+| Retention:                    | 0                                                                              | NULL                  |
+| Location:                     | hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/t1  | NULL                  |
+| Table Type:                   | MANAGED_TABLE                                                                  | NULL                  |
+| Table Parameters:             | NULL                                                                           | NULL                  |
+|                               | numFiles                                                                       | 1                     |
+|                               | numRows                                                                        | 0                     |
+|                               | rawDataSize                                                                    | 0                     |
+|                               | totalSize                                                                      | 81                    |
+|                               | transient_lastDdlTime                                                          | 1669642674            |
+|                               | NULL                                                                           | NULL                  |
+| # Storage Information         | NULL                                                                           | NULL                  |
+| SerDe Library:                | org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe                             | NULL                  |
+| InputFormat:                  | org.apache.hadoop.mapred.TextInputFormat                                       | NULL                  |
+| OutputFormat:                 | org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat                     | NULL                  |
+| Compressed:                   | No                                                                             | NULL                  |
+| Num Buckets:                  | -1                                                                             | NULL                  |
+| Bucket Columns:               | []                                                                             | NULL                  |
+| Sort Columns:                 | []                                                                             | NULL                  |
+| Storage Desc Params:          | NULL                                                                           | NULL                  |
+|                               | field.delim                                                                    | ,                     |
+|                               | serialization.format                                                           | ,                     |
++-------------------------------+--------------------------------------------------------------------------------+-----------------------+--+
+34 rows selected (0.089 seconds)
+
+0: jdbc:hive2://> show tables;
+OK
++-----------+--+
+| tab_name  |
++-----------+--+
+| product   |
+| t1        |
++-----------+--+
+
+The data for these files are stored in the hdfs path /apps/hive/warehouse/gnanda80.db/
+
+checking the details in hdfs location
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/
+Found 2 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-22 04:40 /apps/hive/warehouse/gnanda80.db/product
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1
+[nandagnk2141@cxln5 ~]$ 
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+
+when we load the data from local inpath to the hive table, a copy of the file "t1.csv" is created in the hdfs location /apps/hive/warehouse/gnanda80.db/t1
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+1,aaaa,chennai,20500
+2,bbbb,madurai,25000
+3,cccc,salem,15000
+4,dddd,trichy,22000
+[nandagnk2141@cxln5 ~]$ 
+
+Metastore
+=========
+a. Derby metastore (default metastore), but no one uses derby metastore the reason is that it will allow only one connection at a time, so only one person can access hive.
+b. MySQL server can be used as meta store to store the hive meta data inforamtion about the tables. Even we can use MS SQL, Postgre SQL also to store the meta store inforamtion.
+
+how to check the meta store what we are using, you need to look into the hive-site.xml in the hive configuration folder.
+
+[nandagnk2141@cxln5 ~]$ cd /etc/hive
+[nandagnk2141@cxln5 hive]$ ls -ltr
+total 0
+drwxr-xr-x 3 root root 304 Mar 31  2020 conf.backup
+drwxr-xr-x 3 root root  15 Mar 31  2020 2.6.2.0-205
+lrwxrwxrwx 1 root root  33 Mar 31  2020 conf -> /usr/hdp/current/hive-client/conf
+[nandagnk2141@cxln5 hive]$ cd conf
+[nandagnk2141@cxln5 conf]$ ls -ltr
+total 252
+-rw-r--r-- 1 root root     1593 Aug 26  2017 ivysettings.xml
+-rw-r--r-- 1 hive hadoop   2378 Aug 26  2017 hive-env.sh.template
+-rw-r--r-- 1 root root     1139 Aug 26  2017 beeline-log4j.properties.template
+-rw-r--r-- 1 hive hadoop 196246 Aug 26  2017 hive-default.xml.template
+drwxr-xr-x 2 hive hadoop      6 Mar 31  2020 conf.server
+-rw-r--r-- 1 hive hadoop   7007 Mar 31  2020 mapred-site.xml
+-rw-r--r-- 1 hive hadoop   2652 Mar 31  2020 hive-exec-log4j.properties
+-rw-r--r-- 1 hive hadoop   3092 Mar 31  2020 hive-log4j.properties
+-rw-r--r-- 1 hive hadoop   2662 Mar 31  2020 parquet-logging.properties
+-rw-r--r-- 1 hive hadoop   2104 Mar 31  2020 hive-env.sh
+-rw-r--r-- 1 hive hadoop  19915 Mar 31  2020 hive-site.xml
+-rw-r--r-- 1 hive hadoop   1055 Jun  3 14:12 atlas-application.properties
+
+
+tyes of metastore
+
+embedded metastore --> default metastore --> Derby metastore --> only one user can access hive at a time. Hive Service and metastore runs in the same JVM
+local metastore --> Hive service runs in one JVM and metastore runs in another JVM
+remote metastore --> Hive service runs in one JVM and metastore runs in another JVM -- Very costly.
+
+Task/Activity
+Do some research on these metastore.
+
+Execution Engines
+=================
+What are all different types of execution engines available in hive.
+1. Map Reduce (default)
+2. TEZ(Hartonworks / CDP)
+3. Spark (generally no one use this approach, instead we move the data from hive to spark table and process it)
+
+to check the defualt execution engine, execute the following command
+set hive.execution.engine;
+
+0: jdbc:hive2://> set hive.execution.engine;
++---------------------------+--+
+|            set            |
++---------------------------+--+
+| hive.execution.engine=mr  |
++---------------------------+--+
+
+run the following query and check whether MR is used.
+
+0: jdbc:hive2://> select count(1) from t1;
+22/11/28 14:42:39 [main]: ERROR hdfs.KeyProviderCache: Could not find uri with key [dfs.encryption.key.provider.uri] to create a keyProvider !!
+Query ID = nandagnk2141_20221128144239_ef43873e-600e-4cbd-ad13-0ad75193d0fb
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+22/11/28 14:42:46 [HiveServer2-Background-Pool: Thread-28]: WARN mapreduce.Counters: Group org.apache.hadoop.mapred.Task$Counter is deprecated. Use org.apache.hadoop.mapreduce.TaskCoun
+ter instead
+2022-11-28 14:42:46,467 Stage-1 map = 0%,  reduce = 0%
+22/11/28 14:42:49 [Thread-13]: WARN thrift.ThriftCLIService: Error fetching results: 
+2022-11-28 14:42:53,817 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.27 sec
+2022-11-28 14:42:59,032 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.3 sec
+MapReduce Total cumulative CPU time: 6 seconds 300 msec
+Ended Job = job_1648130833540_21193
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.3 sec   HDFS Read: 8419 HDFS Write: 2 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 300 msec
+OK
++------+--+
+| _c0  |
++------+--+
+| 4    |
++------+--+
+1 row selected (22.24 seconds)
+
+now change the hive execution engine parameter to TEZ in the local sesson and run the query again to see the difference in execution methods.
+
+set hive.execution.engine=tez;
+
+
+0: jdbc:hive2://> set hive.execution.engine=tez;
+No rows affected (0.006 seconds)
+
+in cloudxlab it's getting stuck when we change the execution engine.
+
+setting the execution engine to Spark won't take place in real time, becuase instead of setting the execution engine to spark and process the data from hive, we move the hive data to spark tables and will process it using spark which will be more efficient.
+
+Hive Table -> Spark session -> take hive table and keep it in spark -> Data Frame(tables in spark) -> Analysis (Faster)
+
+So, always the execution engine in hive will be MR.
+
+How to check whether the cluster is CDH(CLOUDERA) or HDP (Hartonwork will support TEZ) or CDP ( HW+CDH after merged with Hartonwork will support TEZ)
+give hadoop version in edgenode
+
+Hadoop 2.7.3.2.6.2.0-205
+Subversion git@github.com:hortonworks/hadoop.git -r 721db98dcc87332e6a5c87ca1a5726b82d8a7fa0
+Compiled by jenkins on 2017-08-26T09:20Z
+Compiled with protoc 2.5.0
+From source with checksum 90b73c4c185645c1f47b61f942230
+This command was run using /usr/hdp/2.6.2.0-205/hadoop/hadoop-common-2.7.3.2.6.2.0-205.jar
+[nandagnk2141@cxln5 conf]$ 
+[nandagnk2141@cxln5 conf]$ 
+
+
+Hive Architecture
+=================
+
+Hive
+UI - Execte Query -> Driver -> getPlan -> Compiler -> getMetadata -> Metastore -> send Metastore compiler -> Send Plan -> Driver -> execute plan -> Execution Engine -->
+Hadoop MR --> Resource Manager -> Appliation Manager(MAP) -> Name Nodes and Data nodes (Read and write) -> Fetch Results -> Execution Engine -> Send results -> Driver -> output -> UI
+
+Compiler performs 2 checks, syntax and semantic errors(check for the objects exists or not, columns used in the query are correct are they exists?)
+
+Will map reduce job will get triggered when we execute just a select query without any where clause or any aggregations functions?
+Answer: In general no, however it depends on the size of the table, The execution engine won't trigger map reduce until the table size is less than 1GB, when the volume is high and the size is more than 1GB then MR will get triggered even for just select query without where clause and without any aggregations.
+
+Where to check the property
+
+set hive.fetch.task.conversion; 
+
+The value should be more, then it will execute MR only when the size is more than 1GB, if we set this property to none then it will execute MR for all the select queries even it has only two rows;
+
+0: jdbc:hive2://> set hive.fetch.task.conversion;
++----------------------------------+--+
+|               set                |
++----------------------------------+--+
+| hive.fetch.task.conversion=more  |
++----------------------------------+--+
+
+set hive.fetch.task.conversion.threshold;  
+
+value for the property is 1073741824 = 1GB.
+
+hive> set hive.fetch.task.conversion.threshold;
+hive.fetch.task.conversion.threshold=1073741824
+
+what is the default datawarehouse path of hive?
+CLOUDERA  --> /user/hive/warehouse
+CLOUDXLAB --> /apps/hive/warehouse
+
+hive> set hive.metastore.warehouse.dir;
+hive.metastore.warehouse.dir=/apps/hive/warehouse
+
+Hive maintains the schema informations in the metastore and datafile in the datawarehouse path. It creates and maintains the file in the default warehouse path if we don't explicitly provide any warehouse path.
+
+javax.jdo.option.ConnectionURL
+Default Value: jdbc:derby:;databaseName=metastore_db;create=true
+Added In: Hive 0.6.0
+JDBC connect string for a JDBC metastore.
+
+javax.jdo.option.ConnectionDriverName
+Default Value: org.apache.derby.jdbc.EmbeddedDriver
+Added In: Hive 0.8.1
+
+https://cwiki.apache.org/confluence/display/hive/configuration+properties#ConfigurationProperties-MetaStore.1
+
+values configured in cloudxlab
+
+hive> set javax.jdo.option.ConnectionURL;
+javax.jdo.option.ConnectionURL=jdbc:mysql://cxln2.c.thelab-240901.internal/hive
+
+hive> set javax.jdo.option.ConnectionDriverName;
+javax.jdo.option.ConnectionDriverName=com.mysql.jdbc.Driver
+
+Hive vs RDBMS
+
+
+Hive HQL						RDBMS
+====							=====
+Data locality					Process Locality
+Flexible						Performance
+High Latency(small volume)		Low latency (small volume)
+No Transformation/cleansing		cleansing/reformatting
+Experimentation					production workloads
+Query time parsing				Load time parsing
+Structured/Semi Structured data structured data
+Easily scalable 				Hard to scalable.
+
+
+Hive Tables
+===========
+
+1. Internal tables or managed tables
+2. External tables
+
+Internal tables refers internal to hive, Hive will have complete power on these internal tables.
+Tables created without providing explicit warehouse path is called internal tables or managed tables. Internal table data are stored in Hadoop under the default warehouse folders
+
+for CLOUDERA /user/hive/warehouse
+for CLOUDXLAB /apps/hive/warehouse
+
+External tables are external to hive, data files are created outside of default warehouse path.
+
+Data files will get delete while droping the table along with schema info from the meta store. Whereas when we drop the external table only the schema information will get deleted from metastore, however, the data file will exists in the external warehouse path given while creating the table.
+
+to set the current db into the prompt to understand or know the DB as hive won't show the DB name set the following property value to true
+set hive.cli.print.current.db;
+set hive.cli.print.current.db=true;
+
+
+hive> use gnanda80;
+OK
+Time taken: 1.81 seconds
+hive> set hive.cli.print.current.db;
+hive.cli.print.current.db=false
+hive> set hive.cli.print.current.db=true;
+hive (gnanda80)> 
+
+creating an internal table in hive
+==================================
+step 1 create table
+create table emp(id int, name string, location string, salary float ) row format delimited fields terminated by ',';
+step 2 load data
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table emp;
+step 3 query data
+select * from emp;
+
+
+hive (gnanda80)> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table emp;
+Loading data to table gnanda80.emp
+Table gnanda80.emp stats: [numFiles=1, numRows=0, totalSize=81, rawDataSize=0]
+OK
+Time taken: 0.519 seconds
+hive (gnanda80)> select * from emp;
+OK
+1       aaaa    chennai 20500.0
+2       bbbb    madurai 25000.0
+3       cccc    salem   15000.0
+4       dddd    trichy  22000.0
+Time taken: 0.404 seconds, Fetched: 4 row(s)
+hive (gnanda80)> 
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db
+Found 3 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 05:35 /apps/hive/warehouse/gnanda80.db/emp
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-22 04:40 /apps/hive/warehouse/gnanda80.db/product
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/emp
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-11-29 05:35 /apps/hive/warehouse/gnanda80.db/emp/t1.csv
+[nandagnk2141@cxln5 hive]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/emp/t1.csv
+1,aaaa,chennai,20500
+2,bbbb,madurai,25000
+3,cccc,salem,15000
+4,dddd,trichy,22000
+[nandagnk2141@cxln5 hive]$
+
+add one record with an insert statement and check the file in hdfs
+
+insert into emp values(5,'nanda','Sydney',12500.00);
+ 
+hive (gnanda80)> insert into emp values(5,'nanda','Sydney',12500.00);
+Query ID = nandagnk2141_20221129053910_d828669a-344c-454d-afbe-c80701b34d48
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21228, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21228/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21228
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-11-29 05:39:18,366 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 05:39:27,903 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.78 sec
+MapReduce Total cumulative CPU time: 2 seconds 780 msec
+Ended Job = job_1648130833540_21228
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/emp/.hive-staging_hive_2022-11-29_05-39-10_475_2836314063603823209-1/-ext-10000
+Loading data to table gnanda80.emp
+Table gnanda80.emp stats: [numFiles=2, numRows=0, totalSize=104, rawDataSize=0]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 2.78 sec   HDFS Read: 5012 HDFS Write: 91 SUCCESS
+Total MapReduce CPU Time Spent: 2 seconds 780 msec
+OK
+Time taken: 19.741 seconds
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/emp
+Found 2 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         23 2022-11-29 05:39 /apps/hive/warehouse/gnanda80.db/emp/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-11-29 05:35 /apps/hive/warehouse/gnanda80.db/emp/t1.csv
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/emp/t1.csv
+1,aaaa,chennai,20500
+2,bbbb,madurai,25000
+3,cccc,salem,15000
+4,dddd,trichy,22000
+[nandagnk2141@cxln5 hive]$ 
+[nandagnk2141@cxln5 hive]$ 
+[nandagnk2141@cxln5 hive]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/emp/000000_0
+5,nanda,Sydney,12500.0
+
+update on existing record and check the files in hdfs
+
+update emp set salary = 17500 where id = 3;
+hive (gnanda80)> update emp set salary = 17500 where id = 3;
+FAILED: SemanticException [Error 10294]: Attempt to do update or delete using transaction manager that does not support these operations.
+hive (gnanda80)>
+
+insert another record and check the file.
+insert into emp values(6,'kumar','Sydney',15000.00);
+
+hive (gnanda80)> insert into emp values(6,'kumar','Sydney',15000.00);
+Query ID = nandagnk2141_20221129054534_cd4e84b6-3d27-434d-8e4d-03f1359b0ee1
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21230, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21230/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21230
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-11-29 05:45:40,578 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 05:45:46,815 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.44 sec
+MapReduce Total cumulative CPU time: 3 seconds 440 msec
+Ended Job = job_1648130833540_21230
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/emp/.hive-staging_hive_2022-11-29_05-45-34_634_8403952533554695020-1/-ext-10000
+Loading data to table gnanda80.emp
+Table gnanda80.emp stats: [numFiles=3, numRows=0, totalSize=127, rawDataSize=0]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 3.44 sec   HDFS Read: 5013 HDFS Write: 91 SUCCESS
+Total MapReduce CPU Time Spent: 3 seconds 440 msec
+OK
+Time taken: 13.393 seconds
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/emp 
+Found 3 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         23 2022-11-29 05:39 /apps/hive/warehouse/gnanda80.db/emp/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop         23 2022-11-29 05:45 /apps/hive/warehouse/gnanda80.db/emp/000000_0_copy_1
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-11-29 05:35 /apps/hive/warehouse/gnanda80.db/emp/t1.csv
+[nandagnk2141@cxln5 hive]$ 
+[nandagnk2141@cxln5 hive]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/emp/000000_0
+5,nanda,Sydney,12500.0
+[nandagnk2141@cxln5 hive]$ 
+[nandagnk2141@cxln5 hive]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/emp/000000_0_copy_1
+6,kumar,Sydney,15000.0
+
+hive (gnanda80)> select * from emp;
+OK
+5       nanda   Sydney  12500.0
+6       kumar   Sydney  15000.0
+1       aaaa    chennai 20500.0
+2       bbbb    madurai 25000.0
+3       cccc    salem   15000.0
+4       dddd    trichy  22000.0
+Time taken: 0.061 seconds, Fetched: 6 row(s)
+hive (gnanda80)> select * from emp order by 1;
+Warning: Using constant number 1 in order by. If you try to use position alias when hive.groupby.orderby.position.alias is false, the position alias will be ignored.
+Query ID = nandagnk2141_20221129054820_e720e766-eaf9-4ae0-8a1e-c397c63aa9fd
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21231, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21231/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21231
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-11-29 05:48:26,763 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 05:48:33,005 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.84 sec
+2022-11-29 05:48:40,281 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 5.9 sec
+MapReduce Total cumulative CPU time: 5 seconds 900 msec
+Ended Job = job_1648130833540_21231
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.9 sec   HDFS Read: 8359 HDFS Write: 135 SUCCESS
+Total MapReduce CPU Time Spent: 5 seconds 900 msec
+OK
+4       dddd    trichy  22000.0
+3       cccc    salem   15000.0
+2       bbbb    madurai 25000.0
+1       aaaa    chennai 20500.0
+6       kumar   Sydney  15000.0
+5       nanda   Sydney  12500.0
+Time taken: 20.727 seconds, Fetched: 6 row(s)
+hive (gnanda80)> select * from emp order by id;
+Query ID = nandagnk2141_20221129054909_9e55a53b-0c9c-4522-bff6-4e09b24de1cc
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21232, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21232/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21232
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-11-29 05:49:16,851 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 05:49:23,086 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.81 sec
+2022-11-29 05:49:30,350 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 5.96 sec
+MapReduce Total cumulative CPU time: 5 seconds 960 msec
+Ended Job = job_1648130833540_21232
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.96 sec   HDFS Read: 8210 HDFS Write: 135 SUCCESS
+Total MapReduce CPU Time Spent: 5 seconds 960 msec
+OK
+1       aaaa    chennai 20500.0
+2       bbbb    madurai 25000.0
+3       cccc    salem   15000.0
+4       dddd    trichy  22000.0
+5       nanda   Sydney  12500.0
+6       kumar   Sydney  15000.0
+Time taken: 22.626 seconds, Fetched: 6 row(s)
+
+hive (gnanda80)>  desc formatted emp;
+OK
+# col_name              data_type               comment             
+                 
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  float                                       
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 05:35:34 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/emp   
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        numFiles                3                   
+        numRows                 0                   
+        rawDataSize             0                   
+        totalSize               127                 
+        transient_lastDdlTime   1669700747          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        serialization.format    ,                   
+Time taken: 0.161 seconds, Fetched: 34 row(s)
+
+now drop the table and check the file in hdfs location
+
+hive (gnanda80)> drop table emp;
+OK
+Time taken: 0.124 seconds
+hive (gnanda80)> desc formatted emp;
+FAILED: SemanticException [Error 10001]: Table not found emp
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db
+Found 2 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-22 04:40 /apps/hive/warehouse/gnanda80.db/product
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1
+
+creating external table in hive
+===============================
+
+For external table we need to explicitly mention the warehouse directory.
+
+step 1 create external table by specifying the location 
+create external table ext_emp(id int, name string, location string, salary float ) row format delimited fields terminated by ',' location '/user/nandagnk2141/nanda/hive/lab';
+step 2 load data
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table ext_emp;
+step 3 query data
+select * from ext_emp;
+
+hive (gnanda80)> create external table ext_emp(id int, name string, location string, salary float ) row format delimited fields terminated by ',' location '/user/nandagnk2141/nanda/hiv
+e/lab';
+OK
+Time taken: 0.09 seconds
+hive (gnanda80)> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table ext_emp;
+Loading data to table gnanda80.ext_emp
+Table gnanda80.ext_emp stats: [numFiles=1, totalSize=81]
+OK
+Time taken: 0.145 seconds
+hive (gnanda80)> select * from ext_emp;
+OK
+1       aaaa    chennai 20500.0
+2       bbbb    madurai 25000.0
+3       cccc    salem   15000.0
+4       dddd    trichy  22000.0
+Time taken: 0.041 seconds, Fetched: 4 row(s)
+
+hive (gnanda80)> desc formatted ext_emp;
+OK
+# col_name              data_type               comment             
+                 
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  float                                       
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 06:56:43 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/hive/lab      
+Table Type:             EXTERNAL_TABLE           
+Table Parameters:                
+        EXTERNAL                TRUE                
+        numFiles                1                   
+        totalSize               81                  
+        transient_lastDdlTime   1669705013          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        serialization.format    ,                   
+Time taken: 0.061 seconds, Fetched: 33 row(s)
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab
+Found 1 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141         81 2022-11-29 06:56 /user/nandagnk2141/nanda/hive/lab/t1.csv
+
+now drop the table ext_emp and check the metastore info and file info.
+
+hive (gnanda80)> drop table ext_emp;
+OK
+Time taken: 0.147 seconds
+hive (gnanda80)> desc formatted ext_emp;
+FAILED: SemanticException [Error 10001]: Table not found ext_emp
+hive (gnanda80)> 
+
+Now re-create the table again by giving the same location and see whehter the data autometically detects without loading it again.
+
+hive (gnanda80)> create external table ext_emp(id int, name string, location string, salary float ) row format delimited fields terminated by ',' location '/user/nandagnk2141/nanda/hiv
+e/lab';
+OK
+Time taken: 0.072 seconds
+hive (gnanda80)> select * from ext_emp;
+OK
+1       aaaa    chennai 20500.0
+2       bbbb    madurai 25000.0
+3       cccc    salem   15000.0
+4       dddd    trichy  22000.0
+Time taken: 0.048 seconds, Fetched: 4 row(s)
+hive (gnanda80)> 
+
+create another file t2.csv with the same structure and put it into the same path and see what happens
+
+-rwxrwxrwx 1 nandagnk2141 nandagnk2141 81 Nov 28 13:35 t1.csv
+[nandagnk2141@cxln5 hive]$ 
+[nandagnk2141@cxln5 hive]$ cp t1.csv t2.csv
+[nandagnk2141@cxln5 hive]$ hdfs dfs -copyFromLocal t2.csv /user/nandagnk2141/nanda/hive/lab
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab
+Found 2 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141         81 2022-11-29 06:56 /user/nandagnk2141/nanda/hive/lab/t1.csv
+-rw-r--r--   3 nandagnk2141 nandagnk2141         81 2022-11-29 07:18 /user/nandagnk2141/nanda/hive/lab/t2.csv
+hive (gnanda80)> select * from ext_emp;
+OK
+1       aaaa    chennai 20500.0
+2       bbbb    madurai 25000.0
+3       cccc    salem   15000.0
+4       dddd    trichy  22000.0
+5       aaaa    chennai 20500.0
+6       bbbb    madurai 25000.0
+7       cccc    salem   15000.0
+8       dddd    trichy  22000.0
+Time taken: 0.097 seconds, Fetched: 8 row(s) 
+
+When to use internal table and when to use external table.
+
+Internal tables are used for staging table (intermediate tables/temporary tables) whereas external tables are used in production for real time data processing.
+
+How to load data into internal/external tables?
+
+a. load data from local machine --> load data local inpath 'full path of the file in the local machine' into table <table_name>
+   similary load the data from S3, ADLS we just need to provide the secret key and private keys
+b. load data from files available in hdfs location --> load data inpath 'full path of the file in the hdfs location' into table <table_name>
+   once the data is loaded the file from the source path won't be available it will get removed.
+c. creating table on top of hdfs directory where the data file is exists, here once the table is created data will be available readily no need to load the data manually.
+
+Tasks Pre-requisite
+===================
+Download dataset from google drive and move them to edge node using winscp
+
+[nandagnk2141@cxln5 nanda]$ cd hive
+[nandagnk2141@cxln5 hive]$ ls -ltr
+total 12
+-rwxrwxrwx 1 nandagnk2141 nandagnk2141   81 Nov 28 13:35 t1.csv
+-rwxr-xr-x 1 nandagnk2141 nandagnk2141   81 Nov 29 07:12 t2.csv
+drwxrwxr-x 2 nandagnk2141 nandagnk2141 4096 Nov 29 09:49 DATASETS
+[nandagnk2141@cxln5 hive]$ cd DATASETS
+[nandagnk2141@cxln5 DATASETS]$ pwd
+/home/nandagnk2141/nanda/hive/DATASETS
+[nandagnk2141@cxln5 DATASETS]$ ls -ltr
+total 38180
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     635 Nov 27 13:35 customer_records_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     109 Nov 27 13:35 athlete_events_UPD_Schema.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     108 Nov 27 13:36 comp_data.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141   82800 Nov 27 13:38 usdata.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    3595 Nov 27 13:39 noc_locations.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 1025109 Nov 27 13:40 customer_records.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5816923 Nov 27 13:40 weatherHistory.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 6799807 Nov 27 13:41 athlete_events_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 6799918 Nov 27 13:42 athlete_events.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8208121 Nov 27 13:43 txs.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 4485608 Nov 27 13:44 txs_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5816841 Nov 27 13:44 weatherHistory_Noheader.csv
+
+Task 1
+======
+Take the customer_records.csv from dataset create an internal table and display the data
+
+[nandagnk2141@cxln5 DATASETS]$ head customer_records.csv
+customer_id,customer_fname,customer_lname,customer_email,customer_pwd,customer_street,customer_city,customer_state,zip_code,number_of_orders,voice_mail_active
+1,Richard,Hernandez,XXXXXXXXX,XXXXXXXXX,6303 Heather Plaza,Brownsville,TX,78521,25,yes
+2,Mary,Barrett,XXXXXXXXX,XXXXXXXXX,9526 Noble Embers Ridge,Littleton,CO,80126,26,yes
+3,Ann,Smith,XXXXXXXXX,XXXXXXXXX,3422 Blue Pioneer Bend,Caguas,PR,725,0,no
+4,Mary,Jones,XXXXXXXXX,XXXXXXXXX,8324 Little Common,San Marcos,CA,92069,0,no
+5,Robert,Hudson,XXXXXXXXX,XXXXXXXXX,10 Crystal River Mall,Caguas,PR,725,0,no
+6,Mary,Smith,XXXXXXXXX,XXXXXXXXX,3151 Sleepy Quail Promenade,Passaic,NJ,7055,0,no
+7,Melissa,Wilcox,XXXXXXXXX,XXXXXXXXX,9453 High Concession,Caguas,PR,725,24,yes
+8,Megan,Smith,XXXXXXXXX,XXXXXXXXX,3047 Foggy Forest Plaza,Lawrence,MA,1841,0,no
+9,Mary,Perez,XXXXXXXXX,XXXXXXXXX,3616 Quaking Street,Caguas,PR,725,0,no
+
+step 1 create table 
+
+create table cust_int_tbl_1 (customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',';
+
+hive (gnanda80)> create table cust_int_tbl_1 (customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, custome
+r_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',';
+OK
+Time taken: 0.809 seconds
+hive (gnanda80)> show tables;
+OK
+cust_int_tbl_1
+ext_emp
+product
+t1
+Time taken: 0.109 seconds, Fetched: 4 row(s)
+hive (gnanda80)> desc cust_int_tbl_1;
+OK
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+Time taken: 0.055 seconds, Fetched: 11 row(s)
+
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 10:05:31 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/cust_int_tbl_1        
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        COLUMN_STATS_ACCURATE   {\"BASIC_STATS\":\"true\"}
+        numFiles                0                   
+        numRows                 0                   
+        rawDataSize             0                   
+        totalSize               0                   
+        transient_lastDdlTime   1669716331          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        serialization.format    ,                   
+Time taken: 0.067 seconds, Fetched: 42 row(s)
+
+step2 load data from local drive
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_int_tbl_1;
+
+hive (gnanda80)> load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_int_tbl_1;
+Loading data to table gnanda80.cust_int_tbl_1
+Table gnanda80.cust_int_tbl_1 stats: [numFiles=1, numRows=0, totalSize=1025109, rawDataSize=0]
+OK
+Time taken: 0.501 seconds
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/cust_int_tbl_1
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop    1025109 2022-11-29 10:06 /apps/hive/warehouse/gnanda80.db/cust_int_tbl_1/customer_records.csv
+
+step 3 display data 
+
+select * from cust_int_tbl_1;
+hive (gnanda80)> select * from cust_int_tbl_1;
+OK
+NULL    customer_fname  customer_lname  customer_email  customer_pwd    customer_street customer_city   customer_state  NULL    NULL    voice_mail_active
+1       Richard Hernandez       XXXXXXXXX       XXXXXXXXX       6303 Heather Plaza      Brownsville     TX      78521   25      yes
+2       Mary    Barrett XXXXXXXXX       XXXXXXXXX       9526 Noble Embers Ridge Littleton       CO      80126   26      yes
+3       Ann     Smith   XXXXXXXXX       XXXXXXXXX       3422 Blue Pioneer Bend  Caguas  PR      725     0       no
+4       Mary    Jones   XXXXXXXXX       XXXXXXXXX       8324 Little Common      San Marcos      CA      92069   0       no
+5       Robert  Hudson  XXXXXXXXX       XXXXXXXXX       10 Crystal River Mall   Caguas  PR      725     0       no
+6       Mary    Smith   XXXXXXXXX       XXXXXXXXX       3151 Sleepy Quail Promenade     Passaic NJ      7055    0       no
+7       Melissa Wilcox  XXXXXXXXX       XXXXXXXXX       9453 High Concession    Caguas  PR      725     24      yes
+8       Megan   Smith   XXXXXXXXX       XXXXXXXXX       3047 Foggy Forest Plaza Lawrence        MA      1841    0       no
+9       Mary    Perez   XXXXXXXXX       XXXXXXXXX       3616 Quaking Street     Caguas  PR      725     0       no
+10      Melissa Smith   XXXXXXXXX       XXXXXXXXX       8598 Harvest Beacon Plaza       Stafford        VA      22554   37      yes
+..............
+..............
+12428   Jeffrey Travis  XXXXXXXXX       XXXXXXXXX       1552 Burning Dale Highlands     Caguas  PR      725     0       no
+12429   Mary    Smith   XXXXXXXXX       XXXXXXXXX       92 Sunny Bear Villas    Gardena CA      90247   21      yes
+12430   Hannah  Brown   XXXXXXXXX       XXXXXXXXX       8316 Pleasant Bend      Caguas  PR      725     40      yes
+12431   Mary    Rios    XXXXXXXXX       XXXXXXXXX       1221 Cinder Pines       Kaneohe HI      96744   31      yes
+12432   Angela  Smith   XXXXXXXXX       XXXXXXXXX       1525 Jagged Barn Highlands      Caguas  PR      725     0       no
+12433   Benjamin        Garcia  XXXXXXXXX       XXXXXXXXX       5459 Noble Brook Landing        Levittown       NY      11756   0       no
+12434   Mary    Mills   XXXXXXXXX       XXXXXXXXX       9720 Colonial Parade    Caguas  PR      725     0       no
+12435   Laura   Horton  XXXXXXXXX       XXXXXXXXX       5736 Honey Downs        Summerville     SC      29483   23      yes
+Time taken: 0.394 seconds, Fetched: 12436 row(s)
+
+==============================================================================================================================================
+Task 2
+======
+create an external table and load the data from customer_records.csv
+
+step 1 create a directory for data file in hdfs
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/cust_ext_tbl
+
+step 2 create table 
+
+create external table cust_ext_tbl (customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/nanda/hive/lab/cust_ext_tbl';
+
+hive (gnanda80)> create external table cust_ext_tbl (customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, 
+customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/na
+nda/hive/lab/cust_ext_tbl';
+OK
+Time taken: 0.129 seconds
+
+hive (gnanda80)> show tables;
+OK
+cust_ext_tbl
+cust_int_tbl_1
+ext_emp
+product
+t1
+Time taken: 0.021 seconds, Fetched: 5 row(s)
+
+hive (gnanda80)> desc cust_ext_tbl;
+OK
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+Time taken: 0.054 seconds, Fetched: 11 row(s)
+
+hive (gnanda80)> desc formatted cust_ext_tbl;
+OK
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 10:24:50 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/hive/lab/cust_ext_tbl         
+Table Type:             EXTERNAL_TABLE           
+Table Parameters:                
+        EXTERNAL                TRUE                
+        numFiles                0                   
+        totalSize               0                   
+        transient_lastDdlTime   1669717490          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        serialization.format    ,                   
+Time taken: 0.051 seconds, Fetched: 40 row(s)
+
+step 3 load data into external table from local machine.
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_ext_tbl;
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_ext_tbl;
+Loading data to table gnanda80.cust_ext_tbl
+Table gnanda80.cust_ext_tbl stats: [numFiles=1, totalSize=1025109]
+OK
+Time taken: 0.224 seconds
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/cust_ext_tbl
+Found 1 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141    1025109 2022-11-29 10:27 /user/nandagnk2141/nanda/hive/lab/cust_ext_tbl/customer_records.csv
+
+step 4 display the data
+
+select * from cust_ext_tbl;
+
+hive (gnanda80)> select * from cust_ext_tbl;
+OK
+NULL    customer_fname  customer_lname  customer_email  customer_pwd    customer_street customer_city   customer_state  NULL    NULL    voice_mail_active
+1       Richard Hernandez       XXXXXXXXX       XXXXXXXXX       6303 Heather Plaza      Brownsville     TX      78521   25      yes
+2       Mary    Barrett XXXXXXXXX       XXXXXXXXX       9526 Noble Embers Ridge Littleton       CO      80126   26      yes
+3       Ann     Smith   XXXXXXXXX       XXXXXXXXX       3422 Blue Pioneer Bend  Caguas  PR      725     0       no
+4       Mary    Jones   XXXXXXXXX       XXXXXXXXX       8324 Little Common      San Marcos      CA      92069   0       no
+5       Robert  Hudson  XXXXXXXXX       XXXXXXXXX       10 Crystal River Mall   Caguas  PR      725     0       no
+6       Mary    Smith   XXXXXXXXX       XXXXXXXXX       3151 Sleepy Quail Promenade     Passaic NJ      7055    0       no
+7       Melissa Wilcox  XXXXXXXXX       XXXXXXXXX       9453 High Concession    Caguas  PR      725     24      yes
+8       Megan   Smith   XXXXXXXXX       XXXXXXXXX       3047 Foggy Forest Plaza Lawrence        MA      1841    0       no
+9       Mary    Perez   XXXXXXXXX       XXXXXXXXX       3616 Quaking Street     Caguas  PR      725     0       no
+10      Melissa Smith   XXXXXXXXX       XXXXXXXXX       8598 Harvest Beacon Plaza       Stafford        VA      22554   37      yes
+..............
+..............
+
+12427   Mary    Smith   XXXXXXXXX       XXXXXXXXX       3662 Round Barn Gate    Plano   TX      75093   0       no
+12428   Jeffrey Travis  XXXXXXXXX       XXXXXXXXX       1552 Burning Dale Highlands     Caguas  PR      725     0       no
+12429   Mary    Smith   XXXXXXXXX       XXXXXXXXX       92 Sunny Bear Villas    Gardena CA      90247   21      yes
+12430   Hannah  Brown   XXXXXXXXX       XXXXXXXXX       8316 Pleasant Bend      Caguas  PR      725     40      yes
+12431   Mary    Rios    XXXXXXXXX       XXXXXXXXX       1221 Cinder Pines       Kaneohe HI      96744   31      yes
+12432   Angela  Smith   XXXXXXXXX       XXXXXXXXX       1525 Jagged Barn Highlands      Caguas  PR      725     0       no
+12433   Benjamin        Garcia  XXXXXXXXX       XXXXXXXXX       5459 Noble Brook Landing        Levittown       NY      11756   0       no
+12434   Mary    Mills   XXXXXXXXX       XXXXXXXXX       9720 Colonial Parade    Caguas  PR      725     0       no
+12435   Laura   Horton  XXXXXXXXX       XXXXXXXXX       5736 Honey Downs        Summerville     SC      29483   23      yes
+Time taken: 0.076 seconds, Fetched: 12436 row(s)
+
+=============================================================================================================================================
+
+Task 3
+======
+Create an internal table cust_int_tbl_2 outside the hive warehouse and load data from customer_records.csv, later drop the table and check the metadata and file
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2
+[nandagnk2141@cxln5 DATASETS]$ 
+
+create table cust_int_tbl_2(customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2';
+
+hive (gnanda80)> create table cust_int_tbl_2 (customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string
+, customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/
+nanda/hive/lab/cust_int_tbl_2';
+OK
+Time taken: 0.116 seconds
+hive (gnanda80)> 
+
+hive (gnanda80)> desc formatted cust_int_tbl_2;
+OK
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 10:36:08 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2       
+Table Type:             MANAGED_TABLE           
+Table Parameters:                
+        EXTERNAL                TRUE                
+        numFiles                0                   
+        totalSize               0                   
+        transient_lastDdlTime   1669718168          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        serialization.format    ,                   
+Time taken: 0.049 seconds, Fetched: 40 row(s)
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_int_tbl_2;
+
+hive (gnanda80)> 
+               > load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_int_tbl_2;
+Loading data to table gnanda80.cust_int_tbl_2
+Table gnanda80.cust_int_tbl_2 stats: [numFiles=1, totalSize=1025109]
+OK
+Time taken: 0.18 seconds
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2
+Found 1 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141    1025109 2022-11-29 10:37 /user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2/customer_records.csv
+[nandagnk2141@cxln5 DATASETS]$ 
+
+hive (gnanda80)> 
+               > 
+               > select count(1) from cust_int_tbnl_2;
+FAILED: SemanticException [Error 10001]: Line 1:21 Table not found 'cust_int_tbnl_2'
+hive (gnanda80)> 
+               > select count(1) from cust_int_tbl_2;
+Query ID = nandagnk2141_20221129103914_2685aa30-3327-4fd0-b77a-7b4562ec7d27
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21239, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21239/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21239
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-11-29 10:39:22,152 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 10:39:31,535 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.12 sec
+2022-11-29 10:39:37,774 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.77 sec
+MapReduce Total cumulative CPU time: 6 seconds 770 msec
+Ended Job = job_1648130833540_21239
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.77 sec   HDFS Read: 1034927 HDFS Write: 6 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 770 msec
+OK
+12436
+Time taken: 24.542 seconds, Fetched: 1 row(s)
+
+hive (gnanda80)> 
+               > 
+               > drop table cust_int_tbl_2;
+OK
+Time taken: 0.213 seconds
+
+hive (gnanda80)> 
+               > 
+               > desc cust_int_tbl_2;
+FAILED: SemanticException [Error 10001]: Table not found cust_int_tbl_2
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2
+ls: `/user/nandagnk2141/nanda/hive/lab/cust_int_tbl_2': No such file or directory
+
+=============================================================================================================================================
+Task 4
+======
+
+create an internal table and external table using the same warehouse directory and then drop the internal table and check what happens to external table.
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl
+[nandagnk2141@cxln5 DATASETS]$ 
+
+step 1 creating internal table 
+
+create table cust_int_tbl_3(customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl';
+
+hive> 
+    > 
+    > create table cust_int_tbl_3(customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_city strin
+g, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/nanda/hive/lab/cust_i
+nt_ext_tbl';
+OK
+Time taken: 0.108 seconds
+
+step 2 creating external table 
+
+create external table cust_ext_tbl_1(customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_city string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl';
+
+hive> 
+    > 
+    > create external table cust_ext_tbl_1(customer_id int, customer_fname string, customer_lname string, customer_email string, customer_pwd string, customer_street string, customer_c
+ity string, customer_state string, zip_code int, number_of_orders int,voice_mail_active string) row format delimited fields terminated by ',' location  '/user/nandagnk2141/nanda/hive/l
+ab/cust_int_ext_tbl';
+OK
+Time taken: 0.105 seconds
+
+step 3 loading data into internal and external tables
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_int_tbl_3;
+
+hive> 
+    > 
+    > load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_int_tbl_3;
+Loading data to table gnanda80.cust_int_tbl_3
+Table gnanda80.cust_int_tbl_3 stats: [numFiles=1, totalSize=1025109]
+OK
+Time taken: 0.441 seconds
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_ext_tbl_1;
+
+hive> 
+    > 
+    > load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/customer_records.csv' into table cust_ext_tbl_1;
+Loading data to table gnanda80.cust_ext_tbl_1
+Table gnanda80.cust_ext_tbl_1 stats: [numFiles=2, totalSize=2050218]
+OK
+Time taken: 0.199 seconds
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl
+Found 2 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141    1025109 2022-11-29 10:55 /user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl/customer_records.csv
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141    1025109 2022-11-29 10:55 /user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl/customer_records_copy_1.csv
+
+here two files created as we loaded the data into internal and external tables
+
+
+now drop the internal table 
+
+drop table cust_int_tbl_3;
+
+hive> 
+    > drop table cust_int_tbl_3;
+OK
+Time taken: 0.146 seconds
+
+now query the external table data
+hive> 
+    > select * from cust_ext_tbl_1;
+OK
+Time taken: 0.065 seconds
+
+check the location
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl
+ls: `/user/nandagnk2141/nanda/hive/lab/cust_int_ext_tbl': No such file or directory
+
+====================================================================================================================================
+
+Task 5
+======
+
+Create an internal table and load data and change/convert the internal table as external table (try vice versa)
+
+to covert the internal table to external table 
+alter table table_name SET TBLPROPERTIES('EXTERNAL'='TRUE');
+
+note: ('EXTERNAL'='TRUE') should be always capitalized.
+
+hive> use gnanda80;
+OK
+Time taken: 1.773 seconds
+hive> show tables;
+OK
+cust_ext_tbl
+cust_ext_tbl_1
+cust_int_tbl_1
+ext_emp
+product
+t1
+Time taken: 0.169 seconds, Fetched: 6 row(s)
+
+hive> desc formatted t1;
+OK
+# col_name              data_type               comment             
+                 
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Mon Nov 28 13:31:17 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/t1    
+Table Type:             MANAGED_TABLE  
+
+alter table t1 SET TBLPROPERTIES('EXTERNAL'='TRUE');
+
+hive> alter table t1 SET TBLPROPERTIES('EXTERNAL'='TRUE');
+OK
+Time taken: 0.096 seconds
+hive> desc formatted t1;
+OK
+# col_name              data_type               comment             
+                 
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Mon Nov 28 13:31:17 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/t1    
+Table Type:             EXTERNAL_TABLE           
+Table Parameters:                
+        EXTERNAL                TRUE                
+        last_modified_by        nandagnk2141        
+        last_modified_time      1669729857          
+        numFiles                1                   
+        numRows                 0                   
+        rawDataSize             0                   
+        totalSize               81                  
+        transient_lastDdlTime   1669729857 
+		
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+
+now drop the table and check for metadata and data file		
+hive> 
+    > drop table t1;
+OK
+Time taken: 0.115 seconds
+hive> desc t1;
+FAILED: SemanticException [Error 10001]: Table not found t1
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+
+now try to convert external table to internal table.
+
+hive> desc formatted cust_ext_tbl;
+OK
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 10:24:50 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/hive/lab/cust_ext_tbl         
+Table Type:             EXTERNAL_TABLE           
+Table Parameters:                
+        EXTERNAL                TRUE                
+        numFiles                1                   
+        totalSize               1025109             
+        transient_lastDdlTime   1669717659          
+		
+now covert the external table cust_ext_tbl as managed table
+
+alter table cust_ext_tbl SET TBLPROPERTIES('EXTERNAL'='FALSE');
+		
+hive> 
+    > alter table cust_ext_tbl SET TBLPROPERTIES('EXTERNAL'='FALSE');
+OK
+Time taken: 0.069 seconds
+hive> desc formatted cust_ext_tbl;
+OK
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_pwd            string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+zip_code                int                                         
+number_of_orders        int                                         
+voice_mail_active       string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Tue Nov 29 10:24:50 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/hive/lab/cust_ext_tbl         
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        EXTERNAL                FALSE               
+        last_modified_by        nandagnk214
+
+now drop the table and check for metadata and datafile.
+
+hive> 
+    > drop table cust_ext_tbl;
+OK
+Time taken: 0.099 seconds
+hive> desc cust_ext_tbl;
+FAILED: SemanticException [Error 10001]: Table not found cust_ext_tbl
+
+check for datafile
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/cust_ext_tbl
+ls: `/user/nandagnk2141/nanda/hive/lab/cust_ext_tbl': No such file or directory
+[nandagnk2141@cxln5 ~]$ 
+
+===================================================================================================================================
+
+Partition Tables
+================
+
+As Hive uses map reduce which reduces the performance, for performance of improvement table partitions were introduced.
+
+Internal tables are used as staging or intermediate table to perform data validations 
+External tables are used as production tables and used for any kind of analysis. Which can be accessed from any external tools like power bi etc.
+
+in real time scenarios the minimum size of data present in production tables will be 15GB. 
+
+when we do analytics on the production data the performance will be good when the data file size is small but when the data file volume grows the performacne degrades as the data is present in file system not in the db so analytics to be done on file system data. To improve the performance partitions technique was introduced.
+
+The key concept here is a separate directory created for partition key column(low carditinality columns or repetitive value columns like department no, saleyear, country, product and etc) for each distinct value (dynamic partition) or for specific values (in case of static partitions) and a partition data file will get created in that folder for all the records contains the value defined in the partition column. By this way hive execution engine achieve grouping in the data when the where condition is given it will easy for the execution engine to identify the partitions to be queried and analyzed instead of processing the entire file.
+
+Instead of running the map reduce job again and again partitions simplifies the job to perform the required analysis on exact data set.
+
+further it allows to create sub partitions. 
+
+Type for partitions
+
+1. Static Partition  -- requires a column name and specific value for the column for which partition to be created
+2. Dynamic Partition  -- requires only the column name, partition folder will be created for each distinct values of the column
+
+Static Partition means creating group only for one specific value on the partition column
+example 
+only the country 'India' 
+only for deptartment_no is 10
+only for the salesyear 2022
+only for the product 'I-Phone' etc
+
+when we use the above column with the exact values in the where clause, it will make use of the partition to analyse the data which will improve the query performance.
+
+Note: Partition column should be low carditionality columns (less distinct values) otherwise, so many folders will get created which will degrade the performance.
+usually partitions will be created mostly on locations, category and date columns. We can create partitions on unique columns which degrade the performance.
+
+
+How to create static partition and how to load the partition data?
+
+Step 1 create the staging table (internal table)
+Step 2 load the data into staging table from LFS/HDFS
+Step 3 create partition file (External table)
+Step 4 Insert data into partition table from staging table
+
+create  table txn_stg(txnno INT, txndate STRING, custno INT, amount DOUBLE,category STRING, product STRING, city STRING, state STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> create  table txn_stg(txnno INT, txndate STRING, custno INT, amount DOUBLE,category STRING, product STRING, city STRING, state STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.286 seconds
+hive> 
+
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/txs.csv' into table txn_stg;
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/txs.csv' into table txn_stg;
+Loading data to table gnanda80.txn_stg
+Table gnanda80.txn_stg stats: [numFiles=1, numRows=0, totalSize=8208121, rawDataSize=0]
+OK
+Time taken: 0.613 seconds
+
+select * from txn_stg limit 5;
+
+hive> select * from txn_stg limit 5;
+OK
+0       06-26-2011      4007024 40.33           Cardio Machine Accessories      Clarksville     Tennessee       credit
+1       05-26-2011      4006742 198.44  Exercise & Fitness      Weightlifting Gloves    Long Beach      California      credit
+2       06-01-2011      4009775 5.58    Exercise & Fitness      Weightlifting Machine Accessories       Anaheim California      credit
+3       06-05-2011      4002199 198.19  Gymnastics      Gymnastics Rings        Milwaukee       Wisconsin       credit
+4       12-17-2011      4002613 98.81   Team Sports     Field Hockey    Nashville       Tennessee       credit
+Time taken: 0.326 seconds, Fetched: 5 row(s)
+
+create table txn_ptbl_category (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category string) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> create table txn_ptbl_category (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category string) r
+ow format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.068 seconds
+
+creating partion only for the column 'Gymnastics' (static partition)
+
+Insert into table txn_ptbl_category partition (category='Gymnastics') select txnno,txndate,custno,amount,product,city,state,spendby from txn_stg where category='Gymnastics';
+
+hive> Insert into table txn_ptbl_category partition (category='Gymnastics') select txnno,txndate,custno,amount,product,city,state,spendby from txn_stg where category='Gymnastics';
+Query ID = nandagnk2141_20221129153336_79eca16c-1840-47fc-95bb-9965de56c419
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21256, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21256/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21256
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-11-29 15:33:46,429 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 15:33:52,720 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.2 sec
+MapReduce Total cumulative CPU time: 4 seconds 200 msec
+Ended Job = job_1648130833540_21256
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Gymnastics/.hive-staging_hive_2022-11-29_15-33-36_513_646
+5457010124720198-1/-ext-10000
+Loading data to table gnanda80.txn_ptbl_category partition (category=Gymnastics)
+Partition gnanda80.txn_ptbl_category{category=Gymnastics} stats: [numFiles=1, numRows=6261, totalSize=460746, rawDataSize=454485]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 4.2 sec   HDFS Read: 8214237 HDFS Write: 460854 SUCCESS
+Total MapReduce CPU Time Spent: 4 seconds 200 msec
+OK
+Time taken: 17.628 seconds
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db
+Found 5 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 10:06 /apps/hive/warehouse/gnanda80.db/cust_int_tbl_1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-22 04:40 /apps/hive/warehouse/gnanda80.db/product
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:33 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:30 /apps/hive/warehouse/gnanda80.db/txn_stg
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_ptbl_category
+Found 1 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:33 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Gymnastics
+[nandagnk2141@cxln5 DATASETS]$ 
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Gymnastics
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop     460746 2022-11-29 15:33 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Gymnastics/000000_0
+[nandagnk2141@cxln5 DATASETS]$ 
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Gymnastics/000000_0 | tail -10
+95768,10-30-2011,4005732,74.82,Pommel Horses,San Diego,California,credit
+95785,10-17-2011,4003951,192.51,Gymnastics Protective Gear,Phoenix,Arizona,credit
+95794,10-22-2011,4001357,33.59,Gymnastics Mats,San Jose,California,cash
+95815,11-13-2011,4000110,63.23,Gymnastics Rings,Columbia,South Carolina,credit
+95819,11-24-2011,4003934,88.97,Gymnastics Bars,Birmingham,Alabama,credit
+95828,02-03-2011,4002431,181.05,Pommel Horses,Denver  ,Colorado,credit
+95858,09-07-2011,4000713,6.26,Pommel Horses,Miami,Florida,cash
+95879,05-02-2011,4008706,189.27,Gymnastics Protective Gear,Seattle,Washington,credit
+95890,09-19-2011,4009746,63.72,Balance Beams,San Jose,California,credit
+95896,04-18-2011,4007291,100.5,Gymnastics Mats,El Paso,Texas,credit
+
+now querying the data for analytics
+
+select min(amount),max(amount),avg(amount),sum(amount) from txn_ptbl_category where category='Gymnastics';
+
+hive> select min(amount),max(amount),avg(amount),sum(amount) from txn_ptbl_category where category='Gymnastics';
+Query ID = nandagnk2141_20221129153859_d96d27cb-9305-4b06-b478-7378c88fa889
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21257, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21257/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21257
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-11-29 15:39:06,921 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 15:39:13,241 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.04 sec
+2022-11-29 15:39:21,538 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.85 sec
+MapReduce Total cumulative CPU time: 7 seconds 850 msec
+Ended Job = job_1648130833540_21257
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.85 sec   HDFS Read: 473517 HDFS Write: 49 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 850 msec
+OK
+5.02    199.93  102.08776074109525      639171.4699999974
+Time taken: 22.84 seconds, Fetched: 1 row(s)
+
+querying the same data from staging table to see the difference in performance
+
+select min(amount),max(amount),avg(amount),sum(amount) from txn_stg where category='Gymnastics';
+
+hive> select min(amount),max(amount),avg(amount),sum(amount) from txn_stg where category='Gymnastics';
+Query ID = nandagnk2141_20221129154042_99b858c1-6794-42d4-be9f-c53f808ee336
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21258, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21258/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21258
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-11-29 15:40:51,451 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 15:40:58,695 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.81 sec
+2022-11-29 15:41:05,939 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.16 sec
+MapReduce Total cumulative CPU time: 7 seconds 160 msec
+Ended Job = job_1648130833540_21258
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.16 sec   HDFS Read: 8220775 HDFS Write: 49 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 160 msec
+OK
+5.02    199.93  102.08776074109525      639171.4699999974
+Time taken: 24.469 seconds, Fetched: 1 row(s)
+
+select category,min(amount),max(amount),avg(amount),sum(amount) from txn_stg group by category;
+
+hive> select category,min(amount),max(amount),avg(amount),sum(amount) from txn_stg group by category;
+Query ID = nandagnk2141_20221129154344_91a22b76-d3a3-4bd9-85bc-3b41629fe038
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21259, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21259/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21259
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-11-29 15:43:53,038 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 15:43:59,563 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.11 sec
+2022-11-29 15:44:06,839 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.04 sec
+MapReduce Total cumulative CPU time: 7 seconds 40 msec
+Ended Job = job_1648130833540_21259
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.04 sec   HDFS Read: 8220095 HDFS Write: 946 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 40 msec
+OK
+        40.33   40.33   40.33   40.33
+Air Sports      5.08    199.98  102.44319710294867      198022.69999999978
+Combat Sports   5.0     199.96  102.07738535031822      320522.98999999923
+Dancing 5.05    199.73  103.77406565656557      82189.05999999992
+Exercise & Fitness      5.05    200.0   103.43042068671949      1457955.2099999979
+Games   5.0     199.9   102.8864094442845       714649.0000000001
+Gymnastics      5.02    199.93  102.08776074109525      639171.4699999974
+Indoor Games    5.0     199.95  103.90596551070693      548311.7800000005
+Jumping 5.01    199.95  100.97745051464744      382603.5599999992
+Outdoor Play Equipment  5.01    199.98  102.31164498992457      558519.2699999983
+Outdoor Recreation      5.01    200.0   101.77650603902109      1643181.6899999955
+Puzzles 5.15    199.82  101.29537478705295      118920.77000000016
+Racquet Sports  5.08    199.98  102.32375562700953      318226.87999999966
+Team Sports     5.01    199.96  102.91892693471681      1190257.39
+Water Sports    5.01    199.99  102.06448515539695      1027891.4300000027
+Winter Sports   5.04    199.99  101.0202148087874       620769.2199999986
+Time taken: 23.903 seconds, Fetched: 16 row(s)
+
+creating another partion for the category 'Team Sports'
+
+Insert into table txn_ptbl_category partition (category='Team Sports') select txnno,txndate,custno,amount,product,city,state,spendby from txn_stg where category='Team Sports';
+
+hive> Insert into table txn_ptbl_category partition (category='Team Sports') select txnno,txndate,custno,amount,product,city,state,spendby from txn_stg where category='Team Sports';
+Query ID = nandagnk2141_20221129154802_747e6cc2-a974-404f-bed9-91590003afa1
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21260, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21260/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21260
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-11-29 15:48:13,422 Stage-1 map = 0%,  reduce = 0%
+2022-11-29 15:48:19,734 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.74 sec
+MapReduce Total cumulative CPU time: 4 seconds 740 msec
+Ended Job = job_1648130833540_21260
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Team Sports/.hive-staging_hive_2022-11-29_15-48-02_400_46
+26939108487687174-1/-ext-10000
+Loading data to table gnanda80.txn_ptbl_category partition (category=Team Sports)
+Partition gnanda80.txn_ptbl_category{category=Team Sports} stats: [numFiles=1, numRows=11565, totalSize=780437, rawDataSize=768872]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 4.74 sec   HDFS Read: 8214248 HDFS Write: 780547 SUCCESS
+Total MapReduce CPU Time Spent: 4 seconds 740 msec
+OK
+Time taken: 19.96 seconds
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_ptbl_category
+Found 2 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:33 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Gymnastics
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:48 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Team Sports
+
+[nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category='Team Sports'
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop     780437 2022-11-29 15:48 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Team Sports/000000_0
