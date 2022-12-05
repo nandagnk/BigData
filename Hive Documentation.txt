@@ -1824,3 +1824,2793 @@ drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:48 /apps/hive/wareho
 [nandagnk2141@cxln5 DATASETS]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category='Team Sports'
 Found 1 items
 -rwxrwxrwx   3 nandagnk2141 hadoop     780437 2022-11-29 15:48 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category/category=Team Sports/000000_0
+
+===========================================================================================================================
+
+Dynamic Partitions
+==================
+For all the distinct values present on the partition column a separate folder will be created. Dynamic partitions are vary usesul and mostly used for analytics in the real time.
+
+step 1 Create Stating tables
+step 2 load data into staging table from LFS/HDFS/S3/ADSL
+step 3 create partition table
+step 4 insert data into partitioned table from staging table.
+
+Step 1 and 2 were already completed as part of static partition, so we are going to use the same staging table for dynamic partition example
+
+step 3 creating partitioned table 
+
+create table txn_dptbl_category (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category string) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive>  create table txn_dptbl_category (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category string)
+ row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.211 seconds
+hive> show tables;
+OK
+cust_ext_tbl_1
+cust_int_tbl_1
+ext_emp
+product
+txn_dptbl_category
+txn_ptbl_category
+txn_stg
+Time taken: 0.023 seconds, Fetched: 7 row(s)
+
+hive> desc formatted txn_dptbl_category;
+OK
+# col_name              data_type               comment             
+                 
+txnno                   int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string                                      
+                 
+# Partition Information          
+# col_name              data_type               comment             
+                 
+category                string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Thu Dec 01 13:24:02 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_dptbl_category    
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        transient_lastDdlTime   1669901042          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        line.delim              \n                  
+        serialization.format    ,                   
+Time taken: 0.161 seconds, Fetched: 40 row(s)
+
+To list the available partions for the table 
+
+show partitions <table_name>;
+
+show partitions txn_dptbl_category;
+
+hive> show partitions txn_dptbl_category;
+OK
+Time taken: 0.083 seconds
+hive> 
+
+
+right now this table doesn't have any partition has the table is empty.
+
+Now insert records for dynamic partition table
+
+before inserting records we need to set hive.exec.dynamic.partition.mode parameter by default it is strict change it to nonstrict.
+
+hive> set hive.exec.dynamic.partition.mode;
+hive.exec.dynamic.partition.mode=strict
+hive> set hive.exec.dynamic.partition.mode=nonstrict;
+hive> set hive.exec.dynamic.partition.mode;
+hive.exec.dynamic.partition.mode=nonstrict
+
+now insert the data.
+
+insert into txn_dptbl_category partition (category) select txnno,txndate,custno,amount,product,city,state,spendby,category from txn_stg;
+
+difference between static partition and dynamic partition is that, static partion will have where condition in the partition clause as well as in the where clause and should refer the exact value for the partition. Whereas for dynamic partition we should give the column name alone in the partition clause. The another difference is that in static partition we won't include the paritioned column in the select list, but in dynamic partition it should be added as the last column in the select list. Static parition must requires where clause but dynamic should not have the where clause.
+
+This will take more time to populate data as the insert will create saparate folder for each distict value present for the partitioned column
+
+hive> select current_timestamp;
+OK
+2022-12-01 13:41:28.773
+Time taken: 0.079 seconds, Fetched: 1 row(s)
+hive> insert into txn_dptbl_category partition (category) select txnno,txndate,custno,amount,product,city,state,spendby,category from txn_stg;
+Query ID = nandagnk2141_20221201134139_75643fc9-7897-454c-bfd8-40cfea6cbacb
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21367, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21367/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21367
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-01 13:41:49,729 Stage-1 map = 0%,  reduce = 0%
+2022-12-01 13:42:00,233 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 6.23 sec
+MapReduce Total cumulative CPU time: 6 seconds 230 msec
+Ended Job = job_1648130833540_21367
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_dptbl_category/.hive-staging_hive_2022-12-01_13-41-39_724_377330991853163143-1/-ext-10000
+Loading data to table gnanda80.txn_dptbl_category partition (category=null)
+         Time taken to load dynamic partitions: 0.747 seconds
+        Loading partition {category=Air Sports}
+        Loading partition {category=Jumping}
+        Loading partition {category=Dancing}
+        Loading partition {category=Outdoor Play Equipment}
+        Loading partition {category=Gymnastics}
+        Loading partition {category=Water Sports}
+        Loading partition {category=Exercise & Fitness}
+        Loading partition {category=Winter Sports}
+        Loading partition {category=Games}
+        Loading partition {category=Team Sports}
+        Loading partition {category=Indoor Games}
+        Loading partition {category=Combat Sports}
+        Loading partition {category=Racquet Sports}
+        Loading partition {category=Outdoor Recreation}
+        Loading partition {category=__HIVE_DEFAULT_PARTITION__}
+        Loading partition {category=Puzzles}
+         Time taken for adding to write entity : 7
+Partition gnanda80.txn_dptbl_category{category=Air Sports} stats: [numFiles=1, numRows=1933, totalSize=132406, rawDataSize=130473]
+Partition gnanda80.txn_dptbl_category{category=Combat Sports} stats: [numFiles=1, numRows=3140, totalSize=208453, rawDataSize=205313]
+Partition gnanda80.txn_dptbl_category{category=Dancing} stats: [numFiles=1, numRows=792, totalSize=54574, rawDataSize=53782]
+Partition gnanda80.txn_dptbl_category{category=Exercise & Fitness} stats: [numFiles=1, numRows=14096, totalSize=1046554, rawDataSize=1032458]
+Partition gnanda80.txn_dptbl_category{category=Games} stats: [numFiles=1, numRows=6946, totalSize=490503, rawDataSize=483557]
+Partition gnanda80.txn_dptbl_category{category=Gymnastics} stats: [numFiles=1, numRows=6261, totalSize=460746, rawDataSize=454485]
+Partition gnanda80.txn_dptbl_category{category=Indoor Games} stats: [numFiles=1, numRows=5277, totalSize=355895, rawDataSize=350618]
+Partition gnanda80.txn_dptbl_category{category=Jumping} stats: [numFiles=1, numRows=3789, totalSize=273435, rawDataSize=269646]
+Partition gnanda80.txn_dptbl_category{category=Outdoor Play Equipment} stats: [numFiles=1, numRows=5459, totalSize=379276, rawDataSize=373817]
+Partition gnanda80.txn_dptbl_category{category=Outdoor Recreation} stats: [numFiles=1, numRows=16145, totalSize=1114275, rawDataSize=1098130]
+Partition gnanda80.txn_dptbl_category{category=Puzzles} stats: [numFiles=1, numRows=1174, totalSize=86165, rawDataSize=84991]
+Partition gnanda80.txn_dptbl_category{category=Racquet Sports} stats: [numFiles=1, numRows=3110, totalSize=204921, rawDataSize=201811]
+Partition gnanda80.txn_dptbl_category{category=Team Sports} stats: [numFiles=1, numRows=11565, totalSize=780437, rawDataSize=768872]
+Partition gnanda80.txn_dptbl_category{category=Water Sports} stats: [numFiles=1, numRows=10071, totalSize=706603, rawDataSize=696532]
+Partition gnanda80.txn_dptbl_category{category=Winter Sports} stats: [numFiles=1, numRows=6145, totalSize=426882, rawDataSize=420737]
+Partition gnanda80.txn_dptbl_category{category=__HIVE_DEFAULT_PARTITION__} stats: [numFiles=1, numRows=1, totalSize=83, rawDataSize=82]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 6.23 sec   HDFS Read: 8213956 HDFS Write: 6722441 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 230 msec
+OK
+Time taken: 23.593 seconds
+
+hive> select * from txn_dptbl_category where category = 'Gymnastics' limit 10;
+OK
+3       06-05-2011      4002199 198.19  Gymnastics Rings        Milwaukee       Wisconsin       credit  Gymnastics
+14      02-25-2011      4004613 36.81   Vaulting Horses Los Angeles     California      credit  Gymnastics
+23      05-02-2011      4007596 99.5    Gymnastics Rings        Springfield     Illinois        credit  Gymnastics
+46      05-27-2011      4005580 52.29   Vaulting Horses Cleveland       Ohio    credit  Gymnastics
+79      08-04-2011      4005751 39.8    Springboards    St. Louis       Missouri        cash    Gymnastics
+82      01-16-2011      4001098 21.23   Gymnastics Rings        Tampa   Florida cash    Gymnastics
+87      06-05-2011      4001050 89.56   Gymnastics Mats West Valley City        Utah    credit  Gymnastics
+106     10-07-2011      4007842 145.65  Pommel Horses   Chattanooga     Tennessee       credit  Gymnastics
+111     03-05-2011      4000401 173.56  Gymnastics Protective Gear      Portland        Oregon  credit  Gymnastics
+141     11-28-2011      4005743 78.16   Pommel Horses   Eugene  Oregon  credit  Gymnastics
+Time taken: 0.237 seconds, Fetched: 10 row(s)
+
+hive> select category,avg(amount) from txn_dptbl_category where category = 'Gymnastics' group by category;
+Query ID = nandagnk2141_20221201134502_5b30f9ea-3223-4ca3-87b1-22f56e492e65
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21368, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21368/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21368
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-01 13:45:09,154 Stage-1 map = 0%,  reduce = 0%
+2022-12-01 13:45:15,411 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.25 sec
+2022-12-01 13:45:21,666 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.72 sec
+MapReduce Total cumulative CPU time: 6 seconds 720 msec
+Ended Job = job_1648130833540_21368
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.72 sec   HDFS Read: 472066 HDFS Write: 30 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 720 msec
+OK
+Gymnastics      102.08776074109525
+Time taken: 21.681 seconds, Fetched: 1 row(s)
+
+hive> select avg(amount) from txn_dptbl_category where category = 'Gymnastics';
+Query ID = nandagnk2141_20221201134554_50f0ea88-36e6-4b15-abd8-ea702b1c4b8c
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21369, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21369/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21369
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-01 13:46:00,086 Stage-1 map = 0%,  reduce = 0%
+2022-12-01 13:46:06,323 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.46 sec
+2022-12-01 13:46:15,670 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.23 sec
+MapReduce Total cumulative CPU time: 6 seconds 230 msec
+Ended Job = job_1648130833540_21369
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.23 sec   HDFS Read: 471461 HDFS Write: 19 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 230 msec
+OK
+102.08776074109525
+Time taken: 22.86 seconds, Fetched: 1 row(s)
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db
+Found 6 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 10:06 /apps/hive/warehouse/gnanda80.db/cust_int_tbl_1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-22 04:40 /apps/hive/warehouse/gnanda80.db/product
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-28 13:37 /apps/hive/warehouse/gnanda80.db/t1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:42 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:48 /apps/hive/warehouse/gnanda80.db/txn_ptbl_category
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-11-29 15:30 /apps/hive/warehouse/gnanda80.db/txn_stg
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_dptbl_category
+Found 16 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Air Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Combat Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Dancing
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Exercise & Fitness
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Games
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Gymnastics
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Indoor Games
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Jumping
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Outdoor Play Equipment
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Outdoor Recreation
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Puzzles
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Racquet Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Team Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Water Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Winter Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=__HIVE_DEFAULT_PARTITION__
+[nandagnk2141@cxln5 ~]$ 
+
+Note: If the partioned column has null values then those records will be moved to the folder "__HIVE_DEFAULT_PARTITION__"
+
+Display the data file values present in the partitioned folder Air Sports
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category='Air Sports'
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop     132406 2022-12-01 13:41 /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category=Air Sports/000000_0
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_dptbl_category/category='Air Sports'/000000_0 | tail -20
+94927,02-18-2011,4009994,126.49,Parachutes,Boston,Massachusetts,credit
+95032,07-09-2011,4000062,158.95,Parachutes,Austin,Texas,credit
+95035,05-28-2011,4001696,112.91,Parachutes,Irvine,California,credit
+95036,03-21-2011,4005764,55.38,Air Suits,San Antonio,Texas,credit
+95055,01-03-2011,4006549,150.36,Parachutes,New Orleans,Louisiana,credit
+95110,11-29-2011,4008062,28.73,Parachutes,St. Louis  ,Missouri,credit
+95139,05-02-2011,4005529,30.49,Parachutes,Plano,Texas,credit
+95147,01-07-2011,4000898,77.2,Hang Gliding,Philadelphia,Pennsylvania,credit
+95233,05-13-2011,4008366,17.26,Hang Gliding,St. Louis  ,Missouri,credit
+95314,06-06-2011,4005862,170.08,Parachutes,Berkeley,California,credit
+95366,12-03-2011,4005871,196.6,Air Suits,Cambridge,Massachusetts,credit
+95384,08-08-2011,4007786,124.52,Air Suits,Portland,Oregon,credit
+95397,05-14-2011,4000387,133.03,Parachutes,Stamford,Connecticut,credit
+95416,04-03-2011,4003363,197.11,Air Suits,Columbia,South Carolina,credit
+95455,12-08-2011,4000704,9.48,Parachutes,Kansas City,Kansas,cash
+95613,02-17-2011,4009628,35.33,Parachutes,Denton,Texas,credit
+95723,06-22-2011,4003291,74.74,Parachutes,Hampton  ,Virginia,credit
+95754,03-30-2011,4005168,62.11,Parachutes,Oklahoma City,Oklahoma,credit
+95826,07-25-2011,4005404,83.07,Parachutes,Cincinnati,Ohio,credit
+95895,11-19-2011,4008394,119.47,Parachutes,Miami,Florida,credit
+
+Partitions Tasks
+================
+
+Task 1
+======
+
+use the txs.csv file for this activity, in that file there is a column called txndate, now create a staging and partitioned tables with txndate as date field. In the earlier example we populated this column as string, now instead of string create this column as date and dynamic partitioned table with the partition key as txndate.
+
+[nandagnk2141@cxln5 DATASETS]$ pwd
+/home/nandagnk2141/nanda/hive/DATASETS
+[nandagnk2141@cxln5 DATASETS]$ ls -ltr
+total 38180
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     635 Nov 27 13:35 customer_records_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     109 Nov 27 13:35 athlete_events_UPD_Schema.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     108 Nov 27 13:36 comp_data.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141   82800 Nov 27 13:38 usdata.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    3595 Nov 27 13:39 noc_locations.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 1025109 Nov 27 13:40 customer_records.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5816923 Nov 27 13:40 weatherHistory.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 6799807 Nov 27 13:41 athlete_events_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 6799918 Nov 27 13:42 athlete_events.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8208121 Nov 27 13:43 txs.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 4485608 Nov 27 13:44 txs_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5816841 Nov 27 13:44 weatherHistory_Noheader.csv
+[nandagnk2141@cxln5 DATASETS]$ head -20 txs.csv
+0,06-26-2011,4007024,40.33,,Cardio Machine Accessories,Clarksville,Tennessee,credit
+1,05-26-2011,4006742,198.44,Exercise & Fitness,Weightlifting Gloves,Long Beach,California,credit
+2,06-01-2011,4009775,5.58,Exercise & Fitness,Weightlifting Machine Accessories,Anaheim,California,credit
+3,06-05-2011,4002199,198.19,Gymnastics,Gymnastics Rings,Milwaukee,Wisconsin,credit
+4,12-17-2011,4002613,98.81,Team Sports,Field Hockey,Nashville  ,Tennessee,credit
+5,02-14-2011,4007591,193.63,Outdoor Recreation,Camping & Backpacking & Hiking,Chicago,Illinois,credit
+6,10-28-2011,4002190,27.89,Puzzles,Jigsaw Puzzles,Charleston,South Carolina,credit
+7,07-14-2011,4002964,96.01,Outdoor Play Equipment,Sandboxes,Columbus,Ohio,credit
+8,01-17-2011,4007361,10.44,Winter Sports,Snowmobiling,Des Moines,Iowa,credit
+9,05-17-2011,4004798,152.46,Jumping,Bungee Jumping,St. Petersburg,Florida,credit
+10,05-29-2011,4004646,180.28,Outdoor Recreation,Archery,Reno,Nevada,credit
+11,06-18-2011,4008071,121.39,Outdoor Play Equipment,Swing Sets,Columbus,Ohio,credit
+12,02-08-2011,4002473,41.52,Indoor Games,Bowling,San Francisco,California,credit
+13,03-13-2011,4003268,107.8,Team Sports,Field Hockey,Honolulu  ,Hawaii,credit
+14,02-25-2011,4004613,36.81,Gymnastics,Vaulting Horses,Los Angeles,California,credit
+15,10-20-2011,4003179,137.64,Combat Sports,Fencing,Honolulu  ,Hawaii,credit
+16,05-28-2011,4009135,35.56,Exercise & Fitness,Free Weight Bars,Columbia,South Carolina,credit
+17,10-18-2011,4006679,75.55,Water Sports,Scuba Diving & Snorkeling,Omaha,Nebraska,credit
+18,11-18-2011,4002444,88.65,Team Sports,Baseball,Salt Lake City,Utah,credit
+19,08-28-2011,4008871,51.81,Water Sports,Life Jackets,Newark,New Jersey,credit
+[nandagnk2141@cxln5 DATASETS]$ 
+
+step 1 create staging table
+
+create table txn_1_stg(txnno INT, txndate date, custno INT, amount DOUBLE,category STRING, product STRING, city STRING, state STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> create  table txn_1_stg(txnno INT, txndate date, custno INT, amount DOUBLE,category STRING, product STRING, city STRING, state STRING, spendby STRING) row format delimited fields
+ terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.211 seconds
+hive> desc txn_1_stg;
+OK
+txnno                   int                                         
+txndate                 date                                        
+custno                  int                                         
+amount                  double                                      
+category                string                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string                                      
+Time taken: 0.082 seconds, Fetched: 9 row(s)
+
+
+Step 2 load data to staging table
+load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/txs.csv' into table txn_1_stg;
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/DATASETS/txs.csv' into table txn_1_stg;
+Loading data to table gnanda80.txn_1_stg
+Table gnanda80.txn_1_stg stats: [numFiles=1, numRows=0, totalSize=8208121, rawDataSize=0]
+OK
+Time taken: 0.312 seconds
+
+select * from txn_1_stg limit 5;
+
+hive> select * from txn_stg limit 5;
+
+hive> select * from txn_1_stg limit 5;
+OK
+0       NULL    4007024 40.33           Cardio Machine Accessories      Clarksville     Tennessee       credit
+1       NULL    4006742 198.44  Exercise & Fitness      Weightlifting Gloves    Long Beach      California      credit
+2       NULL    4009775 5.58    Exercise & Fitness      Weightlifting Machine Accessories       Anaheim California      credit
+3       NULL    4002199 198.19  Gymnastics      Gymnastics Rings        Milwaukee       Wisconsin       credit
+4       NULL    4002613 98.81   Team Sports     Field Hockey    Nashville       Tennessee       credit
+Time taken: 0.046 seconds, Fetched: 5 row(s)
+
+Note: Here the txndate column is populated as null, the reason is it is not matching the default date format of hive.
+
+[nandagnk2141@cxln5 DATASETS]$ head -20 txs.csv
+0,06-26-2011,4007024,40.33,,Cardio Machine Accessories,Clarksville,Tennessee,credit
+1,05-26-2011,4006742,198.44,Exercise & Fitness,Weightlifting Gloves,Long Beach,California,credit
+2,06-01-2011,4009775,5.58,Exercise & Fitness,Weightlifting Machine Accessories,Anaheim,California,credit
+3,06-05-2011,4002199,198.19,Gymnastics,Gymnastics Rings,Milwaukee,Wisconsin,credit
+4,12-17-2011,4002613,98.81,Team Sports,Field Hockey,Nashville  ,Tennessee,credit
+5,02-14-2011,4007591,193.63,Outdoor Recreation,Camping & Backpacking & Hiking,Chicago,Illinois,credit
+
+
+here the format given in the input file is 'MM-DD-YYYY', but the format expected is 'YYYY-MM-DD' now we have two options to load this data, either we need to change the date format in the input file or we can load it as string format in to an temporary table and then we can convert that into date format and load into the actual table.
+
+from_unixtime(unix_timestamp(START_DATE,'yyyy/MM/dd'),'yyyy-MM-dd')
+
+As the data is already available in txn_stg in string format, I'm going to convert that into date format using the from_unixtime() function.
+
+select txnno, txndate, from_unixtime(unix_timestamp(txndate,'mm-dd-yyyy'),'yyyy-mm-dd') TXNDATE_FORMATTED from txn_stg LIMIT 5;
+
+hive> select txnno, txndate, from_unixtime(unix_timestamp(txndate,'mm-dd-yyyy'),'yyyy-mm-dd') TXNDATE_FORMATTED from txn_stg LIMIT 5;
+OK
+0       06-26-2011      2011-06-26
+1       05-26-2011      2011-05-26
+2       06-01-2011      2011-06-01
+3       06-05-2011      2011-06-05
+4       12-17-2011      2011-12-17
+Time taken: 0.079 seconds, Fetched: 5 row(s)
+
+now load the txn_1_stg from txn_stg.
+
+drop table txn_1_stg;
+
+create  table txn_1_stg(txnno INT, txndate date, custno INT, amount DOUBLE,category STRING, product STRING, city STRING, state STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+insert into txn_1_stg select txnno,from_unixtime(unix_timestamp(txndate,'mm-dd-yyyy'),'yyyy-mm-dd') txndate, custno, amount,category,product,city,state,spendby from txn_stg;
+
+
+hive> drop table txn_1_stg;
+OK
+Time taken: 0.142 seconds
+hive> create  table txn_1_stg(txnno INT, txndate date, custno INT, amount DOUBLE,category STRING, product STRING, city STRING, state STRING, spendby STRING) row format delimited fields
+ terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.09 seconds
+hive> insert into txn_1_stg select txnno,from_unixtime(unix_timestamp(txndate,'mm-dd-yyyy'),'yyyy-mm-dd') txndate, custno, amount,category,product,city,state,spendby from txn_stg;
+Query ID = nandagnk2141_20221201231736_5ac8fff1-84b6-4a7e-a38e-cc3b5c944ee3
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21398, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21398/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21398
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-01 23:17:43,734 Stage-1 map = 0%,  reduce = 0%
+2022-12-01 23:17:51,068 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 6.8 sec
+MapReduce Total cumulative CPU time: 6 seconds 800 msec
+Ended Job = job_1648130833540_21398
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_1_stg/.hive-staging_hive_2022-12-01_23-17-36_475_5675367847389161202-1/-ext-1000
+0
+Loading data to table gnanda80.txn_1_stg
+Table gnanda80.txn_1_stg stats: [numFiles=1, numRows=95904, totalSize=8114139, rawDataSize=8018235]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 6.8 sec   HDFS Read: 8214155 HDFS Write: 8114221 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 800 msec
+OK
+Time taken: 15.938 seconds
+
+hive> select * from txn_1_stg limit 5;
+OK
+0       2011-06-26      4007024 40.33           Cardio Machine Accessories      Clarksville     Tennessee       credit
+1       2011-05-26      4006742 198.44  Exercise & Fitness      Weightlifting Gloves    Long Beach      California      credit
+2       2011-06-01      4009775 5.58    Exercise & Fitness      Weightlifting Machine Accessories       Anaheim California      credit
+3       2011-06-05      4002199 198.19  Gymnastics      Gymnastics Rings        Milwaukee       Wisconsin       credit
+4       2011-12-17      4002613 98.81   Team Sports     Field Hockey    Nashville       Tennessee       credit
+Time taken: 0.059 seconds, Fetched: 5 row(s)
+
+now create dynamic partition table based on the partition column txndate;
+
+create external table txn_dptbl_txndate (txnno INT, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) 
+partitioned by (txndate  DATE) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile 
+location '/user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate';
+
+hive> create external table txn_dptbl_txndate (txnno INT, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) 
+    > partitioned by (txndate  DATE) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile 
+    > location '/user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate';
+OK
+Time taken: 0.165 seconds
+hive> desc txn_dptbl_txndate;
+OK
+txnno                   int                                         
+custno                  int                                         
+amount                  double                                      
+category                string                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string                                      
+txndate                 date                                        
+                 
+# Partition Information          
+# col_name              data_type               comment             
+                 
+txndate                 date                                        
+Time taken: 0.062 seconds, Fetched: 14 row(s)
+
+now insert data into partition table from staging table.
+
+insert into txn_dptbl_txndate partition (txndate) select txnno,custno,amount,category,product,city,state,spendby,txndate txndate from txn_1_stg;
+
+hive> insert into txn_dptbl_txndate partition (txndate) select txnno,custno,amount,category,product,city,state,spendby,txndate txndate from txn_1_stg;
+Query ID = nandagnk2141_20221201235222_ad5ac603-aeeb-4f82-9937-7f39aed99cbe
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21402, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21402/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21402
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-01 23:52:29,587 Stage-1 map = 0%,  reduce = 0%
+2022-12-01 23:52:39,971 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 9.41 sec
+MapReduce Total cumulative CPU time: 9 seconds 410 msec
+Ended Job = job_1648130833540_21402
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/.hive-staging_hive_2022-12-01_23-52-22_597_447
+1534927747074827-1/-ext-10000
+Loading data to table gnanda80.txn_dptbl_txndate partition (txndate=null)
+         Time taken to load dynamic partitions: 16.451 seconds
+        Loading partition {txndate=2011-07-29}
+        Loading partition {txndate=2011-09-29}
+        Loading partition {txndate=2011-11-21}
+        Loading partition {txndate=2011-12-29}
+        Loading partition {txndate=2011-10-13}
+        Loading partition {txndate=2011-10-29}
+        Loading partition {txndate=2011-11-18}
+        Loading partition {txndate=2011-12-13}
+        Loading partition {txndate=2011-10-26}
+        Loading partition {txndate=2011-12-10}
+        Loading partition {txndate=2011-12-26}
+        Loading partition {txndate=2011-11-02}
+        Loading partition {txndate=2011-01-29}
+        Loading partition {txndate=2011-03-16}
+        Loading partition {txndate=2011-03-29}
+        Loading partition {txndate=2011-05-29}
+		........
+		.........
+		        Loading partition {txndate=2011-08-09}
+        Loading partition {txndate=2011-02-25}
+        Loading partition {txndate=2011-05-17}
+        Loading partition {txndate=2011-01-01}
+        Loading partition {txndate=2011-08-19}
+        Loading partition {txndate=2011-10-15}
+        Loading partition {txndate=2011-09-26}
+        Loading partition {txndate=2011-10-05}
+        Loading partition {txndate=2011-01-26}
+        Loading partition {txndate=2011-04-18}
+        Loading partition {txndate=2011-11-29}
+        Loading partition {txndate=2011-12-11}
+        Loading partition {txndate=2011-05-30}
+        Loading partition {txndate=2011-11-19}
+        Loading partition {txndate=2011-12-08}
+        Loading partition {txndate=2011-05-07}
+        Loading partition {txndate=2011-09-01}
+        Loading partition {txndate=2011-02-15}
+        Loading partition {txndate=2011-08-12}
+         Time taken for adding to write entity : 45
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-01} stats: [numFiles=1, numRows=255, totalSize=18906, rawDataSize=18651]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-02} stats: [numFiles=1, numRows=266, totalSize=19635, rawDataSize=19369]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-03} stats: [numFiles=1, numRows=255, totalSize=18886, rawDataSize=18631]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-04} stats: [numFiles=1, numRows=260, totalSize=19002, rawDataSize=18742]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-05} stats: [numFiles=1, numRows=266, totalSize=19426, rawDataSize=19160]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-06} stats: [numFiles=1, numRows=263, totalSize=19382, rawDataSize=19119]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-07} stats: [numFiles=1, numRows=260, totalSize=18918, rawDataSize=18658]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-01-08} stats: [numFiles=1, numRows=250, totalSize=18415, rawDataSize=18165]
+.......
+.......
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-24} stats: [numFiles=1, numRows=281, totalSize=20605, rawDataSize=20324]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-25} stats: [numFiles=1, numRows=271, totalSize=20004, rawDataSize=19733]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-26} stats: [numFiles=1, numRows=281, totalSize=20882, rawDataSize=20601]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-27} stats: [numFiles=1, numRows=249, totalSize=18391, rawDataSize=18142]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-28} stats: [numFiles=1, numRows=261, totalSize=19102, rawDataSize=18841]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-29} stats: [numFiles=1, numRows=263, totalSize=19394, rawDataSize=19131]
+Partition gnanda80.txn_dptbl_txndate{txndate=2011-12-30} stats: [numFiles=1, numRows=272, totalSize=20116, rawDataSize=19844]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 12.15 sec   HDFS Read: 8120366 HDFS Write: 7083985 SUCCESS
+Total MapReduce CPU Time Spent: 12 seconds 150 msec
+OK
+Time taken: 61.274 seconds
+
+hive> select count(1) from txn_dptbl_txndate where txndate = '2011-06-26';
+OK
+239
+Time taken: 0.092 seconds, Fetched: 1 row(s)
+hive> 
+
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate
+Found 364 items
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-01-01
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-01-02
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-01-03
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-01-04
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-01-05
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-01-06
+................
+................
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-19
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-20
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-21
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-22
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-23
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-24
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-25
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-26
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-27
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-28
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-29
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:52 /user/nandagnk2141/nanda/hive/lab/partitions/dynamic/txn_dptbl_txndate/txndate=2011-12-30
+
+
+========================================================================================
+
+Creating Sub partitions
+=======================
+
+Partition with in partion is called sub partition
+
+create external table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING) partitioned by (category STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile location  '/user/nandagnk2141/nanda/hive/lab/partitions/sub_partition/txn_sptb_cat_spendby';
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/partitions/sub_partition
+[nandagnk2141@cxln5 ~]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/partitions/sub_partition/txn_sptb_cat_spendby
+
+hive> create external table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING) partitioned by (category STRING, spend
+by STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile location  '/user/nandagnk2141/nanda/hive/lab/partitions/sub_partition/txn_sptb_cat_
+spendby';
+OK
+Time taken: 0.124 seconds
+
+hive> desc txn_sptb_cat_spendby;
+OK
+txnno                   int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+category                string                                      
+spendby                 string                                      
+                 
+# Partition Information          
+# col_name              data_type               comment             
+                 
+category                string                                      
+spendby                 string                                      
+Time taken: 0.07 seconds, Fetched: 15 row(s)
+
+Now insert data into sub partitioned table from stating table.
+
+insert into txn_sptb_cat_spendby partition (category,spendby) select txnno, txndate, custno, amount, product, city, state, category,spendby from txn_stg;
+
+Note: ensure to include the partitioned columns in the end of the select list.
+
+hive> insert into txn_sptb_cat_spendby partition (category,spendby) select txnno, txndate, custno, amount, product, city, state, category,spendby from txn_stg;
+Query ID = nandagnk2141_20221202004554_66ca8196-d466-4503-8291-a42350333f52
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21404, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21404/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21404
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-02 00:46:02,802 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 00:46:29,884 Stage-1 map = 100%,  reduce = 0%
+Ended Job = job_1648130833540_21404 with errors
+Error during job, obtaining debugging information...
+Examining task ID: task_1648130833540_21404_m_000000 (and more) from job job_1648130833540_21404
+
+Task with the most failures(4): 
+-----
+Task ID:
+  task_1648130833540_21404_m_000000
+URL:
+  http://cxln2.c.thelab-240901.internal:8088/taskdetails.jsp?jobid=job_1648130833540_21404&tipid=task_1648130833540_21404_m_000000
+-----
+Diagnostic Messages for this Task:
+Error: java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row {"txnno":22417,"txndate":"06-19-2011","custno":4005684,"amo
+unt":73.77,"category":"Outdoor Play Equipment","product":"Outdoor Playsets","city":"El Paso","state":"Texas","spendby":"credit"}
+        at org.apache.hadoop.hive.ql.exec.mr.ExecMapper.map(ExecMapper.java:172)
+        at org.apache.hadoop.mapred.MapRunner.run(MapRunner.java:54)
+        at org.apache.hadoop.mapred.MapTask.runOldMapper(MapTask.java:453)
+        at org.apache.hadoop.mapred.MapTask.run(MapTask.java:343)
+        at org.apache.hadoop.mapred.YarnChild$2.run(YarnChild.java:170)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at javax.security.auth.Subject.doAs(Subject.java:422)
+        at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1866)
+        at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:164)
+Caused by: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row {"txnno":22417,"txndate":"06-19-2011","custno":4005684,"amount":73.77,"category":"O
+utdoor Play Equipment","product":"Outdoor Playsets","city":"El Paso","state":"Texas","spendby":"credit"}
+        at org.apache.hadoop.hive.ql.exec.MapOperator.process(MapOperator.java:565)
+        at org.apache.hadoop.hive.ql.exec.mr.ExecMapper.map(ExecMapper.java:163)
+        ... 8 more
+Caused by: org.apache.hadoop.hive.ql.metadata.HiveException: org.apache.hadoop.hdfs.protocol.DSQuotaExceededException: The DiskSpace quota of /user/nandagnk2141 is exceeded: quota = 75
+16192768 B = 7 GB but diskspace consumed = 7718149654 B = 7.19 GB
+
+        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.nextBlockOutputStream(DFSOutputStream.java:1369)
+        at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer.run(DFSOutputStream.java:558)
+Caused by: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.hdfs.protocol.DSQuotaExceededException): The DiskSpace quota of /user/nandagnk2141 is exceeded: quota = 7516192768 B 
+= 7 GB but diskspace consumed = 7718149654 B = 7.19 GB
+
+drop table txn_sptb_cat_spendby;
+
+create table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING) partitioned by (category STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> drop table txn_sptb_cat_spendby;
+OK
+Time taken: 0.144 seconds
+hive> create table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING) partitioned by (category STRING, spendby STRING
+) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.067 seconds
+
+insert into txn_sptb_cat_spendby partition (category,spendby) select txnno, txndate, custno, amount, product, city, state, category,spendby from txn_stg;
+
+hive> insert into txn_sptb_cat_spendby partition (category,spendby) select txnno, txndate, custno, amount, product, city, state, category,spendby from txn_stg;
+Query ID = nandagnk2141_20221202005017_b86a7784-61a8-4a68-90ed-d54b8b7e2b24
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21405, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21405/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21405
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-02 00:50:24,402 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 00:50:36,032 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 7.49 sec
+MapReduce Total cumulative CPU time: 7 seconds 490 msec
+Ended Job = job_1648130833540_21405
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_sptb_cat_spendby/.hive-staging_hive_2022-12-02_00-50-17_413_3354530291046787723-
+1/-ext-10000
+Loading data to table gnanda80.txn_sptb_cat_spendby partition (category=null, spendby=null)
+        Time taken to load dynamic partitions: 1.518 seconds
+        Loading partition {category=Puzzles, spendby=cash}
+        Loading partition {category=Jumping, spendby=cash}
+        Loading partition {category=Racquet Sports, spendby=credit}
+        Loading partition {category=Outdoor Recreation, spendby=cash}
+        Loading partition {category=Winter Sports, spendby=cash}
+        Loading partition {category=Puzzles, spendby=credit}
+        Loading partition {category=Exercise & Fitness, spendby=credit}
+        Loading partition {category=Games, spendby=credit}
+        Loading partition {category=Gymnastics, spendby=credit}
+        Loading partition {category=Winter Sports, spendby=credit}
+        Loading partition {category=Water Sports, spendby=cash}
+        Loading partition {category=Exercise & Fitness, spendby=cash}
+        Loading partition {category=__HIVE_DEFAULT_PARTITION__, spendby=credit}
+        Loading partition {category=Outdoor Recreation, spendby=credit}
+        Loading partition {category=Indoor Games, spendby=cash}
+        Loading partition {category=Team Sports, spendby=credit}
+        Loading partition {category=Outdoor Play Equipment, spendby=cash}
+        Loading partition {category=Combat Sports, spendby=cash}
+        Loading partition {category=Gymnastics, spendby=cash}
+        Loading partition {category=Dancing, spendby=credit}
+        Loading partition {category=Jumping, spendby=credit}
+        Loading partition {category=Air Sports, spendby=cash}
+        Loading partition {category=Dancing, spendby=cash}
+        Loading partition {category=Outdoor Play Equipment, spendby=credit}
+        Loading partition {category=Racquet Sports, spendby=cash}
+        Loading partition {category=Air Sports, spendby=credit}
+        Loading partition {category=Games, spendby=cash}
+        Loading partition {category=Water Sports, spendby=credit}
+        Loading partition {category=Team Sports, spendby=cash}
+        Loading partition {category=Combat Sports, spendby=credit}
+        Loading partition {category=Indoor Games, spendby=credit}
+        Time taken for adding to write entity : 7
+Partition gnanda80.txn_sptb_cat_spendby{category=Air Sports, spendby=cash} stats: [numFiles=1, numRows=269, totalSize=16439, rawDataSize=16170]
+Partition gnanda80.txn_sptb_cat_spendby{category=Air Sports, spendby=credit} stats: [numFiles=1, numRows=1664, totalSize=102974, rawDataSize=101310]
+Partition gnanda80.txn_sptb_cat_spendby{category=Combat Sports, spendby=cash} stats: [numFiles=1, numRows=420, totalSize=24908, rawDataSize=24488]
+Partition gnanda80.txn_sptb_cat_spendby{category=Combat Sports, spendby=credit} stats: [numFiles=1, numRows=2720, totalSize=162405, rawDataSize=159685]
+Partition gnanda80.txn_sptb_cat_spendby{category=Dancing, spendby=cash} stats: [numFiles=1, numRows=108, totalSize=6644, rawDataSize=6536]
+Partition gnanda80.txn_sptb_cat_spendby{category=Dancing, spendby=credit} stats: [numFiles=1, numRows=684, totalSize=42602, rawDataSize=41918]
+Partition gnanda80.txn_sptb_cat_spendby{category=Exercise & Fitness, spendby=cash} stats: [numFiles=1, numRows=1757, totalSize=117334, rawDataSize=115577]
+Partition gnanda80.txn_sptb_cat_spendby{category=Exercise & Fitness, spendby=credit} stats: [numFiles=1, numRows=12339, totalSize=834062, rawDataSize=821723]
+Partition gnanda80.txn_sptb_cat_spendby{category=Games, spendby=cash} stats: [numFiles=1, numRows=970, totalSize=61469, rawDataSize=60499]
+Partition gnanda80.txn_sptb_cat_spendby{category=Games, spendby=credit} stats: [numFiles=1, numRows=5976, totalSize=382352, rawDataSize=376376]
+Partition gnanda80.txn_sptb_cat_spendby{category=Gymnastics, spendby=cash} stats: [numFiles=1, numRows=899, totalSize=59406, rawDataSize=58507]
+Partition gnanda80.txn_sptb_cat_spendby{category=Gymnastics, spendby=credit} stats: [numFiles=1, numRows=5362, totalSize=359311, rawDataSize=353949]
+Partition gnanda80.txn_sptb_cat_spendby{category=Indoor Games, spendby=cash} stats: [numFiles=1, numRows=668, totalSize=39818, rawDataSize=39150]
+Partition gnanda80.txn_sptb_cat_spendby{category=Indoor Games, spendby=credit} stats: [numFiles=1, numRows=4609, totalSize=280474, rawDataSize=275865]
+Partition gnanda80.txn_sptb_cat_spendby{category=Jumping, spendby=cash} stats: [numFiles=1, numRows=539, totalSize=34924, rawDataSize=34385]
+Partition gnanda80.txn_sptb_cat_spendby{category=Jumping, spendby=credit} stats: [numFiles=1, numRows=3250, totalSize=213066, rawDataSize=209816]
+Partition gnanda80.txn_sptb_cat_spendby{category=Outdoor Play Equipment, spendby=cash} stats: [numFiles=1, numRows=748, totalSize=46556, rawDataSize=45808]
+Partition gnanda80.txn_sptb_cat_spendby{category=Outdoor Play Equipment, spendby=credit} stats: [numFiles=1, numRows=4711, totalSize=296003, rawDataSize=291292]
+Partition gnanda80.txn_sptb_cat_spendby{category=Outdoor Recreation, spendby=cash} stats: [numFiles=1, numRows=2318, totalSize=142729, rawDataSize=140411]
+Partition gnanda80.txn_sptb_cat_spendby{category=Outdoor Recreation, spendby=credit} stats: [numFiles=1, numRows=13827, totalSize=863167, rawDataSize=849340]
+Partition gnanda80.txn_sptb_cat_spendby{category=Puzzles, spendby=cash} stats: [numFiles=1, numRows=162, totalSize=10774, rawDataSize=10612]
+Partition gnanda80.txn_sptb_cat_spendby{category=Puzzles, spendby=credit} stats: [numFiles=1, numRows=1012, totalSize=67497, rawDataSize=66485]
+Partition gnanda80.txn_sptb_cat_spendby{category=Racquet Sports, spendby=cash} stats: [numFiles=1, numRows=442, totalSize=25820, rawDataSize=25378]
+Partition gnanda80.txn_sptb_cat_spendby{category=Racquet Sports, spendby=credit} stats: [numFiles=1, numRows=2668, totalSize=158215, rawDataSize=155547]
+Partition gnanda80.txn_sptb_cat_spendby{category=Team Sports, spendby=cash} stats: [numFiles=1, numRows=1565, totalSize=94053, rawDataSize=92488]
+Partition gnanda80.txn_sptb_cat_spendby{category=Team Sports, spendby=credit} stats: [numFiles=1, numRows=10000, totalSize=608559, rawDataSize=598559]
+Partition gnanda80.txn_sptb_cat_spendby{category=Water Sports, spendby=cash} stats: [numFiles=1, numRows=1419, totalSize=89368, rawDataSize=87949]
+Partition gnanda80.txn_sptb_cat_spendby{category=Water Sports, spendby=credit} stats: [numFiles=1, numRows=8652, totalSize=549576, rawDataSize=540924]
+Partition gnanda80.txn_sptb_cat_spendby{category=Winter Sports, spendby=cash} stats: [numFiles=1, numRows=848, totalSize=52453, rawDataSize=51605]
+Partition gnanda80.txn_sptb_cat_spendby{category=Winter Sports, spendby=credit} stats: [numFiles=1, numRows=5297, totalSize=333110, rawDataSize=327813]
+Partition gnanda80.txn_sptb_cat_spendby{category=__HIVE_DEFAULT_PARTITION__, spendby=credit} stats: [numFiles=1, numRows=1, totalSize=76, rawDataSize=75]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 7.88 sec   HDFS Read: 8213967 HDFS Write: 6078995 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 880 msec
+OK
+Time taken: 24.598 seconds		 
+		 
+select avg(amount) from txn_sptb_cat_spendby where category='Air Sports';
+
+hive> 
+    > select avg(amount) from txn_sptb_cat_spendby where category='Air Sports';
+Query ID = nandagnk2141_20221202005305_59fe6be1-abe3-4868-9219-e116ea5da3fe
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21406, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21406/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21406
+Hadoop job information for Stage-1: number of mappers: 2; number of reducers: 1
+2022-12-02 00:53:11,540 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 00:53:20,898 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 5.82 sec
+2022-12-02 00:53:30,265 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 8.68 sec
+MapReduce Total cumulative CPU time: 8 seconds 680 msec
+Ended Job = job_1648130833540_21406
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 2  Reduce: 1   Cumulative CPU: 8.68 sec   HDFS Read: 136991 HDFS Write: 19 SUCCESS
+Total MapReduce CPU Time Spent: 8 seconds 680 msec
+OK
+102.44319710294877
+Time taken: 25.871 seconds, Fetched: 1 row(s)
+
+select avg(amount) from txn_sptb_cat_spendby where category='Air Sports' and spendby='cash';
+
+hive> select avg(amount) from txn_sptb_cat_spendby where category='Air Sports' and spendby='cash';
+Query ID = nandagnk2141_20221202005416_82a46383-e205-40c4-adc8-89d28b84f0fd
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21407, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21407/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21407
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-02 00:54:22,864 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 00:54:29,087 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.65 sec
+2022-12-02 00:54:35,309 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 5.81 sec
+MapReduce Total cumulative CPU time: 5 seconds 810 msec
+Ended Job = job_1648130833540_21407
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.81 sec   HDFS Read: 27419 HDFS Write: 18 SUCCESS
+Total MapReduce CPU Time Spent: 5 seconds 810 msec
+OK
+27.93546468401488
+Time taken: 19.448 seconds, Fetched: 1 row(s)
+
+select avg(amount) from txn_sptb_cat_spendby where category='Air Sports' and spendby='credit';
+
+hive> select avg(amount) from txn_sptb_cat_spendby where category='Air Sports' and spendby='credit';
+Query ID = nandagnk2141_20221202005524_4048141b-0350-42fe-b3d6-088c5026f31a
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21408, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21408/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21408
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-02 00:55:34,233 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 00:55:40,577 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.87 sec
+2022-12-02 00:55:48,866 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 5.56 sec
+MapReduce Total cumulative CPU time: 5 seconds 560 msec
+Ended Job = job_1648130833540_21408
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.56 sec   HDFS Read: 113975 HDFS Write: 19 SUCCESS
+Total MapReduce CPU Time Spent: 5 seconds 560 msec
+OK
+114.48801682692306
+Time taken: 25.691 seconds, Fetched: 1 row(s)
+
+===============================================================================================
+Task 2 - Sub partition
+=======================
+create sub partition category on main partition category.
+
+We have the staging table and data is staging table is ready, so, we can just create the sub partitioned table and insert data.
+
+create table txn_sptbl_td_cat (txnno INT, custno INT, amount DOUBLE, product STRING, city STRING, state STRING, spendby STRING) 
+partitioned by (txndate  DATE, category STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> create table txn_sptbl_td_cat (txnno INT, custno INT, amount DOUBLE, product STRING, city STRING, state STRING, spendby STRING) 
+    > partitioned by (txndate  DATE, category STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.185 seconds
+hive> desc txn_sptbl_td_cat;
+OK
+txnno                   int                                         
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string                                      
+txndate                 date                                        
+category                string                                      
+                 
+# Partition Information          
+# col_name              data_type               comment             
+                 
+txndate                 date                                        
+category                string                                      
+Time taken: 0.053 seconds, Fetched: 15 row(s)
+
+insert into txn_sptbl_td_cat partition (txndate,category) select txnno,custno, amount, product, city, state, spendby, txndate, category  from txn_1_stg;
+
+hive> insert into txn_sptbl_td_cat partition (txndate,category) select txnno,custno, amount, product, city, state, spendby, txndate, category  from txn_1_stg;
+Query ID = nandagnk2141_20221202011357_b48610fa-a8fa-4201-a0ba-255fe5b3faae
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21409, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21409/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21409
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-02 01:14:04,388 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 01:15:04,389 Stage-1 map = 0%,  reduce = 0%
+2022-12-02 01:16:05,333 Stage-1 map = 0%,  reduce = 0%, Cumulative CPU 20.33 sec
+2022-12-02 01:16:14,627 Stage-1 map = 100%,  reduce = 0%
+MapReduce Total cumulative CPU time: 20 seconds 330 msec
+Ended Job = job_1648130833540_21409 with errors
+Error during job, obtaining debugging information...
+Examining task ID: task_1648130833540_21409_m_000000 (and more) from job job_1648130833540_21409
+
+Task with the most failures(4): 
+-----
+Task ID:
+  task_1648130833540_21409_m_000000
+URL:
+  http://cxln2.c.thelab-240901.internal:8088/taskdetails.jsp?jobid=job_1648130833540_21409&tipid=task_1648130833540_21409_m_000000
+-----
+Diagnostic Messages for this Task:
+Error: java.lang.RuntimeException: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row {"txnno":2765,"txndate":"2011-03-02","custno":4008040,"amou
+nt":129.28,"category":"Outdoor Recreation","product":"Rock Climbing","city":"Los Angeles","state":"California","spendby":"credit"}
+        at org.apache.hadoop.hive.ql.exec.mr.ExecMapper.map(ExecMapper.java:172)
+        at org.apache.hadoop.mapred.MapRunner.run(MapRunner.java:54)
+        at org.apache.hadoop.mapred.MapTask.runOldMapper(MapTask.java:453)
+        at org.apache.hadoop.mapred.MapTask.run(MapTask.java:343)
+        at org.apache.hadoop.mapred.YarnChild$2.run(YarnChild.java:170)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at javax.security.auth.Subject.doAs(Subject.java:422)
+        at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1866)
+        at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:164)
+Caused by: org.apache.hadoop.hive.ql.metadata.HiveException: Hive Runtime Error while processing row {"txnno":2765,"txndate":"2011-03-02","custno":4008040,"amount":129.28,"category":"O
+utdoor Recreation","product":"Rock Climbing","city":"Los Angeles","state":"California","spendby":"credit"}
+        at org.apache.hadoop.hive.ql.exec.MapOperator.process(MapOperator.java:565)
+        at org.apache.hadoop.hive.ql.exec.mr.ExecMapper.map(ExecMapper.java:163)
+        ... 8 more
+Caused by: org.apache.hadoop.hive.ql.metadata.HiveFatalException: [Error 20004]: Fatal error occurred when node tried to create too many dynamic partitions. The maximum number of dynam
+ic partitions is controlled by hive.exec.max.dynamic.partitions and hive.exec.max.dynamic.partitions.pernode. Maximum was set to: 2000
+        at org.apache.hadoop.hive.ql.exec.FileSinkOperator.getDynOutPaths(FileSinkOperator.java:944)
+        at org.apache.hadoop.hive.ql.exec.FileSinkOperator.process(FileSinkOperator.java:720)
+        at org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:841)
+        at org.apache.hadoop.hive.ql.exec.SelectOperator.process(SelectOperator.java:88)
+        at org.apache.hadoop.hive.ql.exec.Operator.forward(Operator.java:841)
+        at org.apache.hadoop.hive.ql.exec.TableScanOperator.process(TableScanOperator.java:133)
+        at org.apache.hadoop.hive.ql.exec.MapOperator$MapOpCtx.forward(MapOperator.java:170)
+        at org.apache.hadoop.hive.ql.exec.MapOperator.process(MapOperator.java:555)
+        ... 9 more
+FAILED: Execution Error, return code 2 from org.apache.hadoop.hive.ql.exec.mr.MapRedTask
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 20.33 sec   HDFS Read: 0 HDFS Write: 0 FAIL
+Total MapReduce CPU Time Spent: 20 seconds 330 msec
+
+hive> set hive.exec.max.dynamic.partitions.pernode;
+hive.exec.max.dynamic.partitions.pernode=2000
+hive> set hive.exec.max.dynamic.partitions.pernode=10000;
+hive> insert into txn_sptbl_td_cat partition (txndate,category) select txnno,custno, amount, product, city, state, spendby, txndate, category  from txn_1_stg;
+Query ID = nandagnk2141_20221202012256_13cb5593-dcee-46d5-ab04-ac866d196ed4
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21410, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21410/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21410
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-02 01:23:02,120 Stage-1 map = 0%,  reduce = 0%
+
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_sptbl_td_cat/.hive-staging_hive_2022-12-02_01-22-56_183_6850805639895595539-1/-e
+xt-10000
+Loading data to table gnanda80.txn_sptbl_td_cat partition (txndate=null, category=null)
+Failed with exception Number of dynamic partitions created is 5407, which is more than 5000. To solve this try to set hive.exec.max.dynamic.partitions to at least 5407.
+FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.MoveTask
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 67.04 sec   HDFS Read: 8120210 HDFS Write: 6141282 SUCCESS
+Total MapReduce CPU Time Spent: 1 minutes 7 seconds 40 msec
+
+hive> set hive.exec.max.dynamic.partitions;
+hive.exec.max.dynamic.partitions=5000
+hive> set hive.exec.max.dynamic.partitions=10000;
+hive> insert into txn_sptbl_td_cat partition (txndate,category) select txnno,custno, amount, product, city, state, spendby, txndate, category  from txn_1_stg;
+Query ID = nandagnk2141_20221202012927_ddf67240-3656-478f-beb8-ba0fe98bec08
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21411, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21411/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21411
+
+now partitions were created
+
+============================================================================================================================
+
+Bucketting
+==========
+
+Bucketting is used when the volume of high cordinal data is high, it uses modulo logic to create the bucketting files based on the number of buckets
+
+Assume there are 10 records with id 1 till 10 and we want to apply two bucketting based on id columns then 
+
+1%2 = 1 will go to first bucketting file
+2%2 = 0 will go to the second bucketting file
+3%2 = 1 will go to first bucketting file
+4%2 = 0 will go to the second bucketting file
+5%2 = 1 will go to first bucketting file
+6%2 = 0 will go to the second bucketting file
+7%2 = 1 will go to first bucketting file
+8%2 = 0 will go to the second bucketting file
+9%2 = 1 will go to first bucketting file
+10%2 = 0 will go to the second bucketting file
+
+
+in case if number the number of buckets = 3 then 
+
+1%3=1 will go to first bucket
+2%3=2 will go the second bucket
+3%3=0 will go the third bucket
+4%3=1 will go to first bucket
+5%3=2 will go the second bucket
+6%3=0 will go the third bucket
+7%3=1 will go to first bucket
+8%3=2 will go the second bucket
+9%3=0 will go the third bucket
+10%3=1 will go to first bucket
+
+steps involved
+==============
+step 1 create staging table
+step 2 load data into staging table
+step 3 create bucketed table
+step 4 insert data from staging table to bucketed table.
+
+before that we need to set the property hive.enforce.bucketing = true;
+
+we have step 1 and step 2 already completed as part of the previous tasks, so proceeding with creating bucketed table
+
+create table txn_bucktbl_1 (txnno INT, txndate STRING, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) clustered by (txnno) into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> create table txn_bucktbl_1 (txnno INT, txndate STRING, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) clustered by (txnno)
+ into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.39 seconds
+hive> desc txn_bucktbl_1;
+OK
+txnno                   int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+category                string                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string                                      
+Time taken: 0.18 seconds, Fetched: 9 row(s)
+hive> desc formatted txn_bucktbl_1;
+OK
+# col_name              data_type               comment             
+                 
+txnno                   int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+category                string                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string
+
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Sat Dec 03 12:15:15 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_bucktbl_1         
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        COLUMN_STATS_ACCURATE   {\"BASIC_STATS\":\"true\"}
+        numFiles                0                   
+        numRows                 0                   
+        rawDataSize             0                   
+        totalSize               0                   
+        transient_lastDdlTime   1670069715          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            2                        
+Bucket Columns:         [txnno]                  
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        line.delim              \n                  
+        serialization.format    ,                   
+Time taken: 0.066 seconds, Fetched: 41 row(s)
+
+now insert data into bucketing table.
+
+insert into txn_bucktbl_1 select * from txn_stg;
+
+hive> insert into txn_bucktbl_1 select * from txn_stg;
+Query ID = nandagnk2141_20221203121744_9f1fa741-bbd6-47e4-897c-f167a77c4a74
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 2
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21493, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21493/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21493
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 2
+2022-12-03 12:17:52,655 Stage-1 map = 0%,  reduce = 0%
+2022-12-03 12:18:01,221 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 6.39 sec
+2022-12-03 12:18:08,591 Stage-1 map = 100%,  reduce = 50%, Cumulative CPU 11.53 sec
+2022-12-03 12:18:13,798 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 16.49 sec
+MapReduce Total cumulative CPU time: 16 seconds 490 msec
+Ended Job = job_1648130833540_21493
+Loading data to table gnanda80.txn_bucktbl_1
+Table gnanda80.txn_bucktbl_1 stats: [numFiles=2, numRows=95904, totalSize=8114139, rawDataSize=8018235]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 2   Cumulative CPU: 16.49 sec   HDFS Read: 8224229 HDFS Write: 8114311 SUCCESS
+Total MapReduce CPU Time Spent: 16 seconds 490 msec
+OK
+Time taken: 30.188 seconds
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_bucktbl_1
+Found 2 items
+-rwxrwxrwx   3 nandagnk2141 hadoop    4058107 2022-12-03 12:18 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_1/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop    4056032 2022-12-03 12:18 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_1/000001_0
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_1/000000_0 | tail -10
+71930,02-06-2011,4009770,81.43,Outdoor Recreation,Fishing,Centennial,Colorado,credit
+8,01-17-2011,4007361,10.44,Winter Sports,Snowmobiling,Des Moines,Iowa,credit
+47956,04-18-2011,4004243,100.17,Team Sports,Football,Los Angeles,California,credit
+6,10-28-2011,4002190,27.89,Puzzles,Jigsaw Puzzles,Charleston,South Carolina,credit
+83916,10-25-2011,4007741,111.85,Water Sports,Boating,Berkeley,California,credit
+4,12-17-2011,4002613,98.81,Team Sports,Field Hockey,Nashville  ,Tennessee,credit
+47954,10-01-2011,4008210,21.52,Exercise & Fitness,Foam Rollers,Springfield,Illinois,cash
+2,06-01-2011,4009775,5.58,Exercise & Fitness,Weightlifting Machine Accessories,Anaheim,California,credit
+71928,09-27-2011,4008701,64.8,Jumping,Trampolines,Vancouver,Washington,credit
+47952,03-24-2011,4001250,72.3,Winter Sports,Snowshoeing,Chicago,Illinois,credit
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_1/000001_0 | tail -10
+17,10-18-2011,4006679,75.55,Water Sports,Scuba Diving & Snorkeling,Omaha,Nebraska,credit
+15,10-20-2011,4003179,137.64,Combat Sports,Fencing,Honolulu  ,Hawaii,credit
+13,03-13-2011,4003268,107.8,Team Sports,Field Hockey,Honolulu  ,Hawaii,credit
+11,06-18-2011,4008071,121.39,Outdoor Play Equipment,Swing Sets,Columbus,Ohio,credit
+9,05-17-2011,4004798,152.46,Jumping,Bungee Jumping,St. Petersburg,Florida,credit
+7,07-14-2011,4002964,96.01,Outdoor Play Equipment,Sandboxes,Columbus,Ohio,credit
+5,02-14-2011,4007591,193.63,Outdoor Recreation,Camping & Backpacking & Hiking,Chicago,Illinois,credit
+3,06-05-2011,4002199,198.19,Gymnastics,Gymnastics Rings,Milwaukee,Wisconsin,credit
+1,05-26-2011,4006742,198.44,Exercise & Fitness,Weightlifting Gloves,Long Beach,California,credit
+47951,01-30-2011,4009164,84.19,Team Sports,Team Handball,Hampton  ,Virginia,credit
+
+repeating the same with 3 buckets now
+
+create table txn_bucktbl_3 (txnno INT, txndate STRING, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) clustered by (txnno) into 3 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> create table txn_bucktbl_3 (txnno INT, txndate STRING, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) clustered by (txnno)
+ into 3 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.124 seconds
+
+insert into txn_bucktbl_3 select * from txn_stg;
+
+hive> insert into txn_bucktbl_3 select * from txn_stg;
+Query ID = nandagnk2141_20221203122337_e349d560-e3e3-4071-b2ba-bf3e7d17f622
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 3
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21494, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21494/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21494
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 3
+2022-12-03 12:23:47,592 Stage-1 map = 0%,  reduce = 0%
+2022-12-03 12:23:54,875 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 5.46 sec
+2022-12-03 12:24:01,346 Stage-1 map = 100%,  reduce = 33%, Cumulative CPU 5.46 sec
+2022-12-03 12:24:05,581 Stage-1 map = 100%,  reduce = 67%, Cumulative CPU 16.32 sec
+2022-12-03 12:24:06,621 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 20.1 sec
+MapReduce Total cumulative CPU time: 20 seconds 100 msec
+Ended Job = job_1648130833540_21494
+Loading data to table gnanda80.txn_bucktbl_3
+Table gnanda80.txn_bucktbl_3 stats: [numFiles=3, numRows=95904, totalSize=8114139, rawDataSize=8018235]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 3   Cumulative CPU: 20.1 sec   HDFS Read: 8229796 HDFS Write: 8114397 SUCCESS
+Total MapReduce CPU Time Spent: 20 seconds 100 msec
+OK
+Time taken: 30.261 seconds
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3
+Found 3 items
+-rwxrwxrwx   3 nandagnk2141 hadoop    2705639 2022-12-03 12:24 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop    2704957 2022-12-03 12:24 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3/000001_0
+-rwxrwxrwx   3 nandagnk2141 hadoop    2703543 2022-12-03 12:24 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3/000002_0
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3/000000_0 | tail -6
+31977,02-20-2011,4008829,83.63,Exercise & Fitness,Weightlifting Gloves,Lincoln,Nebraska,credit
+74595,04-24-2011,4001350,196.68,Exercise & Fitness,Weightlifting Machine Accessories,Santa Ana,California,credit
+31974,05-03-2011,4004822,54.84,Exercise & Fitness,Weight Benches,Boise,Idaho,credit
+88800,02-20-2011,4004532,41.14,Team Sports,Soccer,Jacksonville ,Florida,credit
+31971,01-26-2011,4005141,129.57,Team Sports,Hockey,Miami,Florida,credit
+31968,07-20-2011,4001128,27.83,Air Sports,Hang Gliding,Louisville,Kentucky,cash
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3/000001_0 | tail -6
+47956,04-18-2011,4004243,100.17,Team Sports,Football,Los Angeles,California,credit
+4,12-17-2011,4002613,98.81,Team Sports,Field Hockey,Nashville  ,Tennessee,credit
+77257,11-15-2011,4007350,79.87,Gymnastics,Vaulting Horses,Nashville  ,Tennessee,credit
+63937,06-09-2011,4008888,178.99,Jumping,Jumping Stilts,Centennial,Colorado,credit
+1,05-26-2011,4006742,198.44,Exercise & Fitness,Weightlifting Gloves,Long Beach,California,credit
+39961,03-18-2011,4008375,6.01,Gymnastics,Vaulting Horses,El Paso,Texas,cash
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_3/000002_0 | tail -6
+14,02-25-2011,4004613,36.81,Gymnastics,Vaulting Horses,Los Angeles,California,credit
+11,06-18-2011,4008071,121.39,Outdoor Play Equipment,Swing Sets,Columbus,Ohio,credit
+8,01-17-2011,4007361,10.44,Winter Sports,Snowmobiling,Des Moines,Iowa,credit
+5,02-14-2011,4007591,193.63,Outdoor Recreation,Camping & Backpacking & Hiking,Chicago,Illinois,credit
+2,06-01-2011,4009775,5.58,Exercise & Fitness,Weightlifting Machine Accessories,Anaheim,California,credit
+47951,01-30-2011,4009164,84.19,Team Sports,Team Handball,Hampton  ,Virginia,credit
+[nandagnk2141@cxln5 ~]$ 
+
+
+Difference between partition table and bucketed table
+Partion table creates folder for each partition whereas bucketed table creates file for each bucket
+Partition tables uses low carditinality columns whereas bucketed table uses high carditinality columns
+partition table uses category, txndate, date, location for partitions whereas bucketed table uses identity columns like id, especially integer columns(if we use string column then it uses hash algorithm instead of modulo equation, so the uneven distributions will happens file created will not be in equal size, so in realtime no one uses string columns for bucketing).
+Partitions can have sub partitions, whereas sub buckting is not possible.
+====================================================================================================
+Task 3 
+=======
+
+Do bucketing on date column and check whether it is possible and how it works.
+
+Step 1 and step 2 were already completed as part of previous task, I'm proceeding with creating bucketed table and data insertion.
+
+create table txn_bucktbl_2 (txnno INT, txndate STRING, custno INT, amount DOUBLE, category STRING, product STRING, city STRING, state STRING, spendby STRING) clustered by (txndate) into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+te) into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.163 seconds
+
+insert into txn_bucktbl_2 select * from txn_1_stg;
+
+hive> insert into txn_bucktbl_2 select * from txn_1_stg;
+Query ID = nandagnk2141_20221203123510_eaaba9d6-ef72-4c3a-9ac8-698225783161
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 2
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21498, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21498/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21498
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 2
+2022-12-03 12:35:17,078 Stage-1 map = 0%,  reduce = 0%
+2022-12-03 12:35:24,395 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 6.27 sec
+2022-12-03 12:35:30,613 Stage-1 map = 100%,  reduce = 50%, Cumulative CPU 11.29 sec
+2022-12-03 12:35:37,860 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 18.96 sec
+MapReduce Total cumulative CPU time: 18 seconds 960 msec
+Ended Job = job_1648130833540_21498
+Loading data to table gnanda80.txn_bucktbl_2
+Table gnanda80.txn_bucktbl_2 stats: [numFiles=2, numRows=95904, totalSize=8114139, rawDataSize=8018235]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 2   Cumulative CPU: 18.96 sec   HDFS Read: 8131358 HDFS Write: 8114311 SUCCESS
+Total MapReduce CPU Time Spent: 18 seconds 960 msec
+OK
+Time taken: 28.951 seconds
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2
+Found 2 items
+-rwxrwxrwx   3 nandagnk2141 hadoop    4100324 2022-12-03 12:35 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop    4013815 2022-12-03 12:35 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2/000001_0
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2
+Found 2 items
+-rwxrwxrwx   3 nandagnk2141 hadoop    4100324 2022-12-03 12:35 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop    4013815 2022-12-03 12:35 /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2/000001_0
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2/000000_0 | tail -12
+31,2011-11-28,4002130,5.03,Games,Dice & Dice Sets,Los Angeles,California,credit
+30,2011-03-14,4009693,47.05,Water Sports,Swimming,Lincoln,Nebraska,credit
+28,2011-05-12,4001864,79.78,Team Sports,Cricket,Lexington,Kentucky,credit
+27,2011-09-29,4005211,66.4,Games,Mahjong,Fremont,California,credit
+25,2011-10-14,4003760,144.2,Indoor Games,Darts,Phoenix,Arizona,credit
+22,2011-10-10,4006131,19.64,Water Sports,Kitesurfing,Saint Paul,Minnesota,credit
+19,2011-08-28,4008871,51.81,Water Sports,Life Jackets,Newark,New Jersey,credit
+17,2011-10-18,4006679,75.55,Water Sports,Scuba Diving & Snorkeling,Omaha,Nebraska,credit
+12,2011-02-08,4002473,41.52,Indoor Games,Bowling,San Francisco,California,credit
+10,2011-05-29,4004646,180.28,Outdoor Recreation,Archery,Reno,Nevada,credit
+7,2011-07-14,4002964,96.01,Outdoor Play Equipment,Sandboxes,Columbus,Ohio,credit
+0,2011-06-26,4007024,40.33,,Cardio Machine Accessories,Clarksville,Tennessee,credit
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_bucktbl_2/000001_0 | tail -12
+94887,2011-09-08,4008919,187.6,Outdoor Recreation,Deck Shuffleboard,Des Moines,Iowa,credit
+94886,2011-02-14,4002883,99.06,Water Sports,Bodyboarding,Newark,New Jersey,credit
+47955,2011-05-26,4002602,74.51,Exercise & Fitness,Foam Rollers,Bellevue,Washington,credit
+94884,2011-01-20,4004798,63.36,Outdoor Recreation,Ice Climbing,Oklahoma City,Oklahoma,credit
+94883,2011-05-20,4006034,19.12,Team Sports,Lacrosse,Buffalo,New York,cash
+12372,2011-02-21,4000304,71.73,Gymnastics,Gymnastics Bars,Everett,Washington,credit
+94881,2011-03-24,4001656,58.94,Team Sports,Cheerleading,Las Vegas,Nevada,credit
+94880,2011-10-02,4007960,62.15,Dancing,Ballet Bars,Buffalo,New York,credit
+47953,2011-12-20,4009927,74.05,Outdoor Recreation,Golf,Hartford,Connecticut,credit
+47952,2011-03-24,4001250,72.3,Winter Sports,Snowshoeing,Chicago,Illinois,credit
+12371,2011-07-24,4004491,101.15,Racquet Sports,Racquetball,Hampton  ,Virginia,credit
+94876,2011-08-23,4003160,124.19,Team Sports,Field Hockey,West Valley City,Utah,credit
+
+========================================================================================================================
+
+Creating partition and bucketing on the same table
+==================================================
+
+create table txn_part_bucket_tbl_1 (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category string) clustered by (txnno) into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+hive> set hive.exec.dynamic.partition.mode=nonstrict;
+hive> create table txn_part_bucket_tbl_1 (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category strin
+g) clustered by (txnno) into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+OK
+Time taken: 0.2 seconds
+
+hive> desc formatted txn_part_bucket_tbl_1;
+OK
+# col_name              data_type               comment             
+                 
+txnno                   int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+city                    string                                      
+state                   string                                      
+spendby                 string                                      
+                 
+# Partition Information          
+# col_name              data_type               comment             
+                 
+category                string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Sat Dec 03 12:46:42 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1         
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        transient_lastDdlTime   1670071602          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            2                        
+Bucket Columns:         [txnno]                  
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        line.delim              \n                  
+        serialization.format    ,                   
+Time taken: 0.051 seconds, Fetched: 40 row(s)
+
+now inserting data into the table.
+
+insert into txn_part_bucket_tbl_1 partition(category) select txnno, txndate , custno , amount ,product , city , state , spendby, category from txn_stg;
+ 
+hive> insert into txn_part_bucket_tbl_1 partition(category) select txnno, txndate , custno , amount ,product , city , state , spendby, category from txn_stg;
+Query ID = nandagnk2141_20221203125045_395dfae9-b322-4f7f-acce-a4128338c60e
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 2
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21501, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21501/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21501
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 2
+2022-12-03 12:50:51,429 Stage-1 map = 0%,  reduce = 0%
+2022-12-03 12:50:58,693 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 5.68 sec
+2022-12-03 12:51:07,003 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 18.38 sec
+MapReduce Total cumulative CPU time: 18 seconds 380 msec
+Ended Job = job_1648130833540_21501
+Loading data to table gnanda80.txn_part_bucket_tbl_1 partition (category=null)
+         Time taken to load dynamic partitions: 0.755 seconds
+        Loading partition {category=Dancing}
+        Loading partition {category=Games}
+        Loading partition {category=Water Sports}
+        Loading partition {category=__HIVE_DEFAULT_PARTITION__}
+        Loading partition {category=Combat Sports}
+        Loading partition {category=Team Sports}
+        Loading partition {category=Racquet Sports}
+        Loading partition {category=Jumping}
+        Loading partition {category=Outdoor Recreation}
+        Loading partition {category=Air Sports}
+        Loading partition {category=Indoor Games}
+        Loading partition {category=Outdoor Play Equipment}
+        Loading partition {category=Winter Sports}
+        Loading partition {category=Gymnastics}
+        Loading partition {category=Exercise & Fitness}
+        Loading partition {category=Puzzles}
+         Time taken for adding to write entity : 3
+Partition gnanda80.txn_part_bucket_tbl_1{category=Air Sports} stats: [numFiles=2, numRows=1933, totalSize=132406, rawDataSize=130473]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Combat Sports} stats: [numFiles=2, numRows=3140, totalSize=208453, rawDataSize=205313]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Dancing} stats: [numFiles=2, numRows=792, totalSize=54574, rawDataSize=53782]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Exercise & Fitness} stats: [numFiles=2, numRows=14096, totalSize=1046554, rawDataSize=1032458]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Games} stats: [numFiles=2, numRows=6946, totalSize=490503, rawDataSize=483557]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Gymnastics} stats: [numFiles=2, numRows=6261, totalSize=460746, rawDataSize=454485]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Indoor Games} stats: [numFiles=2, numRows=5277, totalSize=355895, rawDataSize=350618]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Jumping} stats: [numFiles=2, numRows=3789, totalSize=273435, rawDataSize=269646]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Outdoor Play Equipment} stats: [numFiles=2, numRows=5459, totalSize=379276, rawDataSize=373817]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Outdoor Recreation} stats: [numFiles=2, numRows=16145, totalSize=1114275, rawDataSize=1098130]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Puzzles} stats: [numFiles=2, numRows=1174, totalSize=86165, rawDataSize=84991]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Racquet Sports} stats: [numFiles=2, numRows=3110, totalSize=204921, rawDataSize=201811]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Team Sports} stats: [numFiles=2, numRows=11565, totalSize=780437, rawDataSize=768872]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Water Sports} stats: [numFiles=2, numRows=10071, totalSize=706603, rawDataSize=696532]
+Partition gnanda80.txn_part_bucket_tbl_1{category=Winter Sports} stats: [numFiles=2, numRows=6145, totalSize=426882, rawDataSize=420737]
+Partition gnanda80.txn_part_bucket_tbl_1{category=__HIVE_DEFAULT_PARTITION__} stats: [numFiles=2, numRows=1, totalSize=83, rawDataSize=82]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 2   Cumulative CPU: 18.38 sec   HDFS Read: 8224843 HDFS Write: 6723664 SUCCESS
+Total MapReduce CPU Time Spent: 18 seconds 380 msec
+OK
+Time taken: 24.281 seconds
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1
+Found 16 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Air Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Combat Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Dancing
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Exercise & Fitness
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Games
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Gymnastics
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Indoor Games
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Jumping
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Outdoor Play Equipment
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Outdoor Recreation
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Puzzles
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Racquet Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Team Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Water Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Winter Sports
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=__HIVE_DEFAULT_PARTITION__
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Air Sports
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category='Air Sports'
+Found 2 items
+-rwxrwxrwx   3 nandagnk2141 hadoop      65397 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Air Sports/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop      67009 2022-12-03 12:51 /apps/hive/warehouse/gnanda80.db/txn_part_bucket_tbl_1/category=Air Sports/000001_0
+[nandagnk2141@cxln5 ~]$ 
+
+===============================================================================================================================
+
+Task 4
+======
+
+Creating partition and bucketting on same column
+
+create table txn_part_bucket_tbl_1 (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING, spendby STRING) partitioned by (category string) clustered by (txnno) into 2 buckets row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile;
+
+Which is not possible, as partition by uses low carditinality whereas bucketed uses high carditinality.
+
+==============================================================================================================================
+
+Finding the difference between load into table and load overwrite into table.
+
+create table if not exists t1(
+id int, 
+name string, 
+location string,
+salary decimal) 
+row format delimited fields terminated by ',';
+
+hive> create table t1(id int, name string, location string,salary decimal) row format delimited fields terminated by ',';
+OK
+Time taken: 0.161 seconds
+hive> desc t1;
+OK
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+Time taken: 0.068 seconds, Fetched: 4 row(s)
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table t1;
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=2, numRows=0, totalSize=162, rawDataSize=0]
+OK
+Time taken: 0.522 seconds
+hive> select * from t1;
+OK
+1       aaaa    chennai 20500
+2       bbbb    madurai 25000
+3       cccc    salem   15000
+4       dddd    trichy  22000
+1       aaaa    chennai 20500
+2       bbbb    madurai 25000
+3       cccc    salem   15000
+4       dddd    trichy  22000
+Time taken: 0.296 seconds, Fetched: 8 row(s)
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 2 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-12-05 00:42 /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-12-05 00:45 /apps/hive/warehouse/gnanda80.db/t1/t1_copy_1.csv
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' into table t1;
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=3, numRows=0, totalSize=243, rawDataSize=0]
+OK
+Time taken: 0.155 seconds
+
+hive> select * from t1;
+OK
+1       aaaa    chennai 20500
+2       bbbb    madurai 25000
+3       cccc    salem   15000
+4       dddd    trichy  22000
+1       aaaa    chennai 20500
+2       bbbb    madurai 25000
+3       cccc    salem   15000
+4       dddd    trichy  22000
+1       aaaa    chennai 20500
+2       bbbb    madurai 25000
+3       cccc    salem   15000
+4       dddd    trichy  22000
+Time taken: 0.05 seconds, Fetched: 12 row(s)
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 3 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-12-05 00:42 /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-12-05 00:45 /apps/hive/warehouse/gnanda80.db/t1/t1_copy_1.csv
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-12-05 00:46 /apps/hive/warehouse/gnanda80.db/t1/t1_copy_2.csv
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' overwrite into table t1;
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=1, numRows=0, totalSize=81, rawDataSize=0]
+OK
+Time taken: 0.17 seconds
+hive> select * from t1;
+OK
+1       aaaa    chennai 20500
+2       bbbb    madurai 25000
+3       cccc    salem   15000
+4       dddd    trichy  22000
+Time taken: 0.049 seconds, Fetched: 4 row(s)
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 1 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         81 2022-12-05 00:46 /apps/hive/warehouse/gnanda80.db/t1/t1.csv
+
+Note: Overwrite will delete the existing data and insert, whereas insert will append the data.
+
+==================================================================================================================================================
+
+Transactional tables or ACID tables in Hive 
+===========================================
+Starting from hive version 0.13 they introducted a concept called ACID property in Hive tables to allow DML operations on tables (Insert/Update/Delete operations only for internal/managed tables).
+
+A Automycity
+C Consistency
+I Integrity
+D Durability
+
+These ACID tables are used only in banking sectors not in all the projects.
+
+This will create more deleta files, so managing these delta file can create hell out of issues in projects.
+
+How to create a table with acid property. 
+
+It must be an internal table and it should match the following rules
+3 Rules 
+=======
+a) Table must be a bucketed table_name
+b) Table must follow ORC format
+c) Transactional property must be set to True
+
+drop table t1;
+
+create table if not exists t1(
+id int, 
+name string, 
+location string,
+salary decimal) 
+clustered by (id) into 3 buckets
+stored as orc
+TBLPROPERTIES('transactional'='true');
+
+hive> create table if not exists t1(
+    > id int, 
+    > name string, 
+    > location string,
+    > salary decimal) 
+    > clustered by (id) into 3 buckets
+    > stored as orc
+    > TBLPROPERTIES('transactional'='true');
+OK
+Time taken: 0.102 seconds
+hive> 
+
+hive> desc t1;
+OK
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+Time taken: 0.176 seconds, Fetched: 4 row(s)
+
+hive> desc formatted t1;
+OK
+# col_name              data_type               comment             
+                 
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Mon Dec 05 01:35:56 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/t1    
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        COLUMN_STATS_ACCURATE   {\"BASIC_STATS\":\"true\"}
+        numFiles                0                   
+        numRows                 0                   
+        rawDataSize             0                   
+        totalSize               0                   
+        transactional           true                
+        transient_lastDdlTime   1670204156          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.ql.io.orc.OrcSerde        
+InputFormat:            org.apache.hadoop.hive.ql.io.orc.OrcInputFormat  
+OutputFormat:           org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat         
+Compressed:             No                       
+Num Buckets:            3                        
+Bucket Columns:         [id]                     
+Sort Columns:           []                       
+Storage Desc Params:             
+        serialization.format    1                   
+Time taken: 0.249 seconds, Fetched: 35 row(s)
+
+insert into t1 values(1,'Nanda','Sydney',12500);
+insert into t1 values(2,'Kumar','Sydney',15000);
+insert into t1 values(3,'Govindan','Melbourne',12500);
+insert into t1 values(4,'GovindNK','Melbourne',11500);
+
+Map reducer will run for each DML operation and will create a delta file in the warehouse directory.
+
+hive> insert into t1 values(1,'Nanda','Sydney',12500);
+Query ID = nandagnk2141_20221205011930_a135b316-44f5-48c4-b5c1-9489bc2b3239
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21593, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21593/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21593
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-05 01:19:40,571 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 01:19:48,999 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.07 sec
+MapReduce Total cumulative CPU time: 3 seconds 70 msec
+Ended Job = job_1648130833540_21593
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-19-30_146_7014261475747403296-1/-ext-10000
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=1, numRows=1, totalSize=21, rawDataSize=20]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 3.07 sec   HDFS Read: 5165 HDFS Write: 88 SUCCESS
+Total MapReduce CPU Time Spent: 3 seconds 70 msec
+OK
+Time taken: 20.184 seconds
+hive> insert into t1 values(2,'Kumar','Sydney',15000);
+Query ID = nandagnk2141_20221205011956_1521f414-690a-44ce-8f9d-9435d7a0459a
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_21594, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21594/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21594
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+2022-12-05 01:20:03,092 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 01:20:12,448 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.15 sec
+MapReduce Total cumulative CPU time: 3 seconds 150 msec
+Ended Job = job_1648130833540_21594
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-19-56_166_712925576035669403-1/-ext-10000
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=2, numRows=2, totalSize=42, rawDataSize=40]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1   Cumulative CPU: 3.15 sec   HDFS Read: 5162 HDFS Write: 88 SUCCESS
+Total MapReduce CPU Time Spent: 3 seconds 150 msec
+OK
+Time taken: 17.506 seconds
+
+hive> select * from t1;
+OK
+3       Govindan        Melbourne       12500
+1       Nanda   Sydney  12500
+4       GovindNK        Melbourne       11500
+2       Kumar   Sydney  15000
+Time taken: 0.085 seconds, Fetched: 4 row(s)
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 4 items
+-rwxrwxrwx   3 nandagnk2141 hadoop         21 2022-12-05 01:19 /apps/hive/warehouse/gnanda80.db/t1/000000_0
+-rwxrwxrwx   3 nandagnk2141 hadoop         21 2022-12-05 01:20 /apps/hive/warehouse/gnanda80.db/t1/000000_0_copy_1
+-rwxrwxrwx   3 nandagnk2141 hadoop         27 2022-12-05 01:21 /apps/hive/warehouse/gnanda80.db/t1/000000_0_copy_2
+-rwxrwxrwx   3 nandagnk2141 hadoop         27 2022-12-05 01:23 /apps/hive/warehouse/gnanda80.db/t1/000000_0_copy_3
+
+update t1 set salary = 11500 where id = 2;
+
+hive> update t1 set salary = 11500 where id = 2;
+FAILED: SemanticException [Error 10294]: Attempt to do update or delete using transaction manager that does not support these operations.
+hive> 
+
+we need to set other properties at the session level before performing DML operations like update and delete.
+
+following are the 6 properties to be configured.
+
+hive> set hive.support.concurrency=true;
+hive> set hive.enforce.bucketing=true;
+hive> set hive.exec.dynamic.partition.mode=nonstrict;
+hive> set hive.txn.manager=org.apache.hadoop.hive.ql.lockmgr.DbTxnManager;
+hive> set hive.compactor.initiator.on=true;
+hive> set hive.compactor.worker.threads=1;
+
+hive> update t1 set salary = 11500 where id = 2;
+Query ID = nandagnk2141_20221205013919_a6726d90-934e-4bb8-90ca-a585ab790880
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 3
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21601, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21601/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21601
+Hadoop job information for Stage-1: number of mappers: 3; number of reducers: 3
+2022-12-05 01:39:27,646 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 01:39:34,061 Stage-1 map = 33%,  reduce = 0%, Cumulative CPU 3.67 sec
+2022-12-05 01:39:35,108 Stage-1 map = 67%,  reduce = 0%, Cumulative CPU 7.78 sec
+2022-12-05 01:39:37,205 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 11.79 sec
+2022-12-05 01:39:41,367 Stage-1 map = 100%,  reduce = 67%, Cumulative CPU 18.65 sec
+2022-12-05 01:39:42,406 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 23.15 sec
+MapReduce Total cumulative CPU time: 23 seconds 150 msec
+Ended Job = job_1648130833540_21601
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=13, numRows=0, totalSize=6072, rawDataSize=0]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 3  Reduce: 3   Cumulative CPU: 23.15 sec   HDFS Read: 40305 HDFS Write: 995 SUCCESS
+Total MapReduce CPU Time Spent: 23 seconds 150 msec
+OK
+Time taken: 24.285 seconds
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 6 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-05 01:39 /apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-39-19_374_8164171574372051288-1
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000022_0000022_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000023_0000023_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000024_0000024_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:38 /apps/hive/warehouse/gnanda80.db/t1/delta_0000025_0000025_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:39 /apps/hive/warehouse/gnanda80.db/t1/delta_0000026_0000026_0000
+
+making another update
+hive> update t1 set salary = 13500 where id = 4;
+Query ID = nandagnk2141_20221205014110_5409a4c4-f8cf-4b65-bb0f-ae396b53d0b7
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 3
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21602, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21602/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21602
+Hadoop job information for Stage-1: number of mappers: 3; number of reducers: 3
+2022-12-05 01:41:17,653 Stage-1 map = 0%,  reduce = 0%
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 8 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-05 01:39 /apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-39-19_374_8164171574372051288-1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-05 01:41 /apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-41-10_448_9091484974132309348-1
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000022_0000022_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000023_0000023_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000024_0000024_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:38 /apps/hive/warehouse/gnanda80.db/t1/delta_0000025_0000025_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:39 /apps/hive/warehouse/gnanda80.db/t1/delta_0000026_0000026_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:41 /apps/hive/warehouse/gnanda80.db/t1/delta_0000027_0000027_0000
+
+now deleting one record
+
+hive> delete from t1 where id=3;
+Query ID = nandagnk2141_20221205014242_c3c7837b-13fb-41f5-ab8a-5bcfe2217196
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 3
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21603, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21603/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21603
+Hadoop job information for Stage-1: number of mappers: 3; number of reducers: 3
+2022-12-05 01:42:57,086 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 01:43:03,409 Stage-1 map = 33%,  reduce = 0%, Cumulative CPU 3.87 sec
+2022-12-05 01:43:04,444 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 13.05 sec
+2022-12-05 01:43:09,793 Stage-1 map = 100%,  reduce = 33%, Cumulative CPU 16.2 sec
+2022-12-05 01:43:10,872 Stage-1 map = 100%,  reduce = 67%, Cumulative CPU 19.76 sec
+2022-12-05 01:43:12,982 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 22.84 sec
+MapReduce Total cumulative CPU time: 22 seconds 840 msec
+Ended Job = job_1648130833540_21603
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=15, numRows=0, totalSize=7474, rawDataSize=0]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 3  Reduce: 3   Cumulative CPU: 22.84 sec   HDFS Read: 39761 HDFS Write: 670 SUCCESS
+Total MapReduce CPU Time Spent: 22 seconds 840 msec
+OK
+Time taken: 31.557 seconds
+hive> select * from t1;
+OK
+1       Nanda   Sydney  12500
+4       GovindNK        Melbourne       13500
+2       Kumar   Sydney  11500
+Time taken: 0.055 seconds, Fetched: 3 row(s)
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /apps/hive/warehouse/gnanda80.db/t1
+Found 10 items
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-05 01:39 /apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-39-19_374_8164171574372051288-1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-05 01:41 /apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-41-10_448_9091484974132309348-1
+drwxrwxrwx   - nandagnk2141 hadoop          0 2022-12-05 01:43 /apps/hive/warehouse/gnanda80.db/t1/.hive-staging_hive_2022-12-05_01-42-42_835_1858055972920717100-1
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000022_0000022_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000023_0000023_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:37 /apps/hive/warehouse/gnanda80.db/t1/delta_0000024_0000024_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:38 /apps/hive/warehouse/gnanda80.db/t1/delta_0000025_0000025_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:39 /apps/hive/warehouse/gnanda80.db/t1/delta_0000026_0000026_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:41 /apps/hive/warehouse/gnanda80.db/t1/delta_0000027_0000027_0000
+drwxr-xr-x   - nandagnk2141 hadoop          0 2022-12-05 01:43 /apps/hive/warehouse/gnanda80.db/t1/delta_0000028_0000028_0000
+
+
+=======================================================================================================================
+
+SerDe property
+==============
+Serialization and deserialization
+=================================
+
+Load/Insert data in avro format and do analytics
+
+Moving data from RDBMS to HDFS in binary form(compressed data in AVRO/Parquat file) is called serialization -- Reason for this is to transfer the data very fast over network.
+and then load the binary data by converting them into normal(Human readable form) into Hive and then do analytics is called Deserialization. -- Reason we can't perform analytics on binary data.
+
+Step 1 - Using sqoop create a import file in AVRO format into HDFS for the table available in MySQL
+Step 2 - Create an External table in hive on top of the data available in HDFS from step 1
+Step 3 - Perform the analytics and return the output in the human readable format.
+
+Step 1
+======
+sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers  -m 1 --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqoop_lab/lab1/task3 --delete-target-dir --as-avrodatafile
+
+[nandagnk2141@cxln5 nanda]$ sqoop import -Dmapreduce.job.user.classpath.first=true --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db -username sqoopuser --password-file /
+user/nandagnk2141/nanda/sqoopuser/sqoopuser.password -table customers --compress --compression-codec org.apache.hadoop.io.compress.SnappyCodec --target-dir /user/nandagnk2141/nanda/sqo
+op_lab/lab1/task3 --delete-target-dir --as-avrodatafile
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+22/12/05 13:54:16 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+22/12/05 13:54:17 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+
+                Total committed heap usage (bytes)=966787072
+        File Input Format Counters 
+                Bytes Read=0
+        File Output Format Counters 
+                Bytes Written=437724
+22/12/05 13:54:40 INFO mapreduce.ImportJobBase: Transferred 427.4648 KB in 20.1212 seconds (21.2445 KB/sec)
+22/12/05 13:54:40 INFO mapreduce.ImportJobBase: Retrieved 12435 records.
+
+[nandagnk2141@cxln5 nanda]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task3
+Found 5 items
+[nandagnk2141@cxln5 nanda]$ hdfs dfs -ls /user/nandagnk2141/nanda/sqoop_lab/lab1/task3
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141          0 2022-12-05 14:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/_SUCCESS
+-rw-r--r--   3 nandagnk2141 nandagnk2141     433840 2022-12-05 14:04 /user/nandagnk2141/nanda/sqoop_lab/lab1/task3/part-m-00000.avro
+
+[nandagnk2141@cxln5 nanda]$ pwd
+/home/nandagnk2141/nanda
+[nandagnk2141@cxln5 nanda]$ ls -ltr *.avsc
+-rw-r--r-- 1 nandagnk2141 nandagnk2141 1509 Dec  5 13:54 customers.avsc
+
+moving the customers.avsc file to hdfs
+
+[nandagnk2141@cxln5 nanda]$ hdfs dfs -put customers.avsc /user/nandagnk2141/nanda/hive
+[nandagnk2141@cxln5 nanda]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141       1509 2022-12-05 13:57 /user/nandagnk2141/nanda/hive/customers.avsc
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-01 23:22 /user/nandagnk2141/nanda/hive/lab
+[nandagnk2141@cxln5 nanda]$ 
+
+Step 2 
+======
+create external table if not exists customers 
+row format serde 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+stored as inputformat 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+outputformat 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+location 'hdfs:///user/nandagnk2141/nanda/sqoop_lab/lab1/task3'
+TBLPROPERTIES ('avro.schema.url'='hdfs:///user/nandagnk2141/nanda/hive/customers.avsc');
+
+hive> create external table if not exists customers 
+    > row format serde 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+    > stored as inputformat 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+    > outputformat 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+    > location 'hdfs:///user/nandagnk2141/nanda/sqoop_lab/lab1/task3'
+    > TBLPROPERTIES ('avro.schema.url'='hdfs:///user/nandagnk2141/nanda/hive/customers.avsc');
+OK
+Time taken: 0.349 seconds
+hive> desc customers;
+OK
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_password       string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+customer_zipcode        string                                      
+Time taken: 0.187 seconds, Fetched: 9 row(s)
+
+hive> desc formatted customers;
+OK
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_password       string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+customer_zipcode        string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Mon Dec 05 14:07:21 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/user/nandagnk2141/nanda/sqoop_lab/lab1/task3  
+Table Type:             EXTERNAL_TABLE           
+Table Parameters:                
+        EXTERNAL                TRUE                
+        avro.schema.url         hdfs:///user/nandagnk2141/nanda/hive/customers.avsc
+        numFiles                1                   
+        totalSize               433840              
+        transient_lastDdlTime   1670249241          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.avro.AvroSerDe     
+InputFormat:            org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat       
+OutputFormat:           org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat      
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        serialization.format    1                   
+Time taken: 0.116 seconds, Fetched: 38 row(s)
+
+Step 3 perform analytics
+
+select * from customers limit 10;
+
+SET hive.cli.print.header=true;  ---###### Set this property true to display the column records
+
+hive> SET hive.cli.print.header=true;
+hive> select * from customers limit 10;
+OK
+customers.customer_id   customers.customer_fname        customers.customer_lname        customers.customer_email        customers.customer_password     customers.customer_street      customers.customer_city  customers.customer_state        customers.customer_zipcode
+1       Richard Hernandez       XXXXXXXXX       XXXXXXXXX       6303 Heather Plaza      Brownsville     TX      78521
+2       Mary    Barrett XXXXXXXXX       XXXXXXXXX       9526 Noble Embers Ridge Littleton       CO      80126
+3       Ann     Smith   XXXXXXXXX       XXXXXXXXX       3422 Blue Pioneer Bend  Caguas  PR      00725
+4       Mary    Jones   XXXXXXXXX       XXXXXXXXX       8324 Little Common      San Marcos      CA      92069
+5       Robert  Hudson  XXXXXXXXX       XXXXXXXXX       10 Crystal River Mall   Caguas  PR      00725
+6       Mary    Smith   XXXXXXXXX       XXXXXXXXX       3151 Sleepy Quail Promenade     Passaic NJ      07055
+7       Melissa Wilcox  XXXXXXXXX       XXXXXXXXX       9453 High Concession    Caguas  PR      00725
+8       Megan   Smith   XXXXXXXXX       XXXXXXXXX       3047 Foggy Forest Plaza Lawrence        MA      01841
+9       Mary    Perez   XXXXXXXXX       XXXXXXXXX       3616 Quaking Street     Caguas  PR      00725
+10      Melissa Smith   XXXXXXXXX       XXXXXXXXX       8598 Harvest Beacon Plaza       Stafford        VA      22554
+Time taken: 0.066 seconds, Fetched: 10 row(s)
+
+select customer_state, count(1) rec_count
+from customers
+group by customer_state
+having count(1)>500;
+
+hive> select customer_state, count(1) rec_count
+    > from customers
+    > group by customer_state
+    > having count(1)>500;
+Query ID = nandagnk2141_20221205141449_922ad65c-8999-43fe-b1d4-07ca8e9f9b71
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21629, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21629/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21629
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 14:14:58,094 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 14:15:06,649 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 6.65 sec
+2022-12-05 14:15:14,004 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 11.14 sec
+MapReduce Total cumulative CPU time: 11 seconds 140 msec
+Ended Job = job_1648130833540_21629
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 11.14 sec   HDFS Read: 458434 HDFS Write: 37 SUCCESS
+Total MapReduce CPU Time Spent: 11 seconds 140 msec
+OK
+customer_state  rec_count
+CA      2012
+IL      523
+NY      775
+PR      4771
+TX      635
+Time taken: 25.334 seconds, Fetched: 5 row(s)
+
+select customer_state, count(1) rec_count
+from customers
+group by customer_state
+order by customer_state;
+
+hive> select customer_state, count(1) rec_count
+    > from customers
+    > group by customer_state
+    > order by customer_state;
+Query ID = nandagnk2141_20221205141746_f3294ab1-878e-4ed3-995d-f690681953b0
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21632, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21632/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21632
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 14:17:54,209 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 14:18:01,580 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 5.78 sec
+2022-12-05 14:18:08,830 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 8.99 sec
+MapReduce Total cumulative CPU time: 8 seconds 990 msec
+Ended Job = job_1648130833540_21632
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21633, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21633/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21633
+Hadoop job information for Stage-2: number of mappers: 1; number of reducers: 1
+2022-12-05 14:18:16,709 Stage-2 map = 0%,  reduce = 0%
+2022-12-05 14:18:21,994 Stage-2 map = 100%,  reduce = 0%, Cumulative CPU 2.55 sec
+2022-12-05 14:18:28,214 Stage-2 map = 100%,  reduce = 100%, Cumulative CPU 5.11 sec
+MapReduce Total cumulative CPU time: 5 seconds 110 msec
+Ended Job = job_1648130833540_21633
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 8.99 sec   HDFS Read: 457199 HDFS Write: 1043 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 5.11 sec   HDFS Read: 6139 HDFS Write: 282 SUCCESS
+Total MapReduce CPU Time Spent: 14 seconds 100 msec
+OK
+customer_state  rec_count
+AL      3
+AR      12
+AZ      213
+CA      2012
+CO      122
+CT      73
+DC      42
+2022-12-05 14:18:16,709 Stage-2 map = 0%,  reduce = 0%
+DE      23
+FL      374
+GA      169
+HI      87
+IA      5
+ID      9
+IL      523
+IN      40
+KS      29
+KY      35
+LA      63
+MA      113
+MD      164
+MI      254
+MN      39
+MO      92
+MT      7
+NC      150
+ND      14
+NJ      219
+NM      73
+NV      103
+NY      775
+OH      276
+OK      19
+OR      119
+PA      261
+PR      4771
+RI      15
+SC      41
+TN      104
+TX      635
+UT      69
+VA      136
+WA      72
+WI      64
+WV      16
+Time taken: 42.93 seconds, Fetched: 44 row(s)
+
+============================================================================================================================================
+
+How to exeute the hive queries in real time from edge node
+==========================================================
+
+Command to execute a hive script directly from edge node ---> hive -f <script_file_name.hql>
+
+Command to execute a hive query directly from edige node ---> hive -e <select query from databasename.tablename>
+
+a. create a databaseName
+b. connect to that databaseName
+c. create an internal table
+d. load data into that internal table from LFS/HDFS
+e. perform analytics on internal table and display the outcome.
+
+vi hive_script_1.hql
+use gnanda80;
+
+drop table if exists t1;
+
+create table t1(
+id int, 
+name string, 
+location string,
+salary decimal
+) row format 
+delimited fields terminated by ',';
+lines terminated by '\n' 
+stored as textfile;
+
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' overwrite into table t1;
+
+select * from t1;
+
+select location, 
+       sum(salary) tot_salary,
+       min(salary) min_salary,
+	   max(salary) max_salary,
+	   avg(salary) avg_salary
+from t1
+group by location;
+
+
+[nandagnk2141@cxln5 hive]$ cat t1.csv
+1,nanda,Sydney,20500
+2,kumar,madurai,25000
+3,nandagnk,Sydney,15000
+4,govindnk,Melbourne,22000
+5,govindan,Melbourne,12500
+6,valli,Victoria,12500
+7,Karunya,Perth,12000
+8,Karunya Valli,Perth,10000
+[nandagnk2141@cxln5 hive]$ vi hive_script_1.hql
+[nandagnk2141@cxln5 hive]$ pwd
+/home/nandagnk2141/nanda/hive
+[nandagnk2141@cxln5 hive]$ cat hive_script_1.hql
+use gnanda80;
+drop table if exists t1;
+create table t1(
+id int, 
+name string, 
+location string,
+salary decimal
+) row format 
+delimited fields terminated by ',';
+lines terminated by '\n' 
+stored as textfile;
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' overwrite into table t1;
+select * from t1;
+select location, 
+       sum(salary) tot_salary,
+       min(salary) min_salary,
+           max(salary) max_salary,
+           avg(salary) avg_salary
+from t1
+group by location;
+[nandagnk2141@cxln5 hive]$ 
+
+[nandagnk2141@cxln5 hive]$ hive -f hive_script_1.hql
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+OK
+Time taken: 2.092 seconds
+OK
+Time taken: 0.148 seconds
+OK
+Time taken: 0.204 seconds
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=1, numRows=0, totalSize=194, rawDataSize=0]
+OK
+Time taken: 0.595 seconds
+OK
+1       nanda   Sydney  20500
+2       kumar   madurai 25000
+3       nandagnk        Sydney  15000
+4       govindnk        Melbourne       22000
+5       govindan        Melbourne       12500
+6       valli   Victoria        12500
+7       Karunya Perth   12000
+8       Karunya Valli   Perth   10000
+Time taken: 0.501 seconds, Fetched: 8 row(s)
+Query ID = nandagnk2141_20221205144446_fef3f087-b6ca-47f5-99b7-ea02e887fe7f
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21635, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21635/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21635
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 14:44:57,532 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 14:45:03,844 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.69 sec
+2022-12-05 14:45:12,309 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 5.19 sec
+MapReduce Total cumulative CPU time: 5 seconds 190 msec
+Ended Job = job_1648130833540_21635
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.19 sec   HDFS Read: 11911 HDFS Write: 160 SUCCESS
+Total MapReduce CPU Time Spent: 5 seconds 190 msec
+OK
+Melbourne       34500   12500   22000   17250
+Perth   22000   10000   12000   11000
+Sydney  35500   15000   20500   17750
+Victoria        12500   12500   12500   12500
+madurai 25000   25000   25000   25000
+Time taken: 26.51 seconds, Fetched: 5 row(s)
+
+now execute the select query directly from edge node.
+
+'select t1.location, 
+       sum(t1.salary) tot_salary,
+       min(t1.salary) min_salary,
+       max(t1.salary) max_salary,
+       avg(t1.salary) avg_salary
+from gnanda80.t1  
+group by t1.location'
+
+
+[nandagnk2141@cxln5 hive]$ hive -e 'select t1.location, 
+>        sum(t1.salary) tot_salary,
+>        min(t1.salary) min_salary,
+>        max(t1.salary) max_salary,
+>        avg(t1.salary) avg_salary
+> from gnanda80.t1  
+> group by t1.location'
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+Query ID = nandagnk2141_20221205145020_a1d28b48-5d2c-400d-9584-62a4055648a2
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21636, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21636/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21636
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 14:50:33,072 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 14:50:41,600 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.86 sec
+2022-12-05 14:50:49,036 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.16 sec
+MapReduce Total cumulative CPU time: 6 seconds 160 msec
+Ended Job = job_1648130833540_21636
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.16 sec   HDFS Read: 12086 HDFS Write: 160 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 160 msec
+OK
+Melbourne       34500   12500   22000   17250
+Perth   22000   10000   12000   11000
+Sydney  35500   15000   20500   17750
+Victoria        12500   12500   12500   12500
+madurai 25000   25000   25000   25000
+Time taken: 29.47 seconds, Fetched: 5 row(s)
+
+==========================================================================================================================
+
+How to execute Unix commands in hive terminal
+
+To execute unix commands in hive terminal use ! in the beginning
+
+hive> !pwd;
+/home/nandagnk2141
+hive> 
+
+hive> !ls -ltr /home/nandagnk2141/nanda/hive;
+total 16
+-rwxr-xr-x 1 nandagnk2141 nandagnk2141   81 Nov 29 07:12 t2.csv
+drwxrwxr-x 2 nandagnk2141 nandagnk2141 4096 Nov 29 09:49 DATASETS
+-rwxrwxrwx 1 nandagnk2141 nandagnk2141  194 Dec  5 14:35 t1.csv
+-rw-r--r-- 1 nandagnk2141 nandagnk2141  478 Dec  5 14:44 hive_script_1.hql
+
+hive> !cat /home/nandagnk2141/nanda/hive/hive_script_1.hql;
+use gnanda80;
+drop table if exists t1;
+create table t1(
+id int, 
+name string, 
+location string,
+salary decimal
+) row format 
+delimited fields terminated by ','
+lines terminated by '\n' 
+stored as textfile;
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' overwrite into table t1;
+select * from t1;
+select location, 
+       sum(salary) tot_salary,
+       min(salary) min_salary,
+           max(salary) max_salary,
+           avg(salary) avg_salary
+from t1
+group by location;
+
+
+creating a shell script to call the .hql script and executing that from hive terminal.
+
+hive> !cat /home/nandagnk2141/nanda/hive/hive_script_1.sh;
+#!/bin/bash
+echo Executing hive script from edge node
+hive -f /home/nandagnk2141/nanda/hive/hive_script_1.hql
+echo executing hive query from edge node using hive 
+hive -e 'select t1.location, 
+       sum(t1.salary) tot_salary,
+       min(t1.salary) min_salary,
+       max(t1.salary) max_salary,
+       avg(t1.salary) avg_salary
+from gnanda80.t1  
+group by t1.location'
+hive> 
+
+
+now executing the shell script from hive terminal
+
+
+hive> !sh hive_script_1.sh;
+Executing hive script from edge node
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+OK
+Time taken: 2.236 seconds
+OK
+Time taken: 0.18 seconds
+OK
+Time taken: 0.234 seconds
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=1, numRows=0, totalSize=194, rawDataSize=0]
+OK
+Time taken: 0.873 seconds
+OK
+1       nanda   Sydney  20500
+2       kumar   madurai 25000
+3       nandagnk        Sydney  15000
+4       govindnk        Melbourne       22000
+5       govindan        Melbourne       12500
+6       valli   Victoria        12500
+7       Karunya Perth   12000
+8       Karunya Valli   Perth   10000
+Time taken: 0.646 seconds, Fetched: 8 row(s)
+Query ID = nandagnk2141_20221205151233_999bfb07-da76-4482-8536-3573041bac85
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21640, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21640/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21640
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 15:12:41,713 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 15:12:57,344 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.77 sec
+2022-12-05 15:13:03,599 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.04 sec
+MapReduce Total cumulative CPU time: 7 seconds 40 msec
+Ended Job = job_1648130833540_21640
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.04 sec   HDFS Read: 11911 HDFS Write: 160 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 40 msec
+OK
+Melbourne       34500   12500   22000   17250
+Perth   22000   10000   12000   11000
+Sydney  35500   15000   20500   17750
+Victoria        12500   12500   12500   12500
+madurai 25000   25000   25000   25000
+Time taken: 31.479 seconds, Fetched: 5 row(s)
+executing hive query from edge node using hive
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+Query ID = nandagnk2141_20221205151310_78c08042-eb57-4084-a1e7-c19125334e58
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21641, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21641/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21641
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 15:13:20,593 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 15:13:26,908 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.97 sec
+2022-12-05 15:13:33,297 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.26 sec
+MapReduce Total cumulative CPU time: 7 seconds 260 msec
+Ended Job = job_1648130833540_21641
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.26 sec   HDFS Read: 12086 HDFS Write: 160 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 260 msec
+OK
+Melbourne       34500   12500   22000   17250
+Perth   22000   10000   12000   11000
+Sydney  35500   15000   20500   17750
+Victoria        12500   12500   12500   12500
+madurai 25000   25000   25000   25000
+Time taken: 24.987 seconds, Fetched: 5 row(s)
+hive> 
+
+executing the same script from edgenode
+=======================================
+
+[nandagnk2141@cxln5 hive]$ sh hive_script_1.sh
+Executing hive script from edge node
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+OK
+Time taken: 2.079 seconds
+OK
+Time taken: 0.153 seconds
+OK
+Time taken: 0.249 seconds
+Loading data to table gnanda80.t1
+Table gnanda80.t1 stats: [numFiles=1, numRows=0, totalSize=194, rawDataSize=0]
+OK
+Time taken: 0.629 seconds
+OK
+1       nanda   Sydney  20500
+2       kumar   madurai 25000
+3       nandagnk        Sydney  15000
+4       govindnk        Melbourne       22000
+5       govindan        Melbourne       12500
+6       valli   Victoria        12500
+7       Karunya Perth   12000
+8       Karunya Valli   Perth   10000
+Time taken: 0.472 seconds, Fetched: 8 row(s)
+Query ID = nandagnk2141_20221205151849_12446765-997a-4c2c-9be7-56548a02ff8b
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21642, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21642/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21642
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 15:18:57,914 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 15:19:04,224 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.17 sec
+2022-12-05 15:19:10,461 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.92 sec
+MapReduce Total cumulative CPU time: 6 seconds 920 msec
+Ended Job = job_1648130833540_21642
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.92 sec   HDFS Read: 11911 HDFS Write: 160 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 920 msec
+OK
+Melbourne       34500   12500   22000   17250
+Perth   22000   10000   12000   11000
+Sydney  35500   15000   20500   17750
+Victoria        12500   12500   12500   12500
+madurai 25000   25000   25000   25000
+Time taken: 21.676 seconds, Fetched: 5 row(s)
+executing hive query from edge node using hive
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+Query ID = nandagnk2141_20221205151917_c80f0e64-03e7-4dad-8dab-696167aa8d87
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_21643, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_21643/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_21643
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-12-05 15:19:27,058 Stage-1 map = 0%,  reduce = 0%
+2022-12-05 15:19:33,413 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.93 sec
+2022-12-05 15:19:39,696 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.02 sec
+MapReduce Total cumulative CPU time: 7 seconds 20 msec
+Ended Job = job_1648130833540_21643
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.02 sec   HDFS Read: 12086 HDFS Write: 160 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 20 msec
+OK
+Melbourne       34500   12500   22000   17250
+Perth   22000   10000   12000   11000
+Sydney  35500   15000   20500   17750
+Victoria        12500   12500   12500   12500
+madurai 25000   25000   25000   25000
+Time taken: 23.606 seconds, Fetched: 5 row(s)
+
+
+==================================================================================================================
+
+Hive Data types
+===============
+
+1. Primitive Data Types
+2. Complex Data types
+
+Primitive Data Types
+====================
+Integer ---> TINY INT, SMALL INT, INT, BIG INT 
+Float   ---> FLOAT(8 BYTES), DOUBLE(16 BYTES), DECIMAL(16 BYTES, 64 Decimals)
+STRING  ---> CHAR, VARCHAR AND STRING(String supports upto 2 GB inlcudes LOB, CLOB etc)
+DATE    ---> DATE, TIMESTAMP
+BOOLEAN ---> BOOLEAN (true/false)
+
+Complex Data Types
+==================
+ARRAYS
+MAP
+STRUCT
+
+Example for Array Data type
+===========================
+
+[nandagnk2141@cxln5 hive]$ pwd
+/home/nandagnk2141/nanda/hive
+[nandagnk2141@cxln5 hive]$ 
+[nandagnk2141@cxln5 hive]$ cat array_data.txt
+1,Nanda,Colt|ICICI|SSI|HCL
+
+now create table with array data type
+
+create table t_cdt_1 (id int, name string, company Array<string>) row format delimited fields terminated by ',' collection items terminated by '|';
+
+hive> create table t_cdt_1 (id int, name string, company Array<string>) row format delimited fields terminated by ',' collection items terminated by '|';
+OK
+Time taken: 0.378 seconds
+hive> desc t_cdt_1;
+OK
+id                      int                                         
+name                    string                                      
+company                 array<string>                               
+Time taken: 0.147 seconds, Fetched: 3 row(s)
+
+load data from local inpath
+
+load data local inpath '/home/nandagnk2141/nanda/hive/array_data.txt' overwrite into table t_cdt_1;
+
+now query the table
+
+select * from t_cdt_1;
+
+hive> select * from t_cdt_1;
+OK
+1       Nanda   ["Colt","ICICI","SSI","HCL"]
+Time taken: 0.061 seconds, Fetched: 1 row(s)
+
+select id,name,company[0] frist_company,company[1] second_company, company[2] third_company, company[3] current_company from t_cdt_1;
+
+hive> select id,name,company[0] frist_company,company[1] second_company, company[2] third_company, company[3] current_company from t_cdt_1;
+OK
+1       Nanda   Colt    ICICI   SSI     HCL
+Time taken: 0.058 seconds, Fetched: 1 row(s)
+
+
+=============================================
+Example for MAP Data type  - Key Value Pairs
+=============================================
+
+[nandagnk2141@cxln5 hive]$ vi map_data.txt
+[nandagnk2141@cxln5 hive]$ cat map_data.txt
+1,Nanda,Colt|ICICI|SSI|HCL,maths:95|science:90|social:85
+
+create table if not exists t_cdt_2 (
+id int, 
+name string, 
+company Array<string>, 
+marks Map<string,int>
+) 
+row format 
+delimited fields terminated by ',' 
+collection items terminated by '|'
+map keys terminated by ':'
+;
+
+hive> create table if not exists t_cdt_2 (
+    > id int, 
+    > name string, 
+    > company Array<string>, 
+    > marks Map<string,int>
+    > ) 
+    > row format 
+    > delimited fields terminated by ',' 
+    > collection items terminated by '|'
+    > map keys terminated by ':'
+    > ;
+OK
+Time taken: 0.176 seconds
+hive> desc t_cdt_2;
+OK
+id                      int                                         
+name                    string                                      
+company                 array<string>                               
+marks                   map<string,int>                             
+Time taken: 0.049 seconds, Fetched: 4 row(s)
+
+now load data from LFS
+
+load data local inpath '/home/nandagnk2141/nanda/hive/map_data.txt' overwrite into table t_cdt_2;
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/map_data.txt' overwrite into table t_cdt_2;
+Loading data to table gnanda80.t_cdt_2
+Table gnanda80.t_cdt_2 stats: [numFiles=1, numRows=0, totalSize=57, rawDataSize=0]
+OK
+Time taken: 0.156 seconds
+
+querying data from table
+
+select * from t_cdt_2;
+
+hive> select * from t_cdt_2;
+OK
+1       Nanda   ["Colt","ICICI","SSI","HCL"]    {"maths":95,"science":90,"social":85}
+Time taken: 0.063 seconds, Fetched: 1 row(s)
+
+select id, name, company[3] current_company, marks['maths'] marks_in_maths from t_cdt_2;
+
+hive> select id, name, company[3] current_company, marks['maths'] marks_in_maths from t_cdt_2;
+OK
+1       Nanda   HCL     95
+Time taken: 0.061 seconds, Fetched: 1 row(s)
+
+=============================================
+Example for Struct Data type  - Record type
+=============================================
+
+[nandagnk2141@cxln5 hive]$ cp map_data.txt struct_data.txt
+[nandagnk2141@cxln5 hive]$ vi struct_data.txt
+[nandagnk2141@cxln5 hive]$ cat struct_data.txt
+1,Nanda,Colt|ICICI|SSI|HCL,maths:95|science:90|social:85,8|39|Ross Street|North Parramatta|Sydney|NSW|2151|AU
+
+create table if not exists t_cdt_3 (
+id int, 
+name string, 
+company Array<string>, 
+marks Map<string,int>,
+address struct <unit:int,doorno:int,street:string,area:string,city:string,state:string,pincode:int,countrycode:string>
+) 
+row format 
+delimited fields terminated by ',' 
+collection items terminated by '|'
+map keys terminated by ':'
+;
+
+hive> create table if not exists t_cdt_3 (
+    > id int, 
+    > name string, 
+    > company Array<string>, 
+    > marks Map<string,int>,
+    > address struct <unit:int,doorno:int,street:string,area:string,city:string,state:string,pincode:int,countrycode:string>
+    > ) 
+    > row format 
+    > delimited fields terminated by ',' 
+    > collection items terminated by '|'
+    > map keys terminated by ':'
+    > ;
+OK
+Time taken: 0.174 seconds
+hive> desc t_cdt_3;
+OK
+id                      int                                         
+name                    string                                      
+company                 array<string>                               
+marks                   map<string,int>                             
+address                 struct<unit:int,doorno:int,street:string,area:string,city:string,state:string,pincode:int,countrycode:string>                       
+Time taken: 0.046 seconds, Fetched: 5 row(s)
+
+now load the data 
+
+load data local inpath '/home/nandagnk2141/nanda/hive/struct_data.txt' overwrite into table t_cdt_3;
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/struct_data.txt' overwrite into table t_cdt_3;
+Loading data to table gnanda80.t_cdt_3
+Table gnanda80.t_cdt_3 stats: [numFiles=1, numRows=0, totalSize=110, rawDataSize=0]
+OK
+Time taken: 0.194 seconds
+
+now query the table
+
+select * from t_cdt_3;
+
+hive> select * from t_cdt_3;
+OK
+1       Nanda   ["Colt","ICICI","SSI","HCL"]    {"maths":95,"science":90,"social":85}   {"unit":8,"doorno":39,"street":"Ross Street","area":"North Parramatta","city":"Sydney","state":"
+NSW","pincode":2151,"countrycode":"AU"}
+Time taken: 0.058 seconds, Fetched: 1 row(s)
+hive> 
+
+select id, name, company[3] current_company, marks['maths'] marks_in_maths, address.area area, address.city city,address.state state from t_cdt_3;
+
+hive> select id, name, company[3] current_company, marks['maths'] marks_in_maths, address.area area, address.city city,address.state state from t_cdt_3;
+OK
+id      name    current_company marks_in_maths  area    city    state
+1       Nanda   HCL     95      North Parramatta        Sydney  NSW
+Time taken: 0.06 seconds, Fetched: 1 row(s)
+hive> 
