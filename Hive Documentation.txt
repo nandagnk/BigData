@@ -2443,8 +2443,7 @@ create external table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno IN
 [nandagnk2141@cxln5 ~]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/partitions/sub_partition
 [nandagnk2141@cxln5 ~]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/partitions/sub_partition/txn_sptb_cat_spendby
 
-hive> create external table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING) partitioned by (category STRING, spend
-by STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile location  '/user/nandagnk2141/nanda/hive/lab/partitions/sub_partition/txn_sptb_cat_
+hive> create external table txn_sptb_cat_spendby (txnno INT, txndate STRING, custno INT, amount DOUBLE,product STRING, city STRING, state STRING) partitioned by (category STRING, spendby STRING) row format delimited fields terminated by ',' lines terminated by '\n' stored as textfile location  '/user/nandagnk2141/nanda/hive/lab/partitions/sub_partition/txn_sptb_cat_
 spendby';
 OK
 Time taken: 0.124 seconds
@@ -4423,6 +4422,36 @@ STRING  ---> CHAR, VARCHAR AND STRING(String supports upto 2 GB inlcudes LOB, CL
 DATE    ---> DATE, TIMESTAMP
 BOOLEAN ---> BOOLEAN (true/false)
 
+NUMERIC TYPES			DESCRIPTION
+=============			===========
+TINYINT					1-byte signed integer, from -128 to 127
+SMALLINT				2-byte signed integer, from -32,768 to 32,767
+INT/INTEGER				4-byte signed integer, from -2,147,483,648 to 2,147,483,647
+BIGINT					8-byte signed integer, from -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
+FLOAT					4-byte single precision floating point number
+DOUBLE					8-byte double precision floating point number
+DOUBLE PRECISION		Alias for DOUBLE, only available starting with Hive 2.2.0
+DECIMAL					It accepts a precision of 38 digits.
+NUMERIC					Same as DECIMAL type.
+
+
+DATE/TIME TYPES			DESCRIPTION
+===============			===========
+TIMESTAMP				Accepts Both Date and Time
+DATE					Accepts just Date
+INTERVAL				Interval
+
+STRING TYPES			DESCRIPTION
+===========				===========
+STRING					The string is an unbounded type. Not required to specify the lenght. It can accept max up to 32,767 bytes.
+VARCHAR					Variable length of characters. It is bounded meaning you still need to specify the length like VARCHAR(10).
+CHAR					Fixed length of Characters. if you define char(10) and assigning 5 chars, the remaining 5 characters space will be wasted.
+
+MISC TYPES				DESCRIPTION
+==========				===========		
+BOOLEAN					Accepts TRUE/FALSE values
+BINARY					Only available starting with Hive 0.8.0
+
 Complex Data Types
 ==================
 ARRAYS
@@ -4479,7 +4508,7 @@ Example for MAP Data type  - Key Value Pairs
 
 [nandagnk2141@cxln5 hive]$ vi map_data.txt
 [nandagnk2141@cxln5 hive]$ cat map_data.txt
-1,Nanda,Colt|ICICI|SSI|HCL,maths:95|science:90|social:85
+1,Nanda,    Colt|ICICI|SSI|HCL,     maths:95 |science:90 |social:85
 
 create table if not exists t_cdt_2 (
 id int, 
@@ -4614,3 +4643,652 @@ id      name    current_company marks_in_maths  area    city    state
 1       Nanda   HCL     95      North Parramatta        Sydney  NSW
 Time taken: 0.06 seconds, Fetched: 1 row(s)
 hive> 
+
+============================================================================================================
+
+Creating Temporary tables in Hive
+=================================
+
+Hive temporary tables are similar to temporary tables that exist in SQL Server or any RDBMS databases, As the name suggests these tables are created temporarily within an active session.
+
+Usually, temporary tables are created at the run time to store the intermediate data that are used to perform further data processing. once the processing is done either you can explicitly drop the temporary table or session termination will drop these tables.
+
+Temporary tables don’t store data in the Hive warehouse directory instead the data get stored in the user’s scratch directory /tmp/hive/<user>/* on HDFS.
+
+If you create a temporary table in Hive with the same name as a permanent table that already exists in the database, then within that session any references to that permanent table will resolve to the temporary table, rather than to the permanent table.
+
+Below are the differences between Hive Temporary table vs Regular permanent table
+
+TEMPORARY TABLE											REGULAR TABLE (INTERNAL/EXTERNAL)
+Creates a table within a session						Creates globally
+Can be accessed only from a session it created			Table could be accessed from different session right after created
+Stores at users scratch directory /tmp/hive/<user>/*	Stores at Hive warehouse directory /user/hive/warehouse
+Automatically removed when session terminated			Persist until explicitly dropped
+Doesn’t support partitions								Supports partitions
+Indexes cannot be created								You can create Indexes
+
+create temporary table if not exists temp_tbl_t1(
+id int, 
+name string, 
+location string,
+salary decimal
+) row format 
+delimited fields terminated by ','
+lines terminated by '\n' 
+stored as textfile;
+
+hive> create temporary table if not exists temp_tbl_t1(
+    > id int, 
+    > name string, 
+    > location string,
+    > salary decimal
+    > ) row format 
+    > delimited fields terminated by ','
+    > lines terminated by '\n' 
+    > stored as textfile;
+OK
+Time taken: 0.048 seconds
+hive> desc temp_tbl_t1;
+OK
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+Time taken: 0.016 seconds, Fetched: 4 row(s)
+hive> 
+hive> desc formatted temp_tbl_t1;
+OK
+# col_name              data_type               comment             
+                 
+id                      int                                         
+name                    string                                      
+location                string                                      
+salary                  decimal(10,0)                               
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Thu Dec 08 13:27:58 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/tmp/hive/nandagnk2141/5824b8d8-5750-43ac-9e74-47a568cb50a9/_tmp_space.db/31a7bb75-bf16-404e-a6a7-cc2190ee197c        
+Table Type:             MANAGED_TABLE            
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             ,                   
+        line.delim              \n                  
+        serialization.format    ,                   
+Time taken: 0.017 seconds, Fetched: 29 row(s)
+
+load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' overwrite into table temp_tbl_t1;
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/t1.csv' overwrite into table temp_tbl_t1;
+Loading data to table gnanda80.temp_tbl_t1
+Table gnanda80.temp_tbl_t1 stats: [numFiles=1, totalSize=194]
+OK
+Time taken: 0.484 seconds
+hive> select * from temp_tbl_t1;
+OK
+1       nanda   Sydney  20500
+2       kumar   madurai 25000
+3       nandagnk        Sydney  15000
+4       govindnk        Melbourne       22000
+5       govindan        Melbourne       12500
+6       valli   Victoria        12500
+7       Karunya Perth   12000
+8       Karunya Valli   Perth   10000
+Time taken: 0.234 seconds, Fetched: 8 row(s)
+
+open an another session and check whether this table and data is visible/accessible
+
+cxln5 login: nandagnk2141
+Password: 
+Last login: Thu Dec  8 13:26:28 on pts/11
+[nandagnk2141@cxln5 ~]$ hive
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+hive> use gnanda80;
+OK
+Time taken: 1.798 seconds
+hive> desc temp_tbl_t1;
+FAILED: SemanticException [Error 10001]: Table not found temp_tbl_t1
+hive> 
+
+whereas it is still available in the existing session
+hive> select * from temp_tbl_t1;
+OK
+1       nanda   Sydney  20500
+2       kumar   madurai 25000
+3       nandagnk        Sydney  15000
+4       govindnk        Melbourne       22000
+5       govindan        Melbourne       12500
+6       valli   Victoria        12500
+7       Karunya Perth   12000
+8       Karunya Valli   Perth   10000
+Time taken: 0.047 seconds, Fetched: 8 row(s)
+hive> 
+
+Hive Temporary Table Limitations
+
+As mentioned in the differences, Hive temporary table have few limitation compared with regular tables.
+
+On temporary tables, you cannot create partitions.
+Indexes are not supported on temporary tables
+If you create a temporary table name same as the permanent table name, you cannot access the permanent table until you drop a temporary table or rename it to a different name.
+
+==========================================================================================
+
+Task - Check whether is that possible to create partion on multiple columns on a table (not sub partitions)
+
+It is not possible to create a table with two partitions (main partitions are different columns), based way is to create separate partition tables for each column.
+
+Reason is we need to exclude the columns in the create table column list section for which the partion is going to be created, now we can't skip both the columns as they are part of two different partitions (the partioned column should be present in the column list of other paritioned table).
+
+===============================================================================
+
+How to handle XML files and JSON files in Hive.
+===============================================
+
+XML DATASETA
+============
+
+In some cases we will receive two input files one file for schema information(JSON format) and another file for transaction data(in XML format). 
+
+In build HIVE cannot process XML / JSON files, Hive can process ORC file, AVRO file and Parquet file.
+
+How to handle this, by default Hive runs on the configuration file Hive_site.XML and all the configurations are available in this file.
+
+We can't practice this in cloudxlab as we don't have access to place the required jar files in to the lib path, but it will work in case of cloudera
+
+library files will be availalbe in the path /usr/lib/hive/lib/
+
+all the jar files will be present in this directory, 
+
+example 
+parquet-hadoop-bundle.jar (for processing parquet data file)
+avro.jar (used for processing avro data file)
+
+we need to download the jar files for JSON and XML(hivexmlserde-1.0.2.0.jar) and give full access for the files (chmod 777) and place them in to the path /usr/lib/hive/lib.
+download the files from maven repository also we need to be very much cautious about the supported version(version compatability) since all files cannot work in all the versions of Hadoop.
+
+download link for xml jar - https://mvnrepository.com/artifact/com.ibm.spss.hive.serde2.xml/hivexmlserde/1.0.2.0
+
+place the xml data file into hdfs location and create the table on top of the xml file
+
+example
+
+create external table  xml_emp(
+empid string,
+ename string,
+income bigint,
+age int
+)
+row format serde 'com.ibm.spss.hive.serde2.xml.xmlSerDe'
+with SERDEPROPERTIES(
+"column.xpath.empid"="/record/empid/text()",
+"column.xpath.ename"="/record/ename/text()",
+"column.xpath.income"="/record/income/text()",
+"column.xpath.age"="/record/age/text()",
+)
+STORED AS INPUTFORMAT 'com.ibm.spss.hive.serde2.xml.XmlInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.IgnoreKeyTextOuputFormat'
+location 'hdfs:///user/nandagnk2141/nanda/hive/lab/emp.xml'
+TBLPROPERTIES("xmlinput.start"="<record>",'xmlinput.end"="</record>");
+
+
+
+emp.xml -- content
+==================
+<record>
+<empid>51327303</empid>
+<enamne>Nanda Govindan </ename>
+<income>1435000</income>
+<age>42</age>
+</record>
+
+now execute select * from xml_emp;
+
+it should return the data from the xml file.
+
+
+method 2(only for cloudxlab)
+========
+
+download the file "hivexmlserde-1.0.2.0.jar" from the link https://mvnrepository.com/artifact/com.ibm.spss.hive.serde2.xml/hivexmlserde/1.0.2.0 and using winscp move it to edge node
+and from edge node copy the file to hdfs location along with emp.xml file.
+
+/home/nandagnk2141/nanda/hive
+[nandagnk2141@cxln5 hive]$ 
+
+[nandagnk2141@cxln5 hive]$ ls -ltr
+total 228
+-rwxr-xr-x 1 nandagnk2141 nandagnk2141     81 Nov 29 07:12 t2.csv
+drwxrwxr-x 2 nandagnk2141 nandagnk2141   4096 Nov 29 09:49 DATASETS
+-rwxrwxrwx 1 nandagnk2141 nandagnk2141    194 Dec  5 14:35 t1.csv
+-rw-r--r-- 1 nandagnk2141 nandagnk2141    478 Dec  5 14:44 hive_script_1.hql
+-rw-r--r-- 1 nandagnk2141 nandagnk2141    369 Dec  5 15:12 hive_script_1.sh
+-rw-r--r-- 1 nandagnk2141 nandagnk2141     27 Dec  5 15:39 array_data.txt
+-rw-r--r-- 1 nandagnk2141 nandagnk2141     57 Dec  5 15:56 map_data.txt
+-rw-r--r-- 1 nandagnk2141 nandagnk2141    110 Dec  5 16:07 struct_data.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 146508 Dec 11 04:26 city_csv.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141  46019 Dec 14 13:32 hivexmlserde-1.0.2.0.jar
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    113 Dec 14 13:34 emp.xml
+[nandagnk2141@cxln5 hive]$ hdfs dfs -put emp.xml /user/nandagnk2141/nanda/hive/lab
+[nandagnk2141@cxln5 hive]$ chmod 777 hivexmlserde-1.0.2.0.jar
+[nandagnk2141@cxln5 hive]$ hdfs dfs -put hivexmlserde-1.0.2.0.jar /user/nandagnk2141/nanda/hive/lab
+[nandagnk2141@cxln5 hive]$ pwd
+/home/nandagnk2141/nanda/hive
+[nandagnk2141@cxln5 hive]$ 
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -put hivexmlserde-1.0.2.0.jar /user/nandagnk2141/nanda/hive/lab
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab
+Found 4 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141     146508 2022-12-11 04:29 /user/nandagnk2141/nanda/hive/lab/city_csv.csv
+-rw-r--r--   3 nandagnk2141 nandagnk2141        113 2022-12-14 13:38 /user/nandagnk2141/nanda/hive/lab/emp.xml
+-rw-r--r--   3 nandagnk2141 nandagnk2141      46019 2022-12-14 13:44 /user/nandagnk2141/nanda/hive/lab/hivexmlserde-1.0.2.0.jar
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-14 07:19 /user/nandagnk2141/nanda/hive/lab/sample_json
+
+
+add the jar file from hive prompt using the command ADD JAR hdfs:///user/nandagnk2141/nanda/hive/lab/hivexmlserde-1.0.2.0.jar;
+
+[nandagnk2141@cxln5 hive]$ hive
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.DailyRollingFileAppender.
+Logging initialized using configuration in file:/etc/hive/2.6.2.0-205/0/hive-log4j.properties
+hive> ADD JAR hdfs:///user/nandagnk2141/nanda/hive/lab/hivexmlserde-1.0.2.0.jar;
+converting to local hdfs:///user/nandagnk2141/nanda/hive/lab/hivexmlserde-1.0.2.0.jar
+Added [/tmp/cf98e8ba-3a02-4994-b09a-e2c489910414_resources/hivexmlserde-1.0.2.0.jar] to class path
+Added resources: [hdfs:///user/nandagnk2141/nanda/hive/lab/hivexmlserde-1.0.2.0.jar]
+hive> 
+
+now create the table
+
+create external table  xml_emp(
+empid string,
+ename string,
+income bigint,
+age int
+)
+row format serde 'com.ibm.spss.hive.serde2.xml.XmlSerDe'
+with SERDEPROPERTIES(
+"column.xpath.empid"="/record/empid/text()",
+"column.xpath.ename"="/record/ename/text()",
+"column.xpath.income"="/record/income/text()",
+"column.xpath.age"="/record/age/text()"
+)
+STORED AS INPUTFORMAT 'com.ibm.spss.hive.serde2.xml.XmlInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+location 'hdfs:///user/nandagnk2141/nanda/hive/xml_emp/'
+TBLPROPERTIES("xmlinput.start"="<record>","xmlinput.end"="</record>");
+
+
+hive> create external table  xml_emp(
+    > empid string,
+    > ename string,
+    > income bigint,
+    > age int
+    > )
+    > row format serde 'com.ibm.spss.hive.serde2.xml.XmlSerDe'
+    > with SERDEPROPERTIES(
+    > "column.xpath.empid"="/record/empid/text()",
+    > "column.xpath.ename"="/record/ename/text()",
+    > "column.xpath.income"="/record/income/text()",
+    > "column.xpath.age"="/record/age/text()"
+    > )
+    > STORED AS INPUTFORMAT 'com.ibm.spss.hive.serde2.xml.XmlInputFormat'
+    > OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+    > location 'hdfs:///user/nandagnk2141/nanda/hive/xml_emp/'
+    > TBLPROPERTIES("xmlinput.start"="<record>","xmlinput.end"="</record>");
+OK
+Time taken: 1.548 seconds
+
+hive> select * from xml_emp;
+OK
+51327303        Nanda Govindan  1435000 42
+Time taken: 0.708 seconds, Fetched: 1 row(s)
+
+===========================================================================================================
+
+now loading json file in cloudxlab
+==================================
+
+reference https://cloudxlab.com/assessment/displayslide/5270/hive-load-json-data
+
+JSON sample file is available in /data/sample_json in hdfs location
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /data/sample_json
+Found 1 items
+-rw-r--r--   3 hdfs hdfs        140 2020-04-28 11:19 /data/sample_json/user_country.json
+
+copy the file to your local path
+
+hdfs dfs -cp /data/sample_json /user/$USER/nanda/hive/lab
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cp /data/sample_json /user/$USER/nanda/hive/lab
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/$USER/nanda/hive/lab
+Found 2 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141     146508 2022-12-11 04:29 /user/nandagnk2141/nanda/hive/lab/city_csv.csv
+drwxr-xr-x   - nandagnk2141 nandagnk2141          0 2022-12-14 07:19 /user/nandagnk2141/nanda/hive/lab/sample_json
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /user/$USER/nanda/hive/lab/sample_json
+Found 1 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141        140 2022-12-14 07:19 /user/nandagnk2141/nanda/hive/lab/sample_json/user_country.json
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /user/$USER/nanda/hive/lab/sample_json/user_country.json
+{"name":"Abhinav", "country":"India"}
+{"name":"John", "country": "US"}
+{"name":"Bob", "country":"Germany"}
+{"name":"Richa", "country":"UK"}
+[nandagnk2141@cxln5 ~]$
+
+JSON supporting library is available in the path /data/serde in hdfs
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -ls /data/serde
+Found 2 items
+-rw-r--r--   3 hdfs hdfs      74760 2019-07-22 17:57 /data/serde/json-serde-1.3-jar-with-dependencies.jar
+-rw-r--r--   3 hdfs hdfs      79352 2019-07-22 17:57 /data/serde/json-serde-1.3.6-SNAPSHOT-jar-with-dependencies.jar
+
+now launch hive and then add the jar file
+
+ADD JAR hdfs:///data/serde/json-serde-1.3.6-SNAPSHOT-jar-with-dependencies.jar;
+
+use gnanda80;
+
+CREATE EXTERNAL TABLE user_countries(
+    name string,
+    country string
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+LOCATION 'hdfs:///user/${env:USER}/nanda/hive/lab/sample_json';
+
+hive> ADD JAR hdfs:///data/serde/json-serde-1.3.6-SNAPSHOT-jar-with-dependencies.jar;
+converting to local hdfs:///data/serde/json-serde-1.3.6-SNAPSHOT-jar-with-dependencies.jar
+Added [/tmp/5be4fcdc-6c5e-4bde-85f4-354471bf2240_resources/json-serde-1.3.6-SNAPSHOT-jar-with-dependencies.jar] to class path
+Added resources: [hdfs:///data/serde/json-serde-1.3.6-SNAPSHOT-jar-with-dependencies.jar]
+hive> use gnanda80;
+OK
+Time taken: 2.005 seconds
+hive> CREATE EXTERNAL TABLE user_countries(
+    >     name string,
+    >     country string
+    > )
+    > ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+    > LOCATION 'hdfs:///user/${env:USER}/nanda/hive/lab/sample_json';
+OK
+Time taken: 0.314 seconds
+hive> select * from user_countries;
+OK
+Abhinav India
+John    US
+Bob     Germany
+Richa   UK
+Time taken: 0.587 seconds, Fetched: 4 row(s)
+hive>
+
+================================================================================================
+Task - create an internal table and load the data where the first line contains the header records
+
+[nandagnk2141@cxln5 hive]$ head city_csv.csv
+ID,NAME,COUNTRYCODE,DISTRICT,POPULATION
+1,Kabul,AFG,Kabol,1780000
+2,Qandahar,AFG,Qandahar,237500
+3,Herat,AFG,Herat,186800
+4,Mazar-e-Sharif,AFG,Balkh,127800
+5,Amsterdam,NLD,Noord-Holland,731202
+6,Rotterdam,NLD,Zuid-Holland,593323
+7,Haag,NLD,Zuid-Holland,440902
+8,Utrecht,NLD,Utrecht,234325
+9,Eindhoven,NLD,Noord-Brabant,201845
+[nandagnk2141@cxln5 hive]$
+
+create external table if not exists country
+(
+ID int,
+NAME varchar(30),
+CountryCode char(3),
+District varchar(30),
+Population int
+)
+row format delimited fields terminated by ',' 
+location '/user/nandagnk2141/nanda/hive/lab'
+
+
+
+hive> load data local inpath '/home/nandagnk2141/nanda/hive/city_csv.csv' overwrite into table country;
+Loading data to table gnanda80.country
+Table gnanda80.country stats: [numFiles=1, totalSize=146508]
+OK
+Time taken: 0.573 seconds
+
+hive> select * from country limit 10;
+OK
+1       Kabul   AFG     Kabol   1780000
+2       Qandahar        AFG     Qandahar        237500
+3       Herat   AFG     Herat   186800
+4       Mazar-e-Sharif  AFG     Balkh   127800
+5       Amsterdam       NLD     Noord-Holland   731202
+6       Rotterdam       NLD     Zuid-Holland    593323
+7       Haag    NLD     Zuid-Holland    440902
+8       Utrecht NLD     Utrecht 234325
+9       Eindhoven       NLD     Noord-Brabant   201845
+10      Tilburg NLD     Noord-Brabant   193240
+Time taken: 0.472 seconds, Fetched: 10 row(s)
+
+====================================================================================================================
+
+How to handle incremental data load in Hive(****important****)
+==============================================================
+
+What is incremental data?
+
+data has some amandments to the existing data and fresh set of records is called incremental load
+
+Example
+
+Day 1
+=====
+
+id	name	location	salary		timestamp
+1	Nanda	Sydney		135000		2022-12-14
+2	Kumar	Perth		145000		2022-12-14
+3	Govind	Melbourne	150000		2022-12-14
+
+Day 2
+=====
+2	Kumar	Tasmania	145000		2022-12-15
+4	Gopi    Sydney		145000		2022-12-15
+5   Masi    Queensland  15000       2022-12-15
+
+day1.csv
+1,Nanda,Sydney,135000,2022-12-14
+2,Kumar,Perth,145000,2022-12-14
+3,Govind,Melbourne,150000,2022-12-14
+
+day2.csv
+2,Kumar,Tasmania,145000,2022-12-15
+4,Gopi,Sydney,145000,2022-12-15
+5,Masi,Queensland,15000,2022-12-15
+
+[nandagnk2141@cxln5 hive]$ hdfs dfs -mkdir /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load
+[nandagnk2141@cxln5 hive]$ hdfs dfs -put day*.txt /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load
+[nandagnk2141@cxln5 hive]$ hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load
+Found 2 items
+-rw-r--r--   3 nandagnk2141 nandagnk2141        102 2022-12-14 23:46 /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load/day1.txt
+-rw-r--r--   3 nandagnk2141 nandagnk2141        102 2022-12-14 23:46 /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load/day2.txt
+
+create external table if not exists emp_tbl_inc_load(
+id int,
+name string,
+location string,
+salary bigint,
+mod_timestamp date)
+row format delimited fields terminated by ','
+location '/user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load';
+
+
+hive> create external table if not exists emp_tbl_inc_load(
+    > id int,
+    > name string,
+    > location string,
+    > salary bigint,
+    > mod_timestamp date)
+    > row format delimited fields terminated by ','
+    > location '/user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load';
+OK
+Time taken: 0.264 seconds
+hive> select * from emp_tbl_inc_load;
+OK
+1       Nanda   Sydney  135000  2022-12-14
+2       Kumar   Perth   145000  2022-12-14
+3       Govind  Melbourne       150000  2022-12-14
+2       Kumar   Tasmania        145000  2022-12-15
+4       Gopi    Sydney  145000  2022-12-15
+5       Masi    Queensland      15000   2022-12-15
+Time taken: 0.479 seconds, Fetched: 6 row(s)
+
+select e1.*
+from emp_tbl_inc_load e1 join (select id,max(mod_timestamp) mod_timestamp from emp_tbl_inc_load  group by id) e2 on (e1.id = e2.id and e1.mod_timestamp=e2.mod_timestamp);
+
+
+hive> select e1.*
+    > from emp_tbl_inc_load e1 join (select id,max(mod_timestamp) mod_timestamp from emp_tbl_inc_load  group by id) e2 on (e1.id = e2.id and e1.mod_timestamp=e2.mod_timestamp);
+Query ID = nandagnk2141_20221215000200_7a801591-5837-4cba-8829-0d890ba8688c
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_22383, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_22383/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_22383
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+......
+......
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 10.01 sec   HDFS Read: 8338 HDFS Write: 201 SUCCESS
+Stage-Stage-4: Map: 1   Cumulative CPU: 2.38 sec   HDFS Read: 6624 HDFS Write: 172 SUCCESS
+Total MapReduce CPU Time Spent: 12 seconds 390 msec
+OK
+1       Nanda   Sydney  135000  2022-12-14
+2       Kumar   Tasmania        145000  2022-12-15
+3       Govind  Melbourne       150000  2022-12-14
+4       Gopi    Sydney  145000  2022-12-15
+5       Masi    Queensland      15000   2022-12-15
+Time taken: 52.323 seconds, Fetched: 5 row(s)
+
+now create a view for the query
+
+create view emp_tbl_inc_load_vw as 
+select e1.id,e1.name,e1.location,e1.salary,e1.mod_timestamp
+from emp_tbl_inc_load e1 join (select id, max(mod_timestamp) mod_timestamp from emp_tbl_inc_load group by id) e2 on (e1.id = e2.id and e1.mod_timestamp=e2.mod_timestamp);
+
+hive> create view emp_tbl_inc_load_vw as 
+    > select e1.id,e1.name,e1.location,e1.salary,e1.mod_timestamp
+    > from emp_tbl_inc_load e1 join (select id, max(mod_timestamp) mod_timestamp from emp_tbl_inc_load group by id) e2 on (e1.id = e2.id and e1.mod_timestamp=e2.mod_timestamp);
+OK
+Time taken: 0.119 seconds
+hive> select * from emp_tbl_inc_load_vw;
+Query ID = nandagnk2141_20221215001156_53569655-bb50-4f63-864a-9e63a992b3db
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_22387, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_22387/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_22387
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+....
+....
+MapReduce Total cumulative CPU time: 2 seconds 310 msec
+Ended Job = job_1648130833540_22388
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 8.29 sec   HDFS Read: 8599 HDFS Write: 201 SUCCESS
+Stage-Stage-4: Map: 1   Cumulative CPU: 2.31 sec   HDFS Read: 6731 HDFS Write: 172 SUCCESS
+Total MapReduce CPU Time Spent: 10 seconds 600 msec
+OK
+1       Nanda   Sydney  135000  2022-12-14
+2       Kumar   Tasmania        145000  2022-12-15
+3       Govind  Melbourne       150000  2022-12-14
+4       Gopi    Sydney  145000  2022-12-15
+5       Masi    Queensland      15000   2022-12-15
+Time taken: 45.626 seconds, Fetched: 5 row(s)
+
+Now to fix the incremental load in the actual table overwrite the data in the table using the view
+
+insert overwrite table emp_tbl_inc_load select * from emp_tbl_inc_load_vw;
+
+hive> insert overwrite table emp_tbl_inc_load select * from emp_tbl_inc_load_vw;
+Query ID = nandagnk2141_20221215001726_426804e1-6ca9-40c0-bb78-ddb40dc6254a
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_22389, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_22389/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_22389
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+.....
+.....
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1648130833540_22390, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_22390/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_22390
+Hadoop job information for Stage-5: number of mappers: 1; number of reducers: 0
+2022-12-15 00:18:02,509 Stage-5 map = 0%,  reduce = 0%
+2022-12-15 00:18:08,748 Stage-5 map = 100%,  reduce = 0%, Cumulative CPU 2.74 sec
+MapReduce Total cumulative CPU time: 2 seconds 740 msec
+Ended Job = job_1648130833540_22390
+Loading data to table gnanda80.emp_tbl_inc_load
+Table gnanda80.emp_tbl_inc_load stats: [numFiles=1, numRows=5, totalSize=172, rawDataSize=167]
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 8.25 sec   HDFS Read: 8599 HDFS Write: 201 SUCCESS
+Stage-Stage-5: Map: 1   Cumulative CPU: 2.74 sec   HDFS Read: 6786 HDFS Write: 254 SUCCESS
+Total MapReduce CPU Time Spent: 10 seconds 990 msec
+OK
+Time taken: 43.725 seconds
+
+now query the actual table emp_tbl_inc_load and check the data
+
+select * from emp_tbl_inc_load;
+
+hive> select * from emp_tbl_inc_load;
+OK
+1       Nanda   Sydney  135000  2022-12-14
+2       Kumar   Tasmania        145000  2022-12-15
+3       Govind  Melbourne       150000  2022-12-14
+4       Gopi    Sydney  145000  2022-12-15
+5       Masi    Queensland      15000   2022-12-15
+Time taken: 0.05 seconds, Fetched: 5 row(s)
+
+now check the data files in the directory path
+
+hive> !hdfs dfs -ls /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load;
+Found 1 items
+-rwxr-xr-x   3 nandagnk2141 nandagnk2141        172 2022-12-15 00:18 /user/nandagnk2141/nanda/hive/lab/emp_tbl_inc_load/000000_0
+
+Earlier there were two files present now it become one after the incremental insert overwrite
+
+
+in ream time scenarios, we can create shell script to overwrite the data from the view to the table on daily basis with a job to refresh the main table once the data file is placed for everyday.
+
+when the volume in the input data file is huge, projects may prefer temporary tables or intermediate tables to perform this operation instead of using view. Apporach is the same first an intermeidate table will be created  
+
+====================================================================================================================================================================
