@@ -1,0 +1,1590 @@
+Scala download link
+===================
+www.scala-lang.org/download
+
+Scala references
+================
+https://docs.scala-lang.org/scala3/book/introduction.html
+
+
+Day 1 - 7th Jan 2023
+====================
+Spark can be used at all the layers
+1 Source Layer for data extraction to Raw Layer
+2 To generate silver data(clinsed data) in the staging layer/curated layer from the data available in the raw layer
+3 To generate gold data(transformed data/production data) in the EDH layer from the data available in staging layer
+4 To perform analysis on the EDH Layer
+5 To send the analayed output to Visualization tools, ML or other reporting tools
+
+Spark is more fast as it's not following MR, it is 10X to 100X times faster than MR.
+
+Languages supported by spark
+
+Scala, Python, R, and Java
+
+before 2019
+===========
+
+Scala			88%
+Python			5%
+R				1%
+Java 			3% 
+
+in 2023
+=======
+Scala			55% (Spark Scala) uses 100% cluster memory
+Python			40% (PySpark) used 80% to 90% of cluster memory
+R				1% for Machine Learning
+Java			4%
+
+Scala is an object oriented functional programming
+
+Spark scala is Object oriented Distributed Functional programming
+
+Distributed programming as the problem with mutability which can be resolved by 
+alternative way is using functional programaming. Spark achieved this by adapting Functional programming into distributed programaming.
+
+Functional programming means creating immutable objects.
+
+immutable programming(output for the same given input on the same code will be consistant on everytime)
+code	day		input 	output
+prog1   1		10,20	30
+prog1	2		10,20	30
+.......
+prog1   n       10,20	30
+
+mutable programming(output for the same given input on the same code will vary on everytime, result is not consistant)
+code	day		input 	output
+prog1   1		10,20	20
+prog1	2		10,20	X
+prog1	3		10,20	75
+......
+prog1	n		10,20	-25
+
+cxln5 login: nandagnk2141
+Password: 
+Last login: Sun Jan  8 13:09:14 on pts/8
+[nandagnk2141@cxln5 ~]$ scala
+Welcome to Scala 2.11.8 (OpenJDK 64-Bit Server VM, Java 1.8.0_212).
+Type in expressions for evaluation. Or try :help.
+
+scala achieve this immutability by creating the objects with the keyword VAL and objects defined as var are mutable.
+
+
+Example Immutable object
+========================
+
+scala> val a=25
+a: Int = 25
+scala> a=50
+<console>:12: error: reassignment to val
+       a=50
+        ^
+		
+Example mutable object
+======================
+		
+scala> var b=25
+b: Int = 25
+scala> b=50
+b: Int = 50
+scala>  
+
+
+defining functions for mutable and immutable in scala
+
+example for immutable function
+==============================
+
+def Sqr(num:Int) :Int = {
+	return num * num
+	}
+	
+scala> def Sqr(num:Int) :Int = {
+     | return num*num
+     | }
+Sqr: (num: Int)Int
+scala> Sqr(10);
+res0: Int = 100
+scala> Sqr(25)
+res1: Int = 625
+scala> Sqr('a');
+res2: Int = 9409
+scala> Sqr("ab");
+<console>:13: error: type mismatch;
+ found   : String("ab")
+ required: Int
+       Sqr("ab");
+           ^	
+		   
+example for mutable function
+==============================		   
+	
+scala> def randnum(num:Int) :Double={
+     | var a = num*Math.random();
+     | return a;
+     |  }
+randnum: (num: Int)Double
+
+scala> randnum(10);
+res7: Double = 7.138467200443788
+scala> randnum(10);
+res8: Double = 1.5484251654076997
+scala> randnum(10);
+res9: Double = 1.1122972904427486 
+
+=================================================
+
+redefining objects within the scope from var to val or val to var
+
+scala> val a = 10;
+a: Int = 10
+scala> a=15;
+<console>:12: error: reassignment to val
+       a=15;
+        ^
+scala> var a = 15;
+a: Int = 15
+scala> a=25;
+a: Int = 25
+	
+scala> val a=25
+a: Int = 25
+scala> a = 50
+<console>:12: error: reassignment to val
+       a = 50
+         ^
+scala> val a= 50
+a: Int = 50
+scala> a
+res13: Int = 50	
+
+=====================================================
+
+Data types in Scala
+
+no need to mentioned the data type in scala similar to python it will identify the data type based on the input value 
+
+scala> val b = 25.25
+b: Double = 25.25
+scala> val c = 'a28'
+<console>:1: error: unclosed character literal
+val c = 'a28'
+            ^
+scala> val c = a28
+<console>:11: error: not found: value a28
+       val c = a28
+               ^
+scala> val c = "a28"
+c: String = a28
+scala> val d = 'c'
+d: Char = c
+
+even we can explicitily define/mention the datatype
+
+scala> val d:Double = 25
+d: Double = 25.0
+
+=======================================================
+
+built in methods 
+
+scala> val a=25
+a: Int = 25
+scala> a.toDouble
+res17: Double = 25.0
+scala> d.round
+res18: Long = 25
+
+to get the list of methods available for an object type <object_name>.{tab}
+
+scala> d.
+!=   -    ==    byteValue   doubleValue   intValue     isNegInfinity   isValidInt     max     shortValue   toChar      toInt       unary_+      
+%    /    >     ceil        floatValue    isInfinite   isPosInfinity   isValidShort   min     signum       toDegrees   toLong      unary_-      
+*    <    >=    compare     floor         isInfinity   isValidByte     isWhole        round   to           toDouble    toRadians   underlying   
++    <=   abs   compareTo   getClass      isNaN        isValidChar     longValue      self    toByte       toFloat     toShort     until       
+
+
+val a:Short = 10;
+
+scala> val a:Short = 10;
+a: Short = 10
+
+val result = true;
+
+scala> val result = true;
+result: Boolean = true
+
+scala> val a="abc"
+a: String = abc
+scala> val b=10
+b: Int = 10
+scala> val c=a+b
+c: String = abc10
+scala> val c=a*b
+c: String = abcabcabcabcabcabcabcabcabcabc
+scala> val a='a'
+a: Char = a
+scala> val c = a+b
+c: Int = 107
+scala> val c = a*b
+c: Int = 970
+
+Scala datatypes
+===============
+Int
+Short
+Long
+Boolean
+Float
+Double
+Char
+String
+
+
+=====================================================================================================
+
+VOID and UNIT functions
+=======================
+In general funtions without return statements are called void function (C,C++ java and etc) but in scala it is called as UNIT function and it is mutable(as there is no return statement).
+
+********************************************************
+Note: in real time all the production code should be immutable
+********************************************************
+
+collection types available in Scala
+===================================
+
+mostly used
+===========
+1. List
+2. Tuple
+3. Map
+4. Set
+5. Option
+other collection
+================
+6. Range
+7. Vector
+
+
+List
+====
+List is a collection of homogeneous data type. All the elements in the list should be of the same data type.
+Immutable collection type also called child of sequence class. Need to traversal the elements in a liner fashion.
+
+Starting index of list is 0
+
+example
+=======
+
+val list1 = List("India","China","USA","UK")
+
+scala> val list1 = list("India","China","USA","UK")
+<console>:11: error: not found: value list
+       val list1 = list("India","China","USA","UK")
+                   ^
+scala> val list1 = List("India","China","USA","UK")
+list1: List[String] = List(India, China, USA, UK)
+scala> list1
+res0: List[String] = List(India, China, USA, UK)
+scala> 
+
+accessing the individual items using index
+
+scala> list1(0)
+res1: String = India
+scala> list1(3)
+res2: String = UK
+scala> list1(5)
+java.lang.IndexOutOfBoundsException: 5
+  at scala.collection.LinearSeqOptimized$class.apply(LinearSeqOptimized.scala:65)
+  at scala.collection.immutable.List.apply(List.scala:84)
+  ... 32 elided
+
+
+val list2 = List(10,57,-5,69,47,89,47,69,89)
+
+scala> val list2 = List(10,57,-5,69,47,89,47,69,89)
+list2: List[Int] = List(10, 57, -5, 69, 47, 89, 47, 69, 89)
+
+val list3 = List("Nanda", "Kumar", 'G', 42, "Unit 8", 39, "Ross Street", 2151)
+
+scala> val list3 = List("Nanda", "Kumar", 'G', 42, "Unit 8", 39, "Ross Street", 2151)
+list3: List[Any] = List(Nanda, Kumar, G, 42, Unit 8, 39, Ross Street, 2151)
+
+
+scala> list3.
+++            canEqual        drop        forall            inits                map            prefixLength        reverseIterator   sortWith       toBuffer        unzip          
+++:           collect         dropRight   foreach           intersect            mapConserve    product             reverseMap        sorted         toIndexedSeq    unzip3         
++:            collectFirst    dropWhile   genericBuilder    isDefinedAt          max            productArity        reverse_:::       span           toIterable      updated        
+/:            combinations    endsWith    groupBy           isEmpty              maxBy          productElement      runWith           splitAt        toIterator      view           
+:+            companion       equals      grouped           isTraversableAgain   min            productIterator     sameElements      startsWith     toList          withFilter     
+::            compose         exists      hasDefiniteSize   iterator             minBy          productPrefix       scan              stringPrefix   toMap           zip            
+:::           contains        filter      hashCode          last                 mkString       reduce              scanLeft          sum            toSeq           zipAll         
+:\            containsSlice   filterNot   head              lastIndexOf          nonEmpty       reduceLeft          scanRight         tail           toSet           zipWithIndex   
+WithFilter    copyToArray     find        headOption        lastIndexOfSlice     orElse         reduceLeftOption    segmentLength     tails          toStream                       
+addString     copyToBuffer    flatMap     indexOf           lastIndexWhere       padTo          reduceOption        seq               take           toString                       
+aggregate     corresponds     flatten     indexOfSlice      lastOption           par            reduceRight         size              takeRight      toTraversable                  
+andThen       count           fold        indexWhere        length               partition      reduceRightOption   slice             takeWhile      toVector                       
+apply         diff            foldLeft    indices           lengthCompare        patch          repr                sliding           to             transpose                      
+applyOrElse   distinct        foldRight   init              lift                 permutations   reverse             sortBy            toArray        union            
+
+scala> list3.size
+res6: Int = 8
+
+scala> list3.count _
+res9: (Any => Boolean) => Int = <function1>
+scala> list3.count(_)
+res10: (Any => Boolean) => Int = <function1>
+
+scala> list3.reverse
+res11: List[Any] = List(2151, Ross Street, 39, Unit 8, 42, G, Kumar, Nanda)
+
+.head returns the first element in the list
+
+scala> list3.head
+res12: Any = Nanda
+
+.tail will return all the elements in the list except first one
+
+scala> list3.tail
+res13: List[Any] = List(Kumar, G, 42, Unit 8, 39, Ross Street, 2151)
+
+.last will return the last element in the list
+
+scala> list3.last
+res14: Any = 2151
+
+.init will return all the element except the last in the list
+
+scala> list3.init
+res15: List[Any] = List(Nanda, Kumar, G, 42, Unit 8, 39, Ross Street)
+
+scala>  list3(0)="gnanda"
+<console>:13: error: value update is not a member of List[Any]
+        list3(0)="gnanda"
+        ^
+
+scala> list3(0)
+res18: Any = Nanda
+
+List is mutable will not all to modify the value in the list even it is declared as var object.
+
+scala> var list3 = List("Nanda", "Kumar", 'G', 42, "Unit 8", 39, "Ross Street", 2151)
+list3: List[Any] = List(Nanda, Kumar, G, 42, Unit 8, 39, Ross Street, 2151)
+scala> list3(0)
+res19: Any = Nanda
+scala> list3(0)="gnanda"
+<console>:13: error: value update is not a member of List[Any]
+       list3(0)="gnanda"
+       ^
+	   
+scala> list3.indexOf("Kumar")
+res21: Int = 1
+
+scala> list3.lastIndexOf(42)
+res23: Int = 3
+scala> list2
+res24: List[Int] = List(10, 57, -5, 69, 47, 89, 47, 69, 89)
+scala> list2.lastIndexOf(69)
+res25: Int = 7
+scala> list2.lastIndexOf(47,69)
+res26: Int = 6
+
+IDEs
+====
+
+Eclipse
+Intellij
+Visual Studio
+
+for (i <- list3){println(i)}
+
+scala> for (i <- list3){ println(i)}
+Nanda
+Kumar
+G
+42
+Unit 8
+39
+Ross Street
+2151
+
+scala> list2
+res36: List[Int] = List(10, 57, -5, 69, 47, 89, 47, 69, 89)
+scala> list2.sum
+res37: Int = 472
+scala> list2.max
+res38: Int = 89
+scala> list2.min
+res39: Int = -5
+
+scala> list2.length
+res41: Int = 9
+scala> list2.size
+res42: Int = 9
+scala> list2.distinct
+res44: List[Int] = List(10, 57, -5, 69, 47, 89)	   
+
+
+
+================================================================
+
+Tuple
+=====
+
+collection of different datatype (Hetrogeneous) and maximum size is 22
+
+val t1 = (10,"Nanda",'G',43,85.5,true)
+
+scala> val t1 = (10,"Nanda",'G',43,85.5,true)
+t1: (Int, String, Char, Int, Double, Boolean) = (10,Nanda,G,43,85.5,true)
+
+
+
+Starting index of Tuple is 1, to access the elements using index t1._<index>
+
+scala>  t1._1
+res57: Int = 10
+scala>  t1._2
+res58: String = Nanda
+scala> t1
+res59: (Int, String, Char, Int, Double, Boolean) = (10,Nanda,G,43,85.5,true)
+scala> t1._1
+res60: Int = 10
+scala> t1._2
+res61: String = Nanda
+
+scala> t1.
+_1   _2   _3   _4   _5   _6   canEqual   copy   equals   hashCode   productArity   productElement   productIterator   productPrefix   toString
+scala> t1._6
+res63: Boolean = true
+
+assignment find maximum size of List?
+
+what is the use case of tuple - record or schema or structure data. Used as Data frame in Spark.
+
+Tuple also Immutable type.
+
+Nested Tuple
+============
+
+scala> val x = 10 -> "Scala"
+x: (Int, String) = (10,Scala)
+
+scala> val y = 10 -> "Scala" -> "FP"
+y: ((Int, String), String) = ((10,Scala),FP)
+
+y is example for nested tuple.
+
+scala> y._1
+res64: (Int, String) = (10,Scala)
+scala> y._2
+res65: String = FP
+
+scala> y._1._1
+res66: Int = 10
+scala> y._1._2
+res67: String = Scala
+
+val t3=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23)
+
+scala> val t3=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23)
+<console>:1: error: too many elements for tuple: 23, allowed: 22
+val t3=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23)
+       ^
+	   
+scala> t1
+res70: (Int, String, Char, Int, Double, Boolean) = (10,Nanda,G,43,85.5,true)
+scala> t1.
+_1   _2   _3   _4   _5   _6   canEqual   copy   equals   hashCode   productArity   productElement   productIterator   productPrefix   toString
+
+scala> t1.productIterator.
+++                collect        drop        flatMap     hasDefiniteSize      map        nonEmpty     reduceLeftOption    seq       takeWhile      toList          toVector       
+/:                collectFirst   dropWhile   fold        hasNext              max        padTo        reduceOption        size      to             toMap           withFilter     
+:\                contains       duplicate   foldLeft    indexOf              maxBy      partition    reduceRight         slice     toArray        toSeq           zip            
+GroupedIterator   copyToArray    exists      foldRight   indexWhere           min        patch        reduceRightOption   sliding   toBuffer       toSet           zipAll         
+addString         copyToBuffer   filter      forall      isEmpty              minBy      product      sameElements        span      toIndexedSeq   toStream        zipWithIndex   
+aggregate         corresponds    filterNot   foreach     isTraversableAgain   mkString   reduce       scanLeft            sum       toIterable     toString                       
+buffered          count          find        grouped     length               next       reduceLeft   scanRight           take      toIterator     toTraversable 
+
+t1.productIterator.foreach(f=>println(f))	   
+
+====================================================================
+
+set
+===
+
+set is a immutable collection which is unique in nature, so it will remove any duplicates if found. Homogenous collection
+
+scala> val s1 = Set(1,2,3,4,5,2,3,5,4,6,7,3,9,1)
+s1: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 9, 2, 7, 3, 4)
+
+scala> s1.
+&            aggregate      count       flatMap           hashCode             map         reduceLeft          size           take           toSeq           withFilter     
+&~           andThen        diff        flatten           head                 max         reduceLeftOption    slice          takeRight      toSet           zip            
++            apply          drop        fold              headOption           maxBy       reduceOption        sliding        takeWhile      toStream        zipAll         
+++           canEqual       dropRight   foldLeft          init                 min         reduceRight         span           to             toString        zipWithIndex   
+++:          collect        dropWhile   foldRight         inits                minBy       reduceRightOption   splitAt        toArray        toTraversable   |              
+-            collectFirst   empty       forall            intersect            mkString    repr                stringPrefix   toBuffer       toVector                       
+--           companion      equals      foreach           isEmpty              nonEmpty    sameElements        subsetOf       toIndexedSeq   transpose                      
+/:           compose        exists      genericBuilder    isTraversableAgain   par         scan                subsets        toIterable     union                          
+:\           contains       filter      groupBy           iterator             partition   scanLeft            sum            toIterator     unzip                          
+WithFilter   copyToArray    filterNot   grouped           last                 product     scanRight           tail           toList         unzip3                         
+addString    copyToBuffer   find        hasDefiniteSize   lastOption           reduce      seq                 tails          toMap          view        
+
+scala> val s2 = Set(15,12,5,18,2,9,19,21,4)
+s2: scala.collection.immutable.Set[Int] = Set(5, 21, 9, 2, 12, 18, 19, 4, 15)
+scala> s1.intersect(s2)
+res75: scala.collection.immutable.Set[Int] = Set(5, 9, 2, 4)
+
+scala> s1.union(s2)
+res76: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 21, 9, 2, 12, 7, 3, 18, 19, 4, 15)
+
+scala> s1.diff(s2)
+res78: scala.collection.immutable.Set[Int] = Set(1, 6, 7, 3)
+
+scala> s2.diff(s1)
+res79: scala.collection.immutable.Set[Int] = Set(21, 12, 18, 19, 15)
+
+scala> s1.equals(s2)
+res80: Boolean = false
+
+scala> s1.toList
+res81: List[Int] = List(5, 1, 6, 9, 2, 7, 3, 4)
+
+scala> s1.max
+res82: Int = 9
+scala> s1.min
+res83: Int = 1
+scala> s2.max
+res84: Int = 21
+
+scala> s2.min
+res86: Int = 2
+scala> 
+scala> s1.sum
+res87: Int = 37
+scala> s2.sum
+res88: Int = 105
+scala> s1.size
+res89: Int = 8
+scala> s2.size
+res90: Int = 9
+scala> s1.sum/s1.size
+res91: Int = 4
+
+scala> s1.sum/s1.size.
+!=   -    ==    ^           compareTo     intValue        isPosInfinity   isValidShort   round        toBinaryString   toFloat         toRadians   underlying   
+%    /    >     abs         doubleValue   isInfinite      isValidByte     isWhole        self         toByte           toHexString     toShort     until        
+&    <    >=    byteValue   floatValue    isInfinity      isValidChar     longValue      shortValue   toChar           toInt           unary_+     |            
+*    <<   >>    ceil        floor         isNaN           isValidInt      max            signum       toDegrees        toLong          unary_-                  
++    <=   >>>   compare     getClass      isNegInfinity   isValidLong     min            to           toDouble         toOctalString   unary_~                  
+
+finding average for s1
+
+scala> s1.sum/s1.size.toFloat
+res92: Float = 4.625
+
+finding averate for s2
+
+scala> s2.sum/s2.size.toFloat
+res93: Float = 11.666667
+
+scala> val s3 = Set(10,"Nanda",'M',85.5,true)
+s3: scala.collection.immutable.Set[Any] = Set(10, M, true, Nanda, 85.5)
+
+scala> s3("Nanda")
+res99: Boolean = true
+scala> s3(10)
+res100: Boolean = true
+
+for (i <- s3){ println(i)}
+
+scala> for (i <- s3){ println(i)}
+10
+M
+true
+Nanda
+85.5
+
+
+Map
+===
+
+Map is a key value pair collection type
+
+val map_address = Map("First_Name"->"Nanda","Middle_Name"->"Kumar", "Last_Name"->"Govindan", "Age"->42, "Salary"->143000)
+
+scala> val map_address = Map("First_Name"->"Nanda","Middle_Name"->"Kumar", "Last_Name"->"Govindan", "Age"->42, "Salary"->143000)
+map_address: scala.collection.immutable.Map[String,Any] = Map(First_Name -> Nanda, Age -> 42, Salary -> 143000, Last_Name -> Govindan, Middle_Name -> Kumar)
+
+scala> map_address.
++            applyOrElse    dropRight    foldLeft          headOption           lift        product             scanRight      takeRight      toStream         withDefault        
+++           canEqual       dropWhile    foldRight         init                 map         reduce              seq            takeWhile      toString         withDefaultValue   
+++:          collect        empty        forall            inits                mapValues   reduceLeft          size           to             toTraversable    withFilter         
+-            collectFirst   equals       foreach           isDefinedAt          max         reduceLeftOption    slice          toArray        toVector         zip                
+--           companion      exists       genericBuilder    isEmpty              maxBy       reduceOption        sliding        toBuffer       transform        zipAll             
+/:           compose        filter       get               isTraversableAgain   min         reduceRight         span           toIndexedSeq   transpose        zipWithIndex       
+:\           contains       filterKeys   getOrElse         iterator             minBy       reduceRightOption   splitAt        toIterable     unzip                               
+WithFilter   copyToArray    filterNot    groupBy           keySet               mkString    repr                stringPrefix   toIterator     unzip3                              
+addString    copyToBuffer   find         grouped           keys                 nonEmpty    runWith             sum            toList         updated                             
+aggregate    count          flatMap      hasDefiniteSize   keysIterator         orElse      sameElements        tail           toMap          values                              
+andThen      default        flatten      hashCode          last                 par         scan                tails          toSeq          valuesIterator                      
+apply        drop           fold         head              lastOption           partition   scanLeft            take           toSet          view                                
+scala> map_address.get("Age")
+res107: Option[Any] = Some(42)
+scala> map_address.get("Salary")
+res108: Option[Any] = Some(143000)
+
+scala> map_address.keys
+res110: Iterable[String] = Set(First_Name, Age, Salary, Last_Name, Middle_Name)
+scala> map_address.values
+res111: Iterable[Any] = MapLike(Nanda, 42, 143000, Govindan, Kumar)
+
+for (i <- map_address.keys){ println(i)}
+
+scala> for (i <- map_address.keys){ println(i)}
+First_Name
+Age
+Salary
+Last_Name
+Middle_Name
+
+for (i <- map_address.keys){ println(map_address.get(i))}
+
+scala> for (i <- map_address.keys){ println(map_address.get(i))}
+Some(Nanda)
+Some(42)
+Some(143000)
+Some(Govindan)
+Some(Kumar)
+
+
+scala> for (i <- map_address.keys){ println(i,map_address.get(i))}
+(First_Name,Some(Nanda))
+(Age,Some(42))
+(Salary,Some(143000))
+(Last_Name,Some(Govindan))
+(Middle_Name,Some(Kumar))
+
+map_address.get("Gender")
+
+scala> map_address.get("Gender")
+res109: Option[Any] = None
+
+map_address.get("Gender").getOrElse("Gender not available")
+
+scala> map_address.get("Gender").getOrElse("Gender not available")
+res1: Any = Gender not available
+
+map_address.contains("Age")
+
+scala> map_address.contains("Age")
+res3: Boolean = true
+
+map_address.contains("Gender")
+
+scala> map_address.contains("Gender")
+res4: Boolean = false
+
+================================================================================
+
+Option 
+======
+
+Option is a container which will give either 0(None) or 1(Some) as result/output.
+
+from the previous Map example
+scala> map_address.get("Gender")
+res109: Option[Any] = None
+
+=============
+End of Day 1
+=============
+
+====================================================================================================================================================================
+====================================================================================================================================================================
+====================================================================================================================================================================
+====================================================================================================================================================================
+
+=========================
+Day 2 - 08/01/2023
+=========================
+
+Scala statement and expressions
+
+example for statement
+=====================
+val a = {val x=10; val y = 20; val z=x+y;}
+
+scala> val a = {val x=10; val y = 20; val z=x+y;}
+a: Unit = ()
+scala> a
+scala> x
+<console>:12: error: not found: value x
+       x
+       ^
+scala> 
+
+example for expression
+======================
+
+val a = {val x=10; val y = 20; val z=x+y; z;}
+
+scala> val a = {val x=10; val y = 20; val z=x+y; z;}
+a: Int = 30
+
+val x = println("Hello world")   ---- is an example for mutable as it returns unit()
+
+scala> val x = println("Hello world")
+Hello world
+x: Unit = ()
+scala> x
+scala> 
+
+scala>  val y = println(3)
+3
+y: Unit = ()
+scala> y
+scala> 
+
+*******************************************************************
+Note: the expressions/statement returns Unit() are always mutable. 
+Similarly statements/functions/expression has println statement always 
+return Unit and they are mutable.
+*******************************************************************
+
+String interpolation
+====================
+
+val amt = 300
+s"The value of amount is $amt"
+s"Total amount including 10% GST is ${amt+(amt*0.1)}"
+
+scala> val amt = 300
+amt: Int = 300
+scala> s"The value of amount is $amt"
+res4: String = The value of amount is 300
+scala> s"Total amount including 10% GST is ${amt+(amt*0.1)}"
+res5: String = Total amount including 10% GST is 330.0
+
+scala> val price=s"Total amount including 10% GST is ${amt+(amt*0.1)}"
+price: String = Total amount including 10% GST is 330.0
+scala> price
+res6: String = Total amount including 10% GST is 330.0
+
+we can achieve the same using f" aswell
+
+f"Total amount including 10 percent GST is ${amt+(amt*0.1)}"
+
+scala> f"Total amount including 10 percent GST is ${amt+(amt*0.1)}"
+res8: String = Total amount including 10 percent GST is 330.0
+
+
+f"Total amount including 10%n GST is ${amt+(amt*0.1)}"
+
+scala>  f"Total amount including 10% GST is ${amt+(amt*0.1)}"
+<console>:13: error: conversions must follow a splice; use %% for literal %, %n for newline
+        f"Total amount including 10% GST is ${amt+(amt*0.1)}"
+                                   ^
+								   
+scala> f"Total amount including 10%n GST is ${amt+(amt*0.1)}"
+res9: String =
+Total amount including 10
+ GST is 330.0
+
+
+assignment 1 
+=============
+
+what is the difference between s" and f" in scala.
+
+Scala provides three string interpolation methods out of the box: s, f and raw.
+
+The s String Interpolator
+=========================
+Prepending s to any string literal allows the usage of variables directly in the string
+
+val name = "James"
+println(s"Hello, $name") 
+
+scala> val name = "James"
+name: String = James
+scala> println(s"Hello, $name") 
+Hello, James
+
+The f Interpolator
+==================
+Prepending f to any string literal allows the creation of simple formatted strings, similar to printf in other languages. When using the f interpolator, 
+all variable references should be followed by a printf-style format string, like %d.
+
+scala> val height = 1.9d
+height: Double = 1.9
+scala> val name = "Nanda"
+name: String = Nanda
+scala> println(f"$name%s is $height%2.2f meters tall")
+Nanda is 1.90 meters tall
+
+scala> val age=42
+age: Int = 42
+scala> println(f"Name is $name%s, height is $height%2.2f meters and age is $age%d")
+Name is Nanda, height is 1.90 meters and age is 42
+
+%d for integer
+%c for character
+%s for string
+%f for float and double.
+
+The f interpolator makes use of the string format utilities available from Java. The formats allowed after the % character are outlined in the Formatter javadoc. 
+If there is no % character after a variable definition a formatter of %s (String) is assumed.
+
+The raw Interpolator
+====================
+The raw interpolator is similar to the s interpolator except that it performs no escaping of literals within the string. 
+
+scala> s"a\nb"
+res0: String =
+a
+b
+
+scala> raw"a\nb"
+res1: String = a\nb
+
+Loops in scala
+==============
+mostly used loop statements are 
+If loop
+for loop
+while loop
+
+if loop
+
+val x = if(10%2==0)"The number is divisible by 2";
+
+scala> val x = if(10%2==0)"The number is divisible by 2";
+x: Any = The number is divisible by 2
+
+val x = if(10%2==0)"The number is even number" else "The number is odd number";
+
+scala> val x = if(10%2==0)"The number is even number" else "The number is odd number";
+x: String = The number is even number
+
+val x = 10;
+val y = 15;
+val z = (x>y)
+
+scala> val x = 10;
+x: Int = 10
+scala> val y = 15;
+y: Int = 15
+scala> val z = (x>y)
+z: Boolean = false
+
+val z = if(x>y) true else false;
+
+scala> val z = if(x>y) true else false;
+z: Boolean = false
+
+val z = if(x>y) 1 else 0;
+
+scala> val z = if(x>y) 1 else 0;
+z: Int = 0
+
+val z = if(x>y) 1 else false;
+
+scala> val z = if(x>y) 1 else false;
+z: AnyVal = false
+
+val z = if(x>y) 1 else List(1,2,3,4);
+
+scala> val z = if(x>y) 1 else List(1,2,3,4);
+z: Any = List(1, 2, 3, 4)
+
+
+val z = if(x>y) Set(1,2,3,4,2,4,5)  else List(1,2,3,4);
+
+scala> val z = if(x>y) Set(1,2,3,4,2,4,5)  else List(1,2,3,4);
+z: scala.collection.immutable.Iterable[Int] with Int => AnyVal = List(1, 2, 3, 4)
+
+https://docs.scala-lang.org/tour/unified-types.html
+https://www.baeldung.com/scala/type-hierarchies
+
+refer the above links to understnad the scala type hierarchies.
+
+Example for program in Eclipse
+
+filename : IfStatement.scala
+package Batch12pkg
+object IfStatement{
+	def main(args:Array[String])=
+	{
+		var num=10
+		if (num%2==0){
+			println("The number is even")
+		}
+		else{
+			println("The number is odd")
+		}
+	
+	}
+}
+
+output : The number is even
+
+filename : IfStatement.scala
+package Batch12pkg
+object IfStatement{
+	def main(args:Array[String])=
+	{
+		val a=Array("Red","Green","Blue")
+		for (e<-a)
+			println(e)	
+	}
+}
+
+output
+Red
+Green
+Blue
+
+Assginment 2
+============
+consider the below list
+
+val a = List("sachin","rahul","dravid","dhoni")
+
+iterate through each element and print them in upper case.
+
+val a = List("sachin","rahul","dravid","dhoni")
+for (i<-a) println(i.toUpperCase)
+
+scala> for (i<-a) println(i.toUpperCase)
+SACHIN
+RAHUL
+DRAVID
+DHONI
+
+scala> for (i<-a)
+     | println(i.
+*             chars                 count              format            isEmpty               mkString             replaceAll            sorted         toBoolean     toUpperCase    
++             codePointAt           diff               formatLocal       isTraversableAgain    nonEmpty             replaceAllLiterally   span           toBuffer      toVector       
+++            codePointBefore       distinct           genericBuilder    iterator              offsetByCodePoints   replaceFirst          split          toByte        transpose      
+++:           codePointCount        drop               getBytes          last                  orElse               repr                  splitAt        toCharArray   trim           
++:            codePoints            dropRight          getChars          lastIndexOf           padTo                reverse               startsWith     toDouble      union          
+/:            collect               dropWhile          groupBy           lastIndexOfSlice      par                  reverseIterator       stringPrefix   toFloat       unzip          
+:+            collectFirst          endsWith           grouped           lastIndexWhere        partition            reverseMap            stripLineEnd   toIndexedSeq  unzip3         
+:\            combinations          equals             hasDefiniteSize   lastOption            patch                runWith               stripMargin    toInt         updated        
+<             companion             equalsIgnoreCase   hashCode          length                permutations         sameElements          stripPrefix    toIterable    view           
+<=            compare               exists             head              lengthCompare         prefixLength         scan                  stripSuffix    toIterator    ithFilter     
+>             compareTo             filter             headOption        lift                  product              scanLeft              subSequence    toList      zip            
+>=            compareToIgnoreCase   filterNot          indexOf           lines                 r                    scanRight             substring      toLong      zipAll         
+addString     compose               find               indexOfSlice      linesIterator         reduce               segmentLength         sum            toLowerCase zipWithIndex   
+aggregate     concat                flatMap            indexWhere        linesWithSeparators   reduceLeft           self                  tail     toMap                         
+andThen       contains              flatten            indices           map                   reduceLeftOption     seq                   tails    toSeq                          
+apply         containsSlice         fold               init              matches               reduceOption         size                  take     toSet                          
+applyOrElse   contentEquals         foldLeft           inits             max                   reduceRight          slice                 takeRight   toShort                        
+canEqual      copyToArray           foldRight          intern            maxBy                 reduceRightOption    sliding               takeWhile   toStream                       
+capitalize    copyToBuffer          forall             intersect         min                   regionMatches        sortBy                to          toString                       
+charAt        corresponds           foreach            isDefinedAt       minBy                 replace              sortWith              toArray     toTraversable  
+
+For Loops
+=========
+
+var sum=0
+for (i<- 1 to 10){ sum=sum+i}
+
+scala> var sum=0
+sum: Int = 0
+
+scala> for (i<- 1 to 10){ sum=sum+i}
+scala> sum
+res11: Int = 55
+
+
+sum=0
+for (i<- 1 to 10){ sum=sum+i; println(sum)}
+
+scala> sum =0
+sum: Int = 0
+scala> for (i<- 1 to 10){ sum=sum+i; println(sum)}
+1
+3
+6
+10
+15
+21
+28
+36
+45
+55
+
+sum=0
+val x = for (i<- 1 to 10){ sum=sum+i} 
+
+scala> sum = 0
+sum: Int = 0
+scala> val x = for (i<- 1 to 10){ sum=sum+i} 
+x: Unit = ()
+scala> sum
+res14: Int = 55
+
+
+sum=0
+val x = for (i<- 1 to 10){ sum=sum+i;sum} 
+
+scala> sum=0
+sum: Int = 0
+scala> val x = for (i<- 1 to 10){ sum=sum+i;sum} 
+x: Unit = ()
+scala> sum
+res16: Int = 55
+
+Note:  Playing for loop always return unit data type (which is mutable)
+
+For immutability use the keyword "yield" in the for loop
+
+for yield (immutable)
+=========
+
+sum=0
+val x = for (i<- 1 to 10) yield {sum+i}
+scala>  sum=0
+sum: Int = 0
+scala> val x = for (i<- 1 to 10) yield {sum+i}
+x: scala.collection.immutable.IndexedSeq[Int] = Vector(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+scala>  sum=0
+sum: Int = 0
+val x = for (i<- 1 to 10) yield {sum=sum+i}
+scala> val x = for (i<- 1 to 10) yield {sum=sum+i}
+x: scala.collection.immutable.IndexedSeq[Unit] = Vector((), (), (), (), (), (), (), (), (), ())
+
+val x = for (i<- 1 to 10) yield {sum=sum+i;sum}
+
+scala> sum=0
+sum: Int = 0
+scala> val x = for (i<- 1 to 10) yield {sum=sum+i;sum}
+x: scala.collection.immutable.IndexedSeq[Int] = Vector(1, 3, 6, 10, 15, 21, 28, 36, 45, 55)
+scala> x
+res18: scala.collection.immutable.IndexedSeq[Int] = Vector(1, 3, 6, 10, 15, 21, 28, 36, 45, 55)
+
+var y = for (i<- 1 to 10) yield {s"Day : $i"}
+
+scala> var y = for (i<- 1 to 10) yield {s"Day : $i"}
+y: scala.collection.immutable.IndexedSeq[String] = Vector(Day : 1, Day : 2, Day : 3, Day : 4, Day : 5, Day : 6, Day : 7, Day : 8, Day : 9, Day : 10)
+scala> y
+res20: scala.collection.immutable.IndexedSeq[String] = Vector(Day : 1, Day : 2, Day : 3, Day : 4, Day : 5, Day : 6, Day : 7, Day : 8, Day : 9, Day : 10)
+
+as y is a variable here we can reassign the value as it is a mutable variable, however it accepts only vector values as it is defined as a vector element
+
+scala> y=25
+<console>:12: error: type mismatch;
+ found   : Int(25)
+ required: scala.collection.immutable.IndexedSeq[String]
+       y=25
+         ^
+
+scala> y=Vector("Nanda","Kumar")
+y: scala.collection.immutable.IndexedSeq[String] = Vector(Nanda, Kumar)
+		 
+val y=for (i<- 1 to 10) yield {s"Day : $i"}
+
+scala> val y=for (i<- 1 to 10) yield {s"Day : $i"}
+y: scala.collection.immutable.IndexedSeq[String] = Vector(Day : 1, Day : 2, Day : 3, Day : 4, Day : 5, Day : 6, Day : 7, Day : 8, Day : 9, Day : 10)
+scala> y=Vector("Nanda","Kumar")
+<console>:12: error: reassignment to val
+       y=Vector("Nanda","Kumar")
+        ^
+		
+if input collection = output collection then it is called map 
+
+
+scala> var y = for (i<- 1 to 10) yield {s"Day : $i"}
+y: scala.collection.immutable.IndexedSeq[String] = Vector(Day : 1, Day : 2, Day : 3, Day : 4, Day : 5, Day : 6, Day : 7, Day : 8, Day : 9, Day : 10)
+scala> y
+res20: scala.collection.immutable.IndexedSeq[String] = Vector(Day : 1, Day : 2, Day : 3, Day : 4, Day : 5, Day : 6, Day : 7, Day : 8, Day : 9, Day : 10)
+
+if the number of input collection > output collection then it is called filter (for yield with iterator filter gaurd)
+
+val x = for (i<- 1 to 10 if i%3==0 ) yield i
+
+scala> val x = for (i<- 1 to 10 if i%3==0 ) yield i
+x: scala.collection.immutable.IndexedSeq[Int] = Vector(3, 6, 9)
+
+here the number of input collection is 10 whereas the size output collection is 3 (10>3) hence this is filter.
+
+Assignment 3
+============
+
+take the below Array
+val a = Array("Spark","Hive","Kafka","HBase")
+write a program and generate the output like the below
+
+expected output 
+
+Array(S, H, K, H)
+
+var s = ""
+val a = Array("Spark","Hive","Kafka","HBase")
+val o = for (i<- a) yield {s=i.slice(0,1);s}
+
+scala> var s = ""
+s: String = ""
+scala> val a = Array("Spark","Hive","Kafka","HBase")
+a: Array[String] = Array(Spark, Hive, Kafka, HBase)
+scala> val o = for (i<- a) yield {s=i.slice(0,1);s}
+o: Array[String] = Array(S, H, K, H)
+
+using higher order function map()
+scala> val a = Array("Spark","Hive","Kafka","HBase")
+val a: Array[String] = Array(Spark, Hive, Kafka, HBase)
+
+scala> a.map(_.head)
+val res6: Array[Char] = Array(S, H, K, H)
+
+
+Assignment 4
+============
+
+take the below list
+
+val ListState = List("AndraPradesh","Telangana","Karnataka","Tamilnadu")
+write a program in such a way that you need to display the length of each and every element in the list
+expected output List(Int)
+
+var a=0
+val ListState = List("AndraPradesh","Telangana","Karnataka","Tamilnadu")
+val ListSize = for (i<-ListState) yield {a=i.length;a}
+
+
+scala> var a=0
+a: Int = 0
+scala> val ListState = List("AndraPradesh","Telangana","Karnataka","Tamilnadu")
+ListState: List[String] = List(AndraPradesh, Telangana, Karnataka, Tamilnadu)
+scala> val ListSize = for (i<-ListState) yield {a=i.length;a}
+ListSize: List[Int] = List(12, 9, 9, 9)
+
+
+using higer order function map()
+scala> val ListState = List("AndraPradesh","Telangana","Karnataka","Tamilnadu")
+val ListState: List[String] = List(AndraPradesh, Telangana, Karnataka, Tamilnadu)
+
+scala> ListState.map(_.length)
+val res7: List[Int] = List(12, 9, 9, 9)
+
+Match Case (switch case)
+============================
+
+
+val x = 20
+val y = 30
+val z = (x>y)
+
+val z = x>y match{ case true => x; case false =>y}
+
+scala> val x = 20
+x: Int = 20
+scala> val y = 30
+y: Int = 30
+scala> val z = x>y
+z: Boolean = false
+scala> val z = x>y match{ case true => x; case false =>y}
+z: Int = 30
+scala> z
+res33: Int = 30
+
+val code = 200
+val msg = code match{case 200 => "Program executed successfully" case 404=>"Internal Error"}
+
+scala> val code = 200
+code: Int = 200
+scala> val msg = code match{case 200 => "Program executed successfully" case 404=>"Internal Error"}
+msg: String = Program executed successfully
+scala> val code =300
+code: Int = 300
+scala> msg
+res34: String = Program executed successfully
+scala> val msg = code match{case 200 => "Program executed successfully" case 404=>"Internal Error"}
+scala.MatchError: 300 (of class java.lang.Integer)
+  ... 32 elided
+  
+fixing this issue with wild character pattern method (default last option when none of the case statement match the given input)  
+val msg = code match{case 200 => "Program executed successfully" case 404=>"Internal Error" case _=>"Unknown Error"}  
+
+scala> val msg = code match{case 200 => "Program executed successfully" case 404=>"Internal Error" case _=>"Unknown Error"}  
+msg: String = Unknown Error
+
+what happen if we give the wild character patten in the middle of the case statement. Is that mandate to be in the last condition?
+
+val msg = code match{case 200 => "Program executed successfully" case _=>"Unknown Error" case 404=>"Internal Error" }  	
+
+scala> val code = 404
+code: Int = 404
+scala> val msg = code match{case 200 => "Program executed successfully" case _=>"Unknown Error" case 404=>"Internal Error" }
+<console>:12: warning: patterns after a variable pattern cannot match (SLS 8.1.1)
+       val msg = code match{case 200 => "Program executed successfully" case _=>"Unknown Error" case 404=>"Internal Error" }
+                                                                             ^
+<console>:12: warning: unreachable code due to variable pattern on line 12
+       val msg = code match{case 200 => "Program executed successfully" case _=>"Unknown Error" case 404=>"Internal Error" }
+                                                                                                          ^
+<console>:12: warning: unreachable code
+       val msg = code match{case 200 => "Program executed successfully" case _=>"Unknown Error" case 404=>"Internal Error" }
+                                                                                                          ^
+msg: String = Unknown Error
+
+Note: wild character condition always should be in the last otherwise rest of the condition given after wild charcter will become unreachable and the code will return the output given for the wild character condition for the remaiining conditions given after that". Refer the above example.
+
+
+package Batch12pkg
+
+object matchexp{
+	def main(args:Array[String])={
+		val age = 100
+		age match{
+			case 20 => println(age)
+			case 18 => println(age)
+			case 30 => println(age)
+			case 40 => println(age)
+			case 50 => println(age)			
+			case _ => println("Input value is not matching with any of the case statement.")
+		}
+	}
+}
+
+Ragne Collection
+================
+val r = 1 to 100
+
+scala> val r = 1 to 100
+r: scala.collection.immutable.Range.Inclusive = Range(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+ 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81,
+ 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100)
+ 
+for (i<-r if i%10==0) {println(i)}
+scala> for (i<-r if i%10==0) {println(i)}
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+
+In Scala range is not used much, range collection is used mostly in Python. In Scala the mostly used collection is List.
+
+
+While Loops
+===========
+
+scala> var x = 10
+x: Int = 10
+scala> while(x>0){
+     | println(x)
+     | x-=1
+     | }
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+
+var x=0
+while(x<10){
+println(x+1)
+x+=1
+}
+
+scala> while(x<10){
+     | println(x+1)
+     | x+=1
+     | }
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+break statement
+===============
+
+def breakstatement={
+	breakable{
+		for (i<- 1 to 10){
+			println(i)
+			if(i==4)
+				break;
+		}
+	}
+	println("Exited from the for loop after 4th iteration")
+}
+
+
+scala> import scala.util.control.Breaks._
+import scala.util.control.Breaks._
+scala> def breakstatement={
+     | breakable{
+     | for (i<- 1 to 10){
+     | println(i)
+     | if(i==4)
+     | break;
+     | }
+     | }
+     | println("Exited from the for loop after 4th iteration")
+     | }
+breakstatement: Unit
+scala> breakstatement
+1
+2
+3
+4
+Exited from the for loop after 4th iteration
+
+
+Core Concept in scala
+=====================
+Functional programming
+
+======================
+
+in Scala difference between function and methods
+
+function alway refers the independent functions and method refers to the function defined inside a class. In real time project we won't use independent functions we always use
+methods(functions defined inside the class)
+
+what is a function?
+
+A set of code/instruction built for reusability.
+
+functions are created with the key word def 
+
+def prod(x:Int, y:Int)={
+	x*y
+}
+
+scala> def prod(x:Int, y:Int)={
+     | x*y
+     | }
+prod: (x: Int, y: Int)Int
+
+prod as two input arguments of Int data type and a return value which is Int data type.
+
+scala> prod(10,20)
+res4: Int = 200
+
+scala> val a = prod(5,6)
+a: Int = 30
+scala> a
+res5: Int = 30
+
+
+scala> prod
+<console>:17: error: missing argument list for method prod
+Unapplied methods are only converted to functions when a function type is expected.
+You can make this conversion explicit by writing `prod _` or `prod(_,_)` instead of `prod`.
+       prod
+       ^
+scala> prod(5)
+<console>:17: error: not enough arguments for method prod: (x: Int, y: Int)Int.
+Unspecified value parameter y.
+       prod(5)
+           ^
+scala> prod(5,6,7)
+<console>:17: error: too many arguments for method prod: (x: Int, y: Int)Int
+       prod(5,6,7)
+           ^
+
+Functions are called as the First class citizens in Scala. As Scala is a functional programming and whatever we are doing in scala is in the form of function however in scala we 
+won't use independent functions and in real time we use methods instead of independent function.
+
+package Batch12pkg
+object functionSample{   //Singleton object
+
+	def add(x:Int, y:Int) Int=x+y;
+	def subtract(x:Int, y:Int) Int=x-y;
+	def multiply(x:Int, y:Int) Int=x*y;
+	def devide(x:Int, y:Int) Double=x/y;
+	
+	def main(args:Array[String])={
+		println(add(15,5))
+		println(subtract(15,5))
+		println(multiply(15,5))
+		println(devide(15,5))
+	}
+}
+
+def Hello() ={
+	"Hello Scala"
+}
+
+scala> def Hello() ={
+     | "Hello Scala"
+     | }
+Hello: ()String
+scala> Hello
+res0: String = Hello Scala
+scala> val str1=Hello()
+str1: String = Hello Scala
+scala> str1
+res1: String = Hello Scala
+
+def log(msg:String)={
+println(msg)
+}
+
+what will be the output data type for the above function?
+ans: Unit as it is not returning anything it just print the string information passed to the function
+
+scala> def log(msg:String)={
+     | println(msg)
+     | }
+log: (msg: String)Unit
+
+scala> log("Welcome to Scala programming")
+Welcome to Scala programming
+
+Nested Functions
+================
+
+def f1(x:Int)={
+	def f2(y:Int){
+		y*2		
+	}
+	val z=x+10
+	f2(z)	
+	}
+	
+what will be the output for the above function
+
+scala> def f1(x:Int)={
+     | def f2(y:Int)={
+     | y*2
+     | }
+     | val z= x+10
+     | f2(z)
+     | }
+f1: (x: Int)Int
+scala> f1(10)
+res3: Int = 40	
+
+Assignment 5 : Explore about variable arguments functions scala and comeup with an example
+
+This allows calling programs(client/api) to pass variable length argument lists to the function.
+
+Example 1 (String variable argument )
+
+def printStrings( args:String* ) = {
+      var i : Int = 0;
+      
+      for( arg <- args ){
+         println("Arg value[" + i + "] = " + arg );
+         i = i + 1;
+      }
+   }
+   
+scala> def printStrings( args:String* ) = {
+     | var i : Int = 0;
+     | for( arg <- args ){
+     | println("Arg value[" + i + "] = " + arg );
+     | i = i + 1;
+     | }
+     | }
+printStrings: (args: String*)Unit
+
+scala> printStrings("Nanda","Kumar","Govindan")
+Arg value[0] = Nanda
+Arg value[1] = Kumar
+Arg value[2] = Govindan
+
+scala> printStrings("welcome","to","Scala","Programming","for Spark-Scala")
+Arg value[0] = welcome
+Arg value[1] = to
+Arg value[2] = Scala
+Arg value[3] = Programming
+Arg value[4] = for Spark-Scala
+
+Example 2 (Integer argument list)
+
+def getSum( args:Int* ):Int= {
+	  var sum :Int = 0;      
+      for( arg <- args ){
+         sum+=arg         
+      }
+	  sum
+   }
+
+scala> printStrings(2,3,4,5,6,7)
+res11: Int = 27
+scala> printStrings(5,6,7)
+res12: Int = 18
+scala> def getSum( args:Int* ):Int= {
+     | var sum :Int = 0; 
+     | for( arg <- args ){
+     | sum+=arg
+     | }
+     | sum
+     | }
+getSum: (args: Int*)Int
+scala> getSum(1,2,3,4,5,6,7,8)
+res13: Int = 36
+scala> getSum(5,6,9,10)
+res14: Int = 30
+
+below are the example for parameters as groups
+
+def prod(x:Int)(y:Int):Int = {x*y}
+
+scala> def prod(x:Int)(y:Int):Int = {x*y}
+prod: (x: Int)(y: Int)Int
+scala> prod(3,4)
+<console>:13: error: too many arguments for method prod: (x: Int)(y: Int)Int
+       prod(3,4)
+           ^
+scala> prod(3)(4)
+res5: Int = 12
+
+def prod(x:Int,y:Int)(z:Int):Int = {x*y*z}
+
+scala> def prod(x:Int,y:Int)(z:Int):Int = {x*y*z}
+prod: (x: Int, y: Int)(z: Int)Int
+scala> prod(3,4,5)
+<console>:13: error: too many arguments for method prod: (x: Int, y: Int)(z: Int)Int
+       prod(3,4,5)
+           ^
+scala> prod(3,4)(5)
+res7: Int = 60
+
+Assignment 6:  what is the anothername for function as parameter groups (most important interview question)
+
+
+=============
+End of Day 2
+=============
+
+====================================================================================================================================================================
+====================================================================================================================================================================
+================
+Day 3 14-01-2023
+================
+
+===============
+End of Day 3 
+===============
+====================================================================================================================================================================
+====================================================================================================================================================================
+
+`
