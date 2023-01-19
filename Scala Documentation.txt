@@ -1581,10 +1581,587 @@ End of Day 2
 Day 3 14-01-2023
 ================
 
-===============
-End of Day 3 
-===============
-====================================================================================================================================================================
-====================================================================================================================================================================
+There are no operators in scala all the operations are achieved through functions/methods. Even + - * / are also functions not operators.
 
-`
+===============
+Function Object
+===============
+
+def add(a:Int,b:Int,c:Int):Int = a+b+c
+
+scala> def add(a:Int,b:Int,c:Int):Int = a+b+c
+add: (a: Int, b: Int, c: Int)Int
+scala> add(2,3,4)
+res15: Int = 9
+
+val sum = (a:Int,b:Int,c:Int) => a+b+c
+
+scala> val sum = (a:Int,b:Int,c:Int) => a+b+c
+sum: (Int, Int, Int) => Int = <function3>
+scala> sum
+res16: (Int, Int, Int) => Int = <function3>
+scala> sum(2,3,4)
+res17: Int = 9
+scala> add(sum(2,3,4),5,6)
+res18: Int = 20
+
+(a:Int,b:Int,c:Int) => a+b+c is called anonymous function(as there is no name) and "sum" is called function object. 
+
+Note function object uses "=>" to return/assign values instead of "="
+
+val f = sum(10, _:Int, _:Int)
+
+scala> val f = sum(10, _:Int, _:Int)
+f: (Int, Int) => Int = <function2>
+scala> f(20,30)
+res19: Int = 60
+
+scala> f(20)
+<console>:14: error: not enough arguments for method apply: (v1: Int, v2: Int)Int in trait Function2.
+Unspecified value parameter v2.
+       f(20)
+        ^
+		
+here f is called "partially applied function object" as the first parameter to the function sum (a) is default to 10 so it just requires values only for the 
+remaining parameters(b and c)	
+
+val f1 = f(_:Int,20)
+
+scala> val f1 = f(_:Int,20)
+f1: Int => Int = <function1>
+scala> f1(30)
+res22: Int = 60
+
+val f2 = f
+
+scala> val f2 = f
+f2: (Int, Int) => Int = <function2>
+scala> f2(40,50)
+res23: Int = 100
+
+=====================
+Methods and Operators
+=====================
+val x = 10
+val y = 20
+val z = x + y
+
+scala> val x=10
+x: Int = 10
+scala> val y=20
+y: Int = 20
+scala> val c = x + y
+c: Int = 30
+
+here "+" is not a operator it is a function x and y are objects they are used by the function "+"
+
+scala> val d = x.+(c)
+d: Int = 40
+
+scala> c.
+!=   -    ==    ^           compareTo     intValue        isPosInfinity   isValidShort   round        toBinaryString   toFloat         toRadians   underlying   
+%    /    >     abs         doubleValue   isInfinite      isValidByte     isWhole        self         toByte           toHexString     toShort     until        
+&    <    >=    byteValue   floatValue    isInfinity      isValidChar     longValue      shortValue   toChar           toInt           unary_+     |            
+*    <<   >>    ceil        floor         isNaN           isValidInt      max            signum       toDegrees        toLong          unary_-                  
++    <=   >>>   compare     getClass      isNegInfinity   isValidLong     min            to           toDouble         toOctalString   unary_~    
+
+scala> val a = "Nanda "
+a: String = Nanda 
+scala> val b = "Govindan"
+b: String = Govindan
+scala> val c = ", Your age is : "
+c: String = ", Your age is : "
+scala> val d = 42
+d: Int = 42
+scala> val e = a+ b+ c+ d
+e: String = Nanda Govindan, Your age is : 42
+
+scala> val a = "*"
+a: String = *
+scala> val b = 5
+b: Int = 5
+scala> val c = a*b
+c: String = *****
+
+scala> val s = "Spark Scala by Midhun"
+s: String = Spark Scala by Midhun
+scala> val s1 = s contains "Midhun"
+s1: Boolean = true
+scala> val s2 = s.contains("Midhun")
+s2: Boolean = true
+
+here s2 is in more readable and best practice for Scala
+
+
+What are all the things that we can do with Functions and objects
+=================================================================
+
+similarities between functions objects and objects and what we can do with them and limitations
+
+what are all the things can be done with objects they same can be done with the functions.
+
+lets see the things can be done with objects
+
+1. Assign a value to an object
+
+val a = 5
+
+scala> val a = 5
+a: Int = 5
+
+2. assign object to an another object
+
+val a = 5
+val b = a
+
+scala> val a = 5
+a: Int = 5
+scala> val b = a
+b: Int = 5
+
+3. Objects can be passed as a parameter to method/funtions
+
+scala> val a = 5
+a: Int = 5
+scala> val b = a
+b: Int = 5
+scala> def add(x:Int, y:Int):Int = x+y
+add: (x: Int, y: Int)Int
+scala> add(a,b)
+res24: Int = 10
+
+4. objects can be returned from a method/function
+
+
+
+difference between function and methods. In general functions are called independent functions whereas methods part of class. We can refer a method by creating an object for the class and using the object only we will be able to refer the method.
+
+what can be done with functions/methods
+
+1. Assign a function to an object
+
+val sum = (a:Int, b:Int, c:Int) => a+b+c 
+
+scala> val sum = (a:Int, b:Int, c:Int) => a+b+c 
+sum: (Int, Int, Int) => Int = <function3>
+
+assigning a function(anonymous function) to an object, this is called function object.
+
+2. Assign a function object to another function object.
+
+scala> val sum = (a:Int, b:Int, c:Int) => a+b+c 
+sum: (Int, Int, Int) => Int = <function3>
+
+scala> val f1 = sum
+f1: (Int, Int, Int) => Int = <function3>
+
+3. Function object can be passed as a parameter to method/functions
+
+def square(x:Int):Int=(x*x)
+
+scala> def square(x:Int):Int=(x*x)
+square: (x: Int)Int
+
+scala> val sum = (a:Int, b:Int, c:Int) => a+b+c 
+sum: (Int, Int, Int) => Int = <function3>
+
+square(sum(4,5,6))
+
+scala> square(sum(4,5,6))
+res0: Int = 225
+
+scala> sum(4,5,6)
+res3: Int = 15
+
+scala> square(15)
+res4: Int = 225
+
+4. Function object can be returned as a result from method/functions
+
+val sqr = (x:Int) => x*x
+
+scala> val sqr = (x:Int) => x*x
+sqr: Int => Int = <function1>
+
+def sum_square(a:Int, b:Int, c:Int):Int ={
+	var tot=a+b+c
+	sqr(tot)
+	}
+	
+scala> def sum_square(a:Int, b:Int, c:Int):Int ={
+     | var tot=a+b+c
+     | sqr(tot)
+     | }
+sum_square: (a: Int, b: Int, c: Int)Int
+scala> sum_square(4,5,6)
+res5: Int = 225	
+
+def sum_cube(a:Int, b:Int, c:Int):Int ={
+    val cube = (x:Int) => x*x*x
+	var tot=a+b+c
+	cube(tot)
+	}
+scala> def sum_cube(a:Int, b:Int, c:Int):Int ={
+     | val cube = (x:Int) => x*x*x
+     | var tot=a+b+c
+     | cube(tot)
+     | }
+sum_cube: (a: Int, b: Int, c: Int)Int
+scala> sum_cube(3,7,5)
+res7: Int = 3375
+
+Point number 3 and 4 are very important can be asked in technical interviews. 3 & 4 are called as higher order functions.
+
+Assigning a independent(or named) function to an object.
+
+syntax
+
+val object_name:input data type => output data type = function_name
+
+def sqr(x:Int):Int = x*x
+
+val y:Int=>Int = sqr
+
+scala> def sqr(x:Int):Int = x*x
+sqr: (x: Int)Int
+scala> val y:Int=>Int = sqr
+y: Int => Int = <function1>
+
+scala> y(5)
+res1: Int = 25
+
+val z = y
+
+scala> val z = y
+z: Int => Int = <function1>
+
+scala> z(6)
+res3: Int = 36
+
+Example for Higher Order function 
+=================================
+
+passing a function object to a function as a parameter is called higher order function 
+
+def math(x:Double,y:Double,f:(Double,Double)=>Double):Double = f(x,y)
+
+scala> def math(x:Double,y:Double,f:(Double,Double)=>Double):Double = f(x,y)
+math: (x: Double, y: Double, f: (Double, Double) => Double)Double
+
+val result = math(10,20,(x,y)=>x+y)
+scala> val result = math(10,20,(x,y)=>x+y)
+result: Double = 30.0
+
+Higher Order function reducess the number of lines inturn reducess the maintanence.
+
+another example for higher order function
+
+def simple_add(x:Int, y:Int, f:(Int,Int)=>Int)={
+	val m = x+2
+	val n = y+2
+	val p = m*n
+	p*2
+	}	
+
+scala> def simple_add(x:Int, y:Int, f:(Int,Int)=>Int)={
+     | val m = x+2
+     | val n = y+2
+     | val p = m*n
+     | p*2
+     | }
+simple_add: (x: Int, y: Int, f: (Int, Int) => Int)Int
+
+def sum(a:Int,b:Int)=a+b
+
+
+scala> def sum(a:Int,b:Int)=a+b
+sum: (a: Int, b: Int)Int
+
+scala> simple_add(4,5,sum)
+res1: Int = 84
+
+Explanation
+===========
+
+m = x+2 = 4+2 = 6
+n = y+2 = 5+2 = 7
+p = m*n = 6*7 = 42
+p*2 = 42*2 = 84
+
+def simple_add(x:Int, y:Int, f:(Int,Int)=>Int)={
+	val m = x+2
+	val n = y+2
+	val p = f(m,n)
+	p*2
+	}	
+
+scala> def simple_add(x:Int, y:Int, f:(Int,Int)=>Int)={
+     | val m = x+2
+     | val n = y+2
+     | val p = f(m,n)
+     | p*2
+     | }
+simple_add: (x: Int, y: Int, f: (Int, Int) => Int)Int
+scala> simple_add(4,5,sum)
+res2: Int = 26
+
+Explation
+=========
+m = x+2 = 4+2 = 6
+n = y+2 = 5+2 = 7
+p = f(m,n) = sum(6,7) = 6+7=13
+p*2 = 13*2 = 26
+
+Achieving same by alternate ways
+
+1. using wild character 
+
+scala> simple_add(4,5,_+_)
+res3: Int = 26
+
+2. by specifying the logic
+
+scala> simple_add(4,5,(x,y)=>x+y)
+res4: Int = 26
+
+==================================================
+Higher Order available in Scala and used very most
+==================================================
+1. foreach
+2. map
+3. filter
+4. reduce
+5. flatMap
+
+foreach
+=======
+
+can be applied on a collection where A is of any datatype(it can be int, float, double, String, List, Tuple, Map, Set etc). Foreach will perform another function "f" on collection a. But the function "f" should return unit datatype. The function f should be of println statement for example)
+
+collection[A].foreach(f:(A))=>unit)
+
+Example
+
+val l = List(3,4,5,6)
+
+assume, 
+if I want to print each element of the list, in general we go for for loop
+
+for (i<-l){println(i)}
+
+scala> val l = List(3,4,5,6)
+l: List[Int] = List(3, 4, 5, 6)
+scala> for (i<-l) println(i)
+3
+4
+5
+6
+
+using foreach higher order function
+
+scala> l.foreach(println)
+3
+4
+5
+6
+
+
+def printadd(x:Int,y:Int)={
+	val z = x+y
+	println(z)
+	}
+	
+scala> def printadd(x:Int,y:Int)={
+     | val z= x+y
+     | println(z)
+     | }
+printadd: (x: Int, y: Int)Unit
+
+scala> l
+res24: List[Int] = List(8, 4, -2, 7, 6, 0)
+	
+now I want to apply the above function to each element in the list
+using for loop
+for (i<-l){
+	printadd(i,15)
+	}
+
+scala> for (i<-l){
+     | printadd(i,15)
+     | }
+
+now using foreach higerorder function
+
+l.foreach(printadd(_,15))
+
+scala> l.foreach(printadd(_,15))
+23
+19
+13
+22
+21
+15
+
+now in the printadd function instead of printing return the value z so this function will no more of unit type it become int
+
+def printadd(x:Int,y:Int)={
+	val z = x+y
+	z
+	}
+
+scala> def printadd(x:Int,y:Int)={
+     | val z = x+y
+     | z     
+     | }
+printadd: (x: Int, y: Int)Int
+
+now use it with foreach higher order function and check the result
+
+scala> l.foreach(printadd(_,15))
+scala> 
+
+it's not giving expected output, reason is foreach higher order function will work only with the function of return type unit()
+
+	 
+
+example for finding min value from a list using regular function and using higer order function
+def get_minval(x:List[Int])={
+	var num=x(0)
+	for (i<-x){
+		if(num>i){
+			num=i
+		}
+	}
+	num
+}	
+
+scala> def get_minval(x:List[Int])={
+     | var num=x(0)
+     | for (i<-x){
+     | if(num>i){
+     | num=i
+     | }
+     | }
+     | num
+     | }
+get_minval: (x: List[Int])Int
+scala> get_minval(l)
+res10: Int = 3
+
+scala> val l = List(8,4,-2,7,6,0)
+l: List[Int] = List(8, 4, -2, 7, 6, 0)
+
+scala> get_minval(l)
+res12: Int = -2
+
+scala> l.min
+res16: Int = -2
+
+=============================
+map higher order function (similar to for loop with yield but can be achieved in single line of code)
+=============================
+map higher order function can be used when the output is expected to have equivelent number of elements in the collection, mean for each element in the collection an result is expected. map is also called one to one function.
+
+syntax
+
+collection[A].map(f:(A)=>B)
+
+A and B are collections, A is the input collection and B is the output collection, A and B are in the same collection type or different however it should have the equivelent number of elements. Using map higher order function we are passing the collection elements to the function "f" and it returns the results in the form of new collection type B.
+
+in the previous example(foreach) we redefined the printadd function to return the result instead of printing the sum and it was not working with foreach as it is returning int instead of unit. 
+Now check the printadd function with the list using map higher order function
+
+scala> l
+res24: List[Int] = List(8, 4, -2, 7, 6, 0)
+
+def printadd(x:Int,y:Int)={
+	val z = x+y
+	z
+	}
+
+scala> def printadd(x:Int,y:Int)={
+     | val z = x+y
+     | z     
+     | }
+printadd: (x: Int, y: Int)Int
+
+l.map(printadd(_,15))
+
+scala> l.map(printadd(_,15))
+res26: List[Int] = List(23, 19, 13, 22, 21, 15)
+
+Example 2
+
+val colors = List("Green","Red","Blue","Indigo")
+
+def getsize(s:String):Int=s.size
+
+colors.map(getsize)
+
+scala> val colors = List("Green","Red","Blue","Indigo")
+colors: List[String] = List(Green, Red, Blue, Indigo)
+scala> def getsize(s:String):Int=s.size
+getsize: (s: String)Int
+scala> colors.map(getsize)
+res27: List[Int] = List(5, 3, 4, 6)
+
+scala> colors.map(_.size)
+res28: List[Int] = List(5, 3, 4, 6)
+
+here input collection is List(String) with 4 elements and output collection is List(Int) with 4 elements. The number of elements in input collection and output collection are 
+equal.
+
+
+=============================
+filter higher order function (similar to for loop with yield but can be achieved in single line of code)
+=============================
+
+A and B are collections, A is the input collection and B is the output collection, A and B are in the same collection type or different but the number of elements in the output collection should always less than or equal to the number of elements in the input collection. Using filter higher order function we are passing the collection A elements to the function "f" and it returns the results boolean result to determine whether the element should be part of the output collection B or not.
+
+val l = List(8, 4, -2, 7, 6, 0)
+
+in this list, if I want the numbers divisible by 2.
+
+for (i<-l) if (i%2==0) println(i)
+
+scala> for (i<-l) if (i%2==0) println(i)
+8
+4
+-2
+6
+0
+
+for (i<-l)yield if (i%2==0)  i
+
+scala> for (i<-l)yield if (i%2==0)  i
+res32: List[AnyVal] = List(8, 4, -2, (), 6, 0)
+
+def div_by_two(x:Int):Boolean={
+	if (x%2==0)
+		true
+	else	
+		false
+}
+
+scala> def div_by_two(x:Int):Boolean={
+     | if (x%2==0)
+     | true
+     | else
+     | false
+     | }
+div_by_two: (x: Int)Boolean
+
+l.filter(div_by_two)
+
+scala> l.filter(div_by_two)
+res33: List[Int] = List(8, 4, -2, 6, 0)
+
+input collection			output collection
+List						List
+no of elements 6			number of elements 5
+
+================
+End of Day 3 
+================
+====================================================================================================================================================================
+====================================================================================================================================================================
