@@ -1594,7 +1594,13 @@ add: (a: Int, b: Int, c: Int)Int
 scala> add(2,3,4)
 res15: Int = 9
 
-val sum = (a:Int,b:Int,c:Int) => a+b+c
+val plus: (Int,Int,Int) => Int = add   ---This is called function object
+
+plus(3,4,5)
+
+val addition = plus
+
+val sum = (a:Int,b:Int,c:Int) => a+b+c    -----here (a:Int,b:Int,c:Int) => a+b+c  is an anonymous function which is assigned to the object sum
 
 scala> val sum = (a:Int,b:Int,c:Int) => a+b+c
 sum: (Int, Int, Int) => Int = <function3>
@@ -2165,3 +2171,1209 @@ End of Day 3
 ================
 ====================================================================================================================================================================
 ====================================================================================================================================================================
+
+================
+Day 4 15-01-2023
+================
+
+Higher Order Functions continued
+
+========
+flatMap  
+========
+
+flatMap to a collection will unnest the data.
+
+what is unnest of data?
+
+example 
+
+val nms = List("Nanda, Govindan","Govindan, Kanniyappan")
+val nms_flat = nms.map(_.split(","))
+val nms_fmap = nms.map(_.split(",")).flatten
+
+scala> val nms = List("Nanda, Govindan","Govindan, Kanniyappan")
+nms: List[String] = List(Nanda, Govindan, Govindan, Kanniyappan)
+scala> val nms_flat = nms.map(_.split(","))
+nms_flat: List[Array[String]] = List(Array(Nanda, " Govindan"), Array(Govindan, " Kanniyappan"))
+scala> val nms_fmap = nms.map(_.split(",")).flatten
+nms_fmap: List[String] = List(Nanda, " Govindan", Govindan, " Kanniyappan")
+
+we have achieved the result in two steps.
+
+applying flatmap higher order function
+val nms_flatmap = nms.flatMap(_.split(","))
+
+scala>  val nms_flatmap = nms.flatMap(_.split(","))
+nms_flatmap: List[String] = List(Nanda, " Govindan", Govindan, " Kanniyappan")
+
+flatMap is the combination of map and flatten method, it split the data and convert the array data into list.
+
+in flatMap the number of elements in the output collection will be morethan the number of elements in the input collection. This is also called one to many higher order function.
+
+
+Map - one to one
+Filter reduce the number of elements in the output collection
+foreach will not have any element or won't produce any output collection
+flatMap - one to many.
+
+
+=============================
+Reduce Higher order function
+=============================
+
+Reduce the collection to a single element. Used when there is a requirement to convert a collection to a single value element.
+
+Reduce can be used on a collection
+
+collecton[A].reduce(f:(A1,A2)=>B):A
+
+A is a collection and B is a single element(not a collection) or value of the datatype of collection A.
+
+A1 and A2 are arguments of the same data type of collection A, reduce should use a function whihc takes two parameters.
+
+val l1 = List(4,5,6,7,8)
+
+def fn_sum(x:Int,y:Int):Int=x+y
+
+l1.reduce(fn_sum)
+
+scala> val l1 = List(4,5,6,7,8)
+l1: List[Int] = List(4, 5, 6, 7, 8)
+scala> def fn_sum(x:Int,y:Int):Int=x+y
+fn_sum: (x: Int, y: Int)Int
+scala> l1.reduce(fn_sum)
+res34: Int = 30
+
+l1.reduce((x:Int,y:Int)=>x+y)
+
+scala> l1.reduce((x:Int,y:Int)=>x+y)
+res1: Int = 30
+scala>
+
+here x is accumulator and y is iterator
+
+programming		symbol		concept
+scala			=>			implies (example accumation in the previous example)
+python			--> 		lambda
+
+how it works
+List[Int] = List(4, 5, 6, 7, 8)
+(x,y)=>x+y
+iteration		x			y			x+y
+1				4			5			9
+2				9			6			15
+3				15			7			22
+4				22			8			30
+
+scala> l1.reduce((x:Int,y:Int)=>x.max(y))
+res2: Int = 8
+(x,y)=>x.max(y)
+
+iteration		x			y			x.max(y)
+1				4			5			5
+2				5			6			6
+3				6			7			7
+4				7			8			8
+
+val l2 = List(5,14,-8,22,8,12,30,28)
+
+scala> val l2 = List(5,14,-8,22,8,12,30,28)
+l2: List[Int] = List(5, 14, -8, 22, 8, 12, 30, 28)
+scala> l2.reduce((x:Int,y:Int)=>x.max(y))
+res3: Int = 30
+
+===========================================
+Task 1
+=======
+create a list of 3,4,5,6,7,8 and find the minimum value in the collection using reduce.
+
+val lst = List(5,4,3,6,7,8)
+lst.reduce((x:Int,y:Int)=>x.min(y))
+
+scala> val lst = List(5,4,3,6,7,8)
+lst: List[Int] = List(5, 4, 3, 6, 7, 8)
+scala> lst.reduce((x:Int,y:Int)=>x.min(y))
+res4: Int = 3
+
+using a named function 
+
+def fn_min(x:Int,y:Int):Int=x.min(y)
+
+lst.reduce(fn_min)
+
+scala> def fn_min(x:Int,y:Int):Int=x.min(y)
+fn_min: (x: Int, y: Int)Int
+scala> lst.reduce(fn_min)
+res5: Int = 3
+
+===========================================
+
+
+Example for Map reducer concept
+================================
+
+val colors = List("Blue","Green","Red", "Orange","Yellow","Megenta")
+
+scala> val colors = List("Blue","Green","Red", "Orange","Yellow","Megenta")
+colors: List[String] = List(Blue, Green, Red, Orange, Yellow, Megenta)
+
+step 1 map - finding size of each element.
+
+colors.map(_.size)
+scala> colors.map(_.size)
+res6: List[Int] = List(4, 5, 3, 6, 6, 7)
+
+step 2 filter - select the only elements having size > 4
+
+colors.map(_.size).filter(_>4)
+scala> colors.map(_.size).filter(_>4)
+res7: List[Int] = List(5, 6, 6, 7)
+
+step 3 reducer - find the sum of the elements having size > 4
+colors.map(_.size).filter(_>4).reduce(_+_)
+
+scala> colors.map(_.size).filter(_>4).reduce(_+_)
+res8: Int = 24
+
+===========================================
+=======
+Task 2 - Explore cons operator "::" in scala, why we use this operator? and on which collection type we use this operator?
+=======
+
+In Scala, List has an operator ::, which is known as the Cons operator. It is useful to add new elements at the beginning of the List. Here, Cons is short for construct the new List object. A new element can be added only in the beggining of the list not in the end.
+
+val numbersList = List (1,2,3) 
+val numlist = 4 :: numbersList
+
+scala> val numbersList = List (1,2,3) 
+numbersList: List[Int] = List(1, 2, 3)
+scala> val numlist = 4::numbersList
+numlist: List[Int] = List(4, 1, 2, 3)
+
+scala> val numlist = numbersList::4
+<console>:12: error: value :: is not a member of Int
+       val numlist = numbersList::4
+	   
+so, how to add an element in the last position of a collection list.
+
+scala> val numlist = 4::numbersList.reverse
+numlist: List[Int] = List(4, 3, 2, 1)
+
+scala> val numlist1 = numlist.reverse
+numlist1: List[Int] = List(1, 2, 3, 4)
+
+===========================================
+======
+Vector
+======
+
+Vector is a index sequenced collection type in scala. Difference between Vector and List is, in list collection type the elements can be accessed only in a linear sequential traversal manner, but in vector the elements can be accessed random sequence traversal(indexed sequence, based on the index) using the index. Vector uses continuous memory locations. Vector is also called as 32*32 indexed sequence.
+
+Sequence Class
+
+Linear Sequence - List()
+Indexed Sequence  - Vector () 
+
+===========================================
+=======
+Task 3
+=======
+create an input collection List(4,5,6,7,8,9)
+
+generate the output collection like this
+List(6,7,8,9),List(4,5)
+
+scala> val list = List(3,4,5,6,7,8,9)
+list: List[Int] = List(3, 4, 5, 6, 7, 8, 9)
+
+scala> list.partition(_<=5)
+res10: (List[Int], List[Int]) = (List(3, 4, 5),List(6, 7, 8, 9))
+
+===========================================
+
+val colors = List("Blue","Green","Red", "Orange","Yellow","Megenta")
+
+def get_col_size(s:String)=s.size
+
+colors.sortBy(get_col_size)
+
+scala> val colors = List("Blue","Green","Red", "Orange","Yellow","Megenta")
+colors: List[String] = List(Blue, Green, Red, Orange, Yellow, Megenta)
+scala> def get_col_size(s:String)=s.size
+get_col_size: (s: String)Int
+scala> colors.sortBy(get_col_size)
+res11: List[String] = List(Red, Blue, Green, Orange, Yellow, Megenta)
+
+colors.sortBy(_.size)
+
+scala> colors.sortBy(_.size)
+res12: List[String] = List(Red, Blue, Green, Orange, Yellow, Megenta)
+
+===========================================
+=======
+Task 4
+=======
+List("Blue","Green","Red", "Orange","Yellow","Megenta") sort this list in decending order
+
+scala> colors.sortBy(_.size).reverse
+res14: List[String] = List(Megenta, Yellow, Orange, Green, Blue, Red)
+
+scala> colors.sortBy(_.size*(-1))
+res18: List[String] = List(Megenta, Orange, Yellow, Green, Blue, Red)
+
+===========================================
+
+============
+End of Day 4
+============
+
+================================================================
+Day 5 09-02-2023  Introduction to Classes in Scala
+================================================================
+
+Class is a blue print for creating an object
+explains what kind of logic we are going to implement.
+
+Class is a collection of methods and member variables
+
+methods are the functios defined inside a class.
+
+class A{
+	sum(){   //method	
+	}
+}
+
+Stable version of scala is 2.11(for batch processing)
+Spark version is 2.3.1
+stable version of spark is 2.4.7
+
+class A{
+def prod(x:Int,y:Int)=x*y    //method 
+val prd = (x:Int,y:Int)=>x*y   //function object using anonymous function
+}
+
+[nandagnk2141@cxln5 ~]$ spark-shell
+SPARK_MAJOR_VERSION is set to 2, using Spark2
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+Spark context Web UI available at http://10.142.0.5:4040
+Spark context available as 'sc' (master = local[*], app id = local-1676983367113).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.1.1.2.6.2.0-205
+      /_/
+         
+Using Scala version 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_112)
+Type in expressions to have them evaluated.
+Type :help for more information.
+scala> 
+
+scala> class A{
+     | def prod(x:Int,y:Int)=x*y    //method 
+     | val prd = (x:Int,y:Int)=>x*y   //function object using anonymous function
+     | }
+defined class A
+
+scala> val a = new A
+a: A = A@76d1f6ea
+
+scala> a.prod(4,5)
+res0: Int = 20
+scala> a.prd(5,6)
+res1: Int = 30
+
+constructors
+============
+
+class k_data(val firstname:String, var lastname:String){
+def greet:String=s"Hellow your name is $firstname"
+}
+
+scala> class k_data(val firstname:String, var lastname:String){
+     | def greet:String=s"Hellow your name is $firstname"
+     | }
+defined class k_data
+
+scala> val l = new k_data("Nanda Kumar", "Govindn")
+l: k_data = k_data@6493f780
+scala> l.greet
+res2: String = Hellow your name is Nanda Kumar
+
+
+package WordCntPkg
+
+class A(var name:String, var age:Int)
+object ClassExp { //Singleton Object
+  def main(args:Array[String]){
+    val obj_a = new A("Nanda",42)
+    println(obj_a.name)
+    println(obj_a.age)
+  }
+}
+
+output
+Nanda
+42
+
+======================
+
+package WordCntPkg
+
+class A(var name:String, var age:Int)
+object ClassExp {     //Singleton Object
+  def main(args:Array[String]){
+    val obj_a = new A("Nanda",42)
+    println(obj_a.name)
+    println(obj_a.age)
+    obj_a.name="Nanda Govindan"
+    obj_a.age=41
+    println(obj_a.name)
+    println(obj_a.age)
+  }
+}
+
+output
+Nanda
+42
+Nanda Govindan
+41
+
+=========================
+Singleton object is the entry point of scala program runtime
+Signleton object will have the main method
+
+object Singleton_obj{
+def functionSinglt(){
+println("This is a singleton class no need to create an object again")
+}
+}
+
+scala> object Singleton_obj{
+     | def functionSinglt(){
+     | println("This is a singleton class no need to create an object again")
+     | }
+     | }
+defined object Singleton_obj
+
+scala> Singleton_obj.functionSinglt
+This is a singleton class no need to create an object again
+
+================================
+
+package WordCntPkg
+
+class smartmobile{
+  //class variables or member variables
+  var number:Int=20
+  var nameOfCompany:String = "Samsung"
+  
+  //member function/methods
+  def show_data(){
+    println("Name of the mobile company is "+nameOfCompany)
+    println("Total number of mobiles available "+number)
+    
+  }
+  
+}
+object ClassExp {
+  def main(args:Array[String]){
+    val obj_sm = new smartmobile
+    obj_sm.show_data()
+  }
+}
+
+output
+Name of the mobile company is Samsung
+Total number of mobiles available 20
+=====================================================
+
+
+Design patterns
+================
+a. Singleton pattern means not creating class instead build the logic straight away in the singleton object itself    //tedeious to understand
+b. Factory design pattern - Create classes and build the logic inside the class and create object for the class in the singleobject call the method from singletonobject.   //coding standard better readable and easy understand
+
+Access Modifiers
+================
+
+Access modifiers used to restrict the scope of members of a class.
+
+1. public
+2. private
+3. protected 
+
+public modifier is the default access modifiers, if we won't specify the access modifiers for member variables and methods they are public. These can be accessed outside the class by defining an object (creating an instance) for the class.
+
+2. private 
+when a member variable or method is defined as private it can be accessed only side the the class. It can't be referred outside the class(even with an object created for the same class)
+
+
+
+package WordCntPkg
+
+class A{
+  val name:String="Nanda"   //public member can be accessed outside
+  private val age:Int=41    //private member can be accessed only within the class
+  private def disp_age(){   //private method can be accessed only inside the class
+    println("Age :  "+age+" is displayed from the private method.")  
+  }
+  def disp_info(){         //public method can be access outside the class using an object
+    println("Name : "+name+" is displayed from public method disp_info.")
+    disp_age()             //accessing the private method within the class from another method
+  }   
+}
+
+object ClassExp {
+  def main(args:Array[String]){
+    val obj_a = new A
+    println("Name : "+obj_a.name+" is referred using object outside the class.") // accessing the public member outside the class
+    //the below line won't work and will throw error and hence commented as it try to access private member
+    //println("Age is : "+obj_a.age) // accessing the public member outside the class
+    obj_a.disp_info()   // accessing the public method outside the class
+    //the below line won't work as trying to access the private method outside the class
+    //obj_a.disp_age()
+  }
+}
+
+output
+Name : Nanda is referred using object outside the class.
+Name : Nanda is displayed from public method disp_info.
+Age :  41 is displayed from the private method.
+
+========================================
+
+if we want to access the private members and private methods of a class from  outside the class then it should be an companion class.
+
+Companion class uses the same name as the singleton object also called as companion object.
+
+package WordCntPkg
+
+class ClassExp{    //companion class it should have the same name as singleton object
+  private val a:Int = 100    //private member
+  private def disp(){        //private method
+    println("The value of a is : "+a);
+  }  
+}
+
+object ClassExp { //singleton object or companion object
+  def main(args:Array[String]){
+    val obj = new ClassExp
+    println("value of private member a is : "+obj.a)   //accessing private member outside the class from companion object 
+    obj.disp() //accessing private member outside the class from companion object
+  }
+}
+
+output.
+
+value of private member a is : 100
+The value of a is : 100
+
+================================================================
+
+
+Scala Inheritance
+=================
+
+2 clasesses
+===========
+
+1. super class
+2. sub-class
+
+
+Access modifiers
+================
+
+package WordCntPkg
+
+class A{
+  val name:String="Nanda"   //public member can be accessed outside
+  private val age:Int=41    //private member can be accessed only within the class
+  private def disp_age(){   //private method can be accessed only inside the class
+    println("Age :  "+age+" is displayed from the private method.")  
+  }
+  def disp_info(){         //public method can be access outside the class using an object
+    println("Name : "+name+" is displayed from public method disp_info.")
+    disp_age()             //accessing the private method within the class from another method
+  }   
+}
+
+object ClassExp {
+  def main(args:Array[String]){
+    val obj_a = new A
+    println("Name : "+obj_a.name+" is referred using object outside the class.") // accessing the public member outside the class
+    //the below line won't work and will throw error and hence commented as it try to access private member
+    //println("Age is : "+obj_a.age) // accessing the public member outside the class
+    obj_a.disp_info()   // accessing the public method outside the class
+    //the below line won't work as trying to access the private method outside the class
+    //obj_a.disp_age()
+  }
+}
+
+output
+Name : Nanda is referred using object outside the class.
+Name : Nanda is displayed from public method disp_info.
+Age :  41 is displayed from the private method.
+
+example for companion class
+===========================
+
+we use companion class if we want to access the private members and private methods outside the class.
+
+if we want to access the private members and private methods of a class from  outside the class then it should be an companion class.
+
+Companion class uses the same name as the singleton object also called as companion object.
+
+package WordCntPkg
+
+class ClassExp{    //companion class it should have the same name as singleton object
+  private val a:Int = 100    //private member
+  private def disp(){        //private method
+    println("The value of a is : "+a);
+  }  
+}
+
+object ClassExp { //singleton object or companion object
+  def main(args:Array[String]){
+    val obj = new ClassExp
+    println("value of private member a is : "+obj.a)   //accessing private member outside the class from companion object 
+    obj.disp() //accessing private member outside the class from companion object
+  }
+}
+
+output.
+
+value of private member a is : 100
+The value of a is : 100
+
+example for protected access modifier
+=====================================
+
+when a member variable or member method of a class is declared as protected the it can be accessed within the class or from the derived class(subclass)
+
+package ScalaClassExamples
+
+class A{
+  val name:String="Nanda"   //public member can be accessed outside
+  private val age:Int=41    //private member can be accessed only within the class
+  protected val sex:String="Male"  //protected member can be accessed by the sub class
+  private def disp_age(){   //private method can be accessed only inside the class
+    println("Age :  "+age+" is displayed from the private method.")  
+  }
+  protected def disp_info(){         //public method can be access outside the class using an object
+    println("Name referred from protected method disp_info : "+name)
+    println("Sex referred from protected method disp_info : "+sex) 
+    disp_age()             //accessing the private method within the class from another method    
+  }   
+}
+
+class B extends A{   //subclass b extends super class A  
+  def disp(){    
+    disp_info()   //accessing the protected method of super class A in subclass B
+    println("Sex referred from subclass method disp : "+sex)    //accessing the projected member of super class A in subclass B
+  }
+}
+
+object ProtectedClass {
+  def main(args:Array[String]){
+    val obj_a = new A
+    println("Name : "+obj_a.name+" from class A is referred using object outside the class.")// accessing the public member outside the class
+    //the below lines won't work as they refer protected members of class A
+    //obj_a.disp_info()   // accessing the protected method outside the class
+    //println("Sex : "+obj_a.sex)
+    val obj_b = new B
+    obj_b.disp()
+  }
+}
+
+Name : Nanda from class A is referred using object outside the class.
+Name referred from protected method disp_info : Nanda
+Sex referred from protected method disp_info : Male
+Age :  41 is displayed from the private method.
+Sex referred from subclass method disp : Male
+
+================================================================
+
+override in scala
+==================
+
+override keyword allows to scala compiler to determine and use the method defined in the sub class when 
+both sub class and super class share the method name 
+
+package ScalaClassExamples
+
+class cricket{
+  val team:String="Australia"  
+  def play(){
+    println("Indian team is playing against "+team)
+  }
+}
+
+//override keyword allows to scala compiler to determine and use the method defined in the sub class when 
+//both sub class and 
+//super class share the method name 
+class oneday extends cricket{
+  override def play(){    //override allow to refer the play method defined in the sub-class
+    println("Indian team is playing oneday against "+team)
+  }
+}
+
+class test extends cricket{
+  override def play(){
+    println("Indian team is playing test match against "+team)
+  }
+}
+
+class t20 extends cricket{
+  override def play(){
+    println("Indian team is playing t20 match against "+team)
+  }
+}
+
+object OverrideObj {
+ def main(args:Array[String]){
+   val m = new cricket()
+   val a = new oneday()
+   val b = new test()
+   val c = new t20()
+   m.play()
+   a.play()
+   b.play()
+   c.play()   
+ }
+}
+
+output 
+
+Indian team is playing against Australia
+Indian team is playing oneday against Australia
+Indian team is playing test match against Australia
+Indian team is playing t20 match against Australia
+
+
+================================================================
+closure in scala
+==================
+
+closure refer the latest value is being refered in the functions
+
+package ScalaClassExamples
+
+object closureobj {
+  var number=10   //initialized the variable number = 10
+  def add(x:Int) = x + number    //though the function is defined outside main still variable number can redefined inside main method which will get reflect here.
+  
+  def main(args:Array[String]){
+    println("result is "+ add(20))
+    number=200     //redefined the value for the variable result is 200
+    println("result is "+ add(20))
+  }
+}
+
+
+================================================================
+=============================
+Exception handling in scala
+=============================
+
+THROWABLE is the super class
+
+Exception
+Error
+
+Types of exceptions
+===================
+SQL Exception
+IO Exception
+ArrayIndexOutofBound Exception
+StringIndexOutofBound Exception
+FileNotFound Exception
+NullPointer Exception
+Arithmetic Exception
+UTF-8 Data exception
+
+How to handle use "Try Catch Block" for each class
+
+
+Example 1 StringIndexOutOfBoundsException
+==========================================
+
+package ScalaClassExamples
+
+object ExceptionsObj {
+  def getPositionString(a:String,b:Int):Char={
+    val pos=a.charAt(b)
+    pos
+  }
+  
+  def main(args:Array[String]){
+    val a="United States"
+    val b=15
+    println(getPositionString(a,b))
+  }
+}
+output
+Exception in thread "main" java.lang.StringIndexOutOfBoundsException: String index out of range: 15
+	at java.lang.String.charAt(Unknown Source)
+	at ScalaClassExamples.ExceptionsObj$.getPositionString(ExceptionsObj.scala:5)
+	at ScalaClassExamples.ExceptionsObj$.main(ExceptionsObj.scala:12)
+	at ScalaClassExamples.ExceptionsObj.main(ExceptionsObj.scala)
+
+with try catch block to fix the error 	
+package ScalaClassExamples
+
+object ExceptionsObj {
+  def getPositionString(a:String,b:Int):Char={
+    val pos=a.charAt(b)
+    pos
+  }
+  
+  def main(args:Array[String]){
+    try{
+    val a="United States"
+    val b=15
+    println(getPositionString(a,b))
+    }
+    catch{
+      case s1:StringIndexOutOfBoundsException=> ; 
+           println("Enter the number which is lessthan the string length")       
+    }
+  }
+}	
+
+output
+Enter the number which is lessthan the string length
+
+
+Example 2 ArithmeticException
+
+package ScalaClassExamples
+
+object ExceptionsObj {
+  def getPositionString(a:String,b:Int):Char={
+    val pos=a.charAt(b)
+    pos
+  }
+  
+  def main(args:Array[String]){
+    try{
+    val a="United States"
+    val b=5
+    val c=0
+    println(getPositionString(a,b))
+    println(b/c)
+    }
+    catch{
+      case s1:StringIndexOutOfBoundsException=> ; 
+           println("Enter the number which is lessthan the string length")       
+    }
+  }
+}
+
+output
+d
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at ScalaClassExamples.ExceptionsObj$.main(ExceptionsObj.scala:15)
+	at ScalaClassExamples.ExceptionsObj.main(ExceptionsObj.scala)
+
+
+with try catch block to fix the error 	
+
+package ScalaClassExamples
+
+object ExceptionsObj {
+  def getPositionString(a:String,b:Int):Char={
+    val pos=a.charAt(b)
+    pos
+  }
+  
+  def main(args:Array[String]){
+    try{
+    val a="United States"
+    val b=5
+    val c=0
+    println(getPositionString(a,b))
+    println(b/c)
+    }
+    catch{
+      case s1:StringIndexOutOfBoundsException=> ; 
+           println("Enter the number which is lessthan the string length") 
+      case s2:ArithmeticException=>;
+           println("Divisor can't be zero")
+    }
+  }
+}
+
+output
+d
+Divisor can't be zero
+
+Example 3 FileNotFoundException
+===============================
+
+package ScalaClassExamples
+import java.io.FileReader     // This is required to use to create object for the class FileReader
+import java.io.FileNotFoundException
+
+object ExceptionsObj {
+  def getPositionString(a:String,b:Int):Char={
+    val pos=a.charAt(b)
+    pos
+  }
+  
+  def main(args:Array[String]){
+    // below line will fail as there is no file called sample.txt and due to which entire program will fail
+    val f1 = new FileReader("Sample.txt")
+    
+    try{
+    val a="United States"
+    val b=5
+    val c=0
+    println(getPositionString(a,b))
+    println(b/c)
+    }
+    catch{
+      case s1:StringIndexOutOfBoundsException=> ; 
+           println("Enter the number which is lessthan the string length") 
+      case s2:ArithmeticException=>;
+           println("Divisor can't be zero")
+    }
+  }
+}
+
+Handled with try catch block
+
+package ScalaClassExamples
+import java.io.FileReader
+import java.io.FileNotFoundException
+
+object ExceptionsObj {
+  def getPositionString(a:String,b:Int):Char={
+    val pos=a.charAt(b)
+    pos
+  }
+  
+  def main(args:Array[String]){
+    // below line will fail as there is no file called sample.txt and due to which entire program will fail 
+    // if we don't handle try catch block for this
+    
+    try{
+      val f1 = new FileReader("Sample.txt")
+    }
+    catch{
+      case fnf:FileNotFoundException=>;
+          println("File is not found")
+    }
+    
+    try{
+    val a="United States"
+    val b=5
+    val c=0
+    println(getPositionString(a,b))
+    println(b/c)
+    }
+    catch{
+      case s1:StringIndexOutOfBoundsException=> ; 
+           println("Enter the number which is lessthan the string length") 
+      case s2:ArithmeticException=>;
+           println("Divisor can't be zero")
+    }
+  }
+}
+
+output
+File is not found
+d
+Divisor can't be zero
+
+================================================================
+======
+TRAITS
+======
+
+Scala can inherit only one class, if we want to achieve this there is a concept workaround available in scala which is call TRAITS
+
+package ScalaClassExamples
+
+class TeamIndia extends OneDayTeam with TestTeam{
+  def getName() = println("Virat Kohli")
+  
+  override def getPlayerType() {
+    println("Batsman")
+  } 
+  
+}
+
+trait OneDayTeam{
+  //abstract
+  def getName()
+  
+  //non-abstract
+  def getPlayerType(){
+    println("Team Capton")
+  }
+}
+
+trait TestTeam{
+ def getPlayerOrder(){
+    println("Middle Order Batsman")
+  }    
+}
+
+object TraitExpObj {
+  def main(args:Array[String]){
+    val t1 = new TeamIndia
+    t1.getName()
+    t1.getPlayerType()
+    t1.getPlayerOrder()
+  }
+}
+
+================================================================
+case class
+==========
+
+Useage - Model unchanable data (immutable)
+
+usecase - create dataframe. while loading data from csv, dat, txt files
+Useful to add schema details to the datafileset without header information
+no need for new keyword while creating an object for case class
+
+***************************************************************
+Note: It will support only upto 23 columns as input parameters
+***************************************************************
+
+package Batch12
+
+case class empClass(name:String, age:Int)
+//case classes are used to create immutable data set, used to create dataframes. 
+
+object CaseClassObj {
+  def main(args:Array[String]){
+    val e = empClass("Nanda", 42)   //no need of new keyword to create object for case class
+    println("Name of the employee is "+e.name)
+    println("Age of the employee is "+e.age)
+  }  
+}
+
+output
+======
+Name of the employee is Nanda
+Age of the employee is 42
+===============================================================================================
+Scala Tasks
+===========
+
+Task 1
+======
+
+write a program take input from console and print them
+Name, Age and Salary
+
+
+package Batch12
+
+class personalInfo{  
+  var name=""
+  var age=0
+  var sex="NA"
+  var salary=0.0
+  var married='N'
+  var str=""
+  def getInfo(){
+    println("Enter your Name : ");
+    name=scala.io.StdIn.readLine();
+    println("Enter your Age : ");
+    age=scala.io.StdIn.readInt();
+    println("Enter your Gender : ");
+    sex=scala.io.StdIn.readLine();
+    println("Are you Married : ");
+    married=scala.io.StdIn.readChar();
+    println("Enter your Salary : ");
+    salary=scala.io.StdIn.readDouble();
+  }
+  def showInfo(){
+    if (sex.toUpperCase == "MALE"){
+      str = "Hello Mr."
+    }
+    else{
+      if (married.toUpper == 'Y')
+        str = "Hello Mrs."    
+      else
+        str = "Hello Ms."
+    }     
+    println(str+name);
+    println("Your age is "+age);
+    println("Your salary "+salary);
+  }
+  
+}    
+
+object Task_1_Obj {
+  def main(args:Array[String])={
+   val obj1 = new personalInfo()
+   obj1.getInfo();
+   obj1.showInfo()
+   }
+}
+
+output
+======
+
+Enter your Name : 
+Nanda Kumar Govindan
+Enter your Age : 
+42
+Enter your Gender : 
+Male
+Are you Married : 
+Yes
+Enter your Salary : 
+8000
+
+Hello Mr.Nanda Kumar Govindan
+Your age is 42
+Your salary 8000.0
+
+
+===========================================================
+Task 2
+======
+Take 3 numbers from console and find biggest amoung all the three
+
+package Batch12
+
+class biggestNumber(x:Int, y:Int, z:Int)
+{
+  def show_largest(){
+    if (x>y){
+      println("The value of X : "+x+" is greater than value of Y "+y+", the largest among ("+x+","+y+") is "+x)
+      if (x>z)
+        println("The value of X : "+x+" is also greater than value of Z "+z+", the largest number amoung("+x+","+y+","+z+") is "+x)
+      else
+        println("but the value of X : "+x+" is less than value of Z "+z+", the largest number amoung("+x+","+y+","+z+") is "+z)      
+    }
+    else{
+      println("The value of Y : "+y+" is greater than value of X "+x+", the largest among ("+x+","+y+") is "+y)
+      if (y>z)
+        println("The value of Y : "+y+" is also greater than value of Z "+z+", the largest number amoung("+x+","+y+","+z+") is "+y)
+      else
+        println("but the value of X : "+x+" is less than value of Z "+z+", the largest number amoung("+x+","+y+","+z+") is "+z)      
+    }
+  }
+  
+}
+
+object Task_2_Obj {
+  def main(args:Array[String])={    
+    println("Enter value for First Number : ");
+    val a=scala.io.StdIn.readInt();
+    println("Enter value for Second Number : ");
+    val b=scala.io.StdIn.readInt();
+    println("Enter value for Third Number : ");
+    val c=scala.io.StdIn.readInt();
+    val obj2 = new biggestNumber(a,b,c)
+    obj2.show_largest();
+    println("Largest Value among ("+a+","+b+","+c+") using hof is : "+a.max(b.max(c)))
+  }
+}
+
+output
+======
+Enter value for First Number : 
+15
+Enter value for Second Number : 
+25
+Enter value for Third Number : 
+20
+The value of Y : 25 is greater than value of X 15, the largest among (15,25) is 25
+The value of Y : 25 is also greater than value of Z 20, the largest number amoung(15,25,20) is 25
+Largest Value among (15,25,20) using hof is : 25
+
+====================================================
+
+Task 3
+======
+
+Take a number from colsole and 
+
+a. find the summation of numbers from 1 to key in number
+b. factorial of the number 
+c. odd numbers before the input value
+d. even number before the input value
+
+
+example if the input number = 5 then 
+the expected result is
+a. summation is 1+2+3+4+5 = 15
+b. factorial is 1*2*3*4*5 = 120
+
+package Batch12
+
+object Task_3_Obj {  
+  def summation(x:Int):Int={
+    var sum=0
+    for(i<-1 to x){
+      sum+=i
+    }
+    sum
+  }
+  def factorial(x:Int):Int={
+    var fact=1
+    for(i<-1 to x){
+      fact*=i
+    }
+    fact
+  }
+  def oddNumbers(x:Int):Int={
+    var oddnums=0
+    for(i<-1 to x){
+      if(i%2==0)
+        oddnums+=0;
+      else
+        oddnums+=1;
+    }
+    oddnums
+  }
+  def evenNumbers(x:Int):Int={
+    var evennums=0
+    for(i<-1 to x){
+      if(i%2==0)
+        evennums+=1;
+      else
+        evennums+=0;
+    }
+    evennums
+  }
+  def main(args:Array[String])={ 
+    println("Enter a number to get the summation and factorial values  : ");
+    val a=scala.io.StdIn.readInt();
+    println("Summation value of the number "+a+" is = "+summation(a))
+    println("Factorial value of the number "+a+"! is = "+factorial(a))
+    println("Number of Odd numbers present in the number "+a+"! is = "+oddNumbers(a))
+    println("Number of Even numbers present in the number "+a+"! is = "+evenNumbers(a))
+  }
+  
+}
+
+output
+======
+
+Enter a number to get the summation and factorial values  : 
+12
+Summation value of the number 12 is = 78
+Factorial value of the number 12! is = 479001600
+Number of Odd numbers present in the number 12! is = 6
+Number of Even numbers present in the number 12! is = 6
+
+======================================
+
+Explore how to perform read and write operation in scala
+
+reading and writing text into a file from scala.
+
+==========================================================End of Scala Documentation ==========================================================================
