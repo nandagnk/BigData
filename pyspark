@@ -1,0 +1,1220 @@
+####List the files in cloudxlab
+[nandagnk2141@cxln5 datasets]$ pwd
+/home/nandagnk2141/nanda/pyspark/datasets
+[nandagnk2141@cxln5 datasets]$ ls -ltr
+total 77256
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141   82800 May 12  2017 usdata.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    2042 Jul  8  2022 JOIN DATA SETS NEW.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141   20352 Jul  9  2022 WebData_Day1.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    3307 Jul  9  2022 WebData_Day2.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141      24 Aug 25  2022 Sales.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    3595 Aug 25  2022 noc_locations.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 1025109 Aug 25  2022 customer_records.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8208121 Aug 25  2022 txs.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5816923 Aug 25  2022 weatherHistory.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 4485608 Sep  7  2022 txs_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5816841 Sep  9  2022 weatherHistory_Noheader.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     981 Sep 16  2022 actors.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     510 Sep 16  2022 account_sales.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    1407 Sep 16  2022 array_complex_json.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141  155668 Sep 16  2022 Adeline_bank_json.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    6601 Sep 16  2022 Array_dat.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141   57679 Sep 16  2022 devices.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     705 Sep 16  2022 jsn_str.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     171 Sep 16  2022 json_strct.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     207 Sep 16  2022 place.json
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     108 Sep 17  2022 comp_data.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     241 Feb 10  2023 Item_Sales.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     131 Feb 24 15:00 CourseDetails.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141    4431 Mar  4 20:19 book.xml
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141      41 Mar 12 22:59 dept_data.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8208206 Apr 26 10:45 transactions.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     170 Aug 12 15:25 Nanda_Sample_1.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141      45 Aug 14 09:03 bank.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141      90 Aug 14 09:03 employee.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     679 Aug 16 10:37 customer_records_UPD.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8149504 Aug 18 10:14 transactions.xls
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8208121 Aug 18 10:58 transactions_upd.txt
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8208121 Aug 18 11:48 transactions_upd.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141     153 Aug 20 06:04 emp_data.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141      27 Aug 20 06:41 IPL.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 6799807 Aug 20 14:05 athlete_events.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 5606519 Aug 20 14:17 transactions_upd_1.csv
+-rw-rw-r-- 1 nandagnk2141 nandagnk2141 8085792 Aug 22 08:46 txn.csv.filepart
+
+#####Connect to cloudxlab terminal and start pyspark
+[nandagnk2141@cxln5 datasets]$ pyspark
+SPARK_MAJOR_VERSION is set to 2, using Spark2
+Python 2.7.5 (default, Apr  9 2019, 14:30:50) 
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+23/08/22 08:47:02 WARN Utils: Service 'SparkUI' could not bind on port 4040. Attempting port 4041.
+23/08/22 08:47:02 WARN Utils: Service 'SparkUI' could not bind on port 4041. Attempting port 4042.
+23/08/22 08:47:02 WARN Utils: Service 'SparkUI' could not bind on port 4042. Attempting port 4043.
+23/08/22 08:47:02 WARN Utils: Service 'SparkUI' could not bind on port 4043. Attempting port 4044.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 2.1.1.2.6.2.0-205
+      /_/
+Using Python version 2.7.5 (default, Apr  9 2019 14:30:50)
+SparkSession available as 'spark'.
+>>> 
+
+=================================================================================================================
+sample code to load csv file
+spark.read.format("csv")\
+                .options(inferschema=True,delimiter=",")\
+                .load("file:////home/nandagnk2141/nanda/pyspark/datasets/txs.csv")\
+                .toDF("txn_id","txn_date","cust_id","amount","category","product","city","state","payment_type")
+=================================================================================================================				
+
+>>> df = spark.read.format("csv")\
+...                 .options(inferschema=True,delimiter=",")\
+...                 .load("file:////home/nandagnk2141/nanda/pyspark/datasets/txs.csv")\
+...                 .toDF("txn_id","txn_date","cust_id","amount","category","product","city","state","payment_type")
+>>> df.printSchema()
+root
+ |-- txn_id: integer (nullable = true)
+ |-- txn_date: string (nullable = true)
+ |-- cust_id: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- category: string (nullable = true)
+ |-- product: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state: string (nullable = true)
+ |-- payment_type: string (nullable = true)
+				
+>>> df.show(5,truncate=False)
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+only showing top 5 rows
+
+>>> df.rdd.getNumPartitions()
+2
+>>> df.groupby("product").sum("amount").show()
++-----------------+-----------------+
+|          product|      sum(amount)|
++-----------------+-----------------+
+|     Field Hockey|80791.25999999998|
+|     Ice Climbing|79212.28999999998|
+|           Tennis|81971.09000000001|
+|           Boxing|85508.58999999997|
+|       Playhouses|          80646.1|
+|          Hunting|         76229.92|
+|        Ping Pong|77114.57000000004|
+|             Golf|85222.72999999998|
+|     Water Tables|78235.82999999999|
+|     Water Tubing|85526.42999999996|
+|         Softball|79113.36000000004|
+|  Gymnastics Mats|         83076.69|
+|   Jigsaw Puzzles|80967.13999999998|
+|         Swimming|83559.98999999995|
+|         Sledding|76687.65000000002|
+|Lawn Water Slides|82020.85000000003|
+|   Exercise Balls|88820.39000000001|
+|  Riding Scooters|77861.43999999993|
+|       Jump Ropes|82464.30999999998|
+|       Bingo Sets|78390.48999999999|
++-----------------+-----------------+
+only showing top 20 rows
+
+>>> df.rdd.getNumPartitions()
+2
+
+now creating a new dataframe from df with a groupby clause
+>>> df2 = df.groupby("product").sum("amount")
+>>> df2.show(10,truncate=False)
++------------+-----------------+
+|product     |sum(amount)      |
++------------+-----------------+
+|Field Hockey|80791.25999999998|
+|Ice Climbing|79212.28999999998|
+|Tennis      |81971.09000000001|
+|Boxing      |85508.58999999997|
+|Playhouses  |80646.1          |
+|Hunting     |76229.92         |
+|Ping Pong   |77114.57000000004|
+|Golf        |85222.72999999998|
+|Water Tables|78235.82999999999|
+|Water Tubing|85526.42999999996|
++------------+-----------------+
+only showing top 10 rows
+
+>>> df2.rdd.getNumPartitions()
+200
+
+>>> spark.conf.get("spark.sql.shuffle.partitions")
+u'200'
+
+to set the value spark.conf.set("spark.sql.shuffle.partitions",Value) and this is session specific, will reset once the session is closed.
+
+>>> spark.conf.set("spark.sql.shuffle.partitions",50)
+>>> spark.conf.get("spark.sql.shuffle.partitions")
+u'50'
+>>> 
+
+to test this create a new dataframe with a group by clause and check 
+df3 = df.groupby("state","city").max("amount")
+
+>>> df3 = df.groupby("state","city").max("amount")
+>>> df3.rdd.getNumPartitions()
+50
+>>> 
+
+now close this session and open a new session and try the above it should set to 200 again.
+
+>>> exit()
+[nandagnk2141@cxln5 datasets]$ pyspark
+SPARK_MAJOR_VERSION is set to 2, using Spark2
+Python 2.7.5 (default, Apr  9 2019, 14:30:50) 
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+23/08/22 09:09:49 WARN Utils: Service 'SparkUI' could not bind on port 4040. Attempting port 4041.
+23/08/22 09:09:49 WARN Utils: Service 'SparkUI' could not bind on port 4041. Attempting port 4042.
+23/08/22 09:09:49 WARN Utils: Service 'SparkUI' could not bind on port 4042. Attempting port 4043.
+23/08/22 09:09:49 WARN Utils: Service 'SparkUI' could not bind on port 4043. Attempting port 4044.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 2.1.1.2.6.2.0-205
+      /_/
+Using Python version 2.7.5 (default, Apr  9 2019 14:30:50)
+SparkSession available as 'spark'.
+>>> spark.read.format("csv")\
+...                 .options(inferschema=True,delimiter=",")\
+...                 .load("file:////home/nandagnk2141/nanda/pyspark/datasets/txs.csv")\
+...                 .toDF("txn_id","txn_date","cust_id","amount","category","product","city","state","payment_type")
+DataFrame[txn_id: int, txn_date: string, cust_id: int, amount: double, category: string, product: string, city: string, state: string, payment_type: string]
+>>> df = spark.read.format("csv")\
+...                 .options(inferschema=True,delimiter=",")\
+...                 .load("file:////home/nandagnk2141/nanda/pyspark/datasets/txs.csv")\
+...                 .toDF("txn_id","txn_date","cust_id","amount","category","product","city","state","payment_type")
+>>> df2=df.groupby("product").sum("amount")
+>>> df2.rdd.getNumPartitions()
+200
+
+================================================================================================================
+How to handle date column in pyspark?
+=====================================
+
+1. add date and timestamp
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import sum,col,round,max,min,avg,count,desc,expr,concat,lit,when
+from pyspark.sql.functions import *
+
+if __name__ == '__main__':
+    print('Application Batch14 PySpark SPARK-SQL Assignment 1')
+    spark = SparkSession.builder.appName("Working with DSL").master("local").getOrCreate()
+    sc = spark.sparkContext
+    spark.sparkContext.setLogLevel("Error")
+
+    df_txn = spark.read.format("csv")\
+                .options(inferschema=True,delimiter=",")\
+                .load("file:///D:/Practising/PySpark/DATASETS/txs.csv")\
+                .toDF("txn_id","txn_date","cust_id","amount","category","product","city","state","payment_type")
+
+    df_txn.printSchema()
+    #df_txn.show(5,truncate=False)
+
+    #scenario 1 add a new column load_date and show current date.
+    df_txn.withColumn("load_date",current_date()).show(5,truncate=False)
+
+    # scenario 2 add a new column load_time and show current time.
+    df_txn.withColumn("load_date", current_timestamp()).show(5, truncate=False)
+
+    
+output
+======
+
+root
+ |-- txn_id: integer (nullable = true)
+ |-- txn_date: string (nullable = true)
+ |-- cust_id: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- category: string (nullable = true)
+ |-- product: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state: string (nullable = true)
+ |-- payment_type: string (nullable = true)
+
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|load_date |
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |2023-08-22|
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |2023-08-22|
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |2023-08-22|
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |2023-08-22|
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |2023-08-22|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+
+only showing top 5 rows
+
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+-----------------------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|load_time              |
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+-----------------------+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |2023-08-22 22:03:32.292|
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |2023-08-22 22:03:32.292|
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |2023-08-22 22:03:32.292|
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |2023-08-22 22:03:32.292|
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |2023-08-22 22:03:32.292|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+-----------------------+
+only showing top 5 rows
+
+
+Process finished with exit code 0
+
+
+=================================================================================
+    # scenario 3 add a new column unix_time and show unix timestamp
+    # unix timestamp will show the no of seconds from 1 Jan 1970
+    # reason for using this one is deployment is going to happen on Unix/linux so,
+    # it handles the unix timestamp easy
+    df_txn.withColumn("unix_timestamp", unix_timestamp()).show(5, truncate=False)
+	
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+--------------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|unix_timestamp|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+--------------+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |1692706162    |
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |1692706162    |
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |1692706162    |
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |1692706162    |
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |1692706162    |
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+--------------+
+only showing top 5 rows
+
+
+datatype of unix timestamp will be long.
+
+
+root
+ |-- txn_id: integer (nullable = true)
+ |-- txn_date: string (nullable = true)
+ |-- cust_id: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- category: string (nullable = true)
+ |-- product: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state: string (nullable = true)
+ |-- payment_type: string (nullable = true)
+ |-- unix_timestamp: long (nullable = true)
+	
+	
+============================================================================================================
+
+# scenario 4 convert string to date
+# convert the txn_date from string to date	
+
+df_txn.withColumn("txn_date",to_date(df_txn["txn_date"],"mm-dd-yyyy")).show(5,truncate=False)
+
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|0     |2011-01-26|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |
+|1     |2011-01-26|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |
+|2     |2011-01-01|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |
+|3     |2011-01-05|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |
+|4     |2011-01-17|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+only showing top 5 rows
+
+Note: txn_date was given in the format "mm-dd-yyyy" in the input file, hence passing the same format while converting to date column.
+
+df_txn_date = df_txn.withColumn("txn_date",to_date(df_txn["txn_date"],"mm-dd-yyyy"))
+df_txn_date.printSchema()
+
+root
+ |-- txn_id: integer (nullable = true)
+ |-- txn_date: date (nullable = true)
+ |-- cust_id: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- category: string (nullable = true)
+ |-- product: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state: string (nullable = true)
+ |-- payment_type: string (nullable = true)
+ 
+ Note: earlier txn_date was string datatype, now changed as date.
+ 
+ 
+ similary txn_date can be converted from string to timestamp datatype.
+ 
+ # scenario 5 convert string to timestamp
+ # convert the txn_date from string to timestamp
+
+df_txn.withColumn("txn_date",to_timestamp(df_txn["txn_date"],"mm-dd-yyyy")).show(5,truncate=False)
++------+-------------------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|txn_id|txn_date           |cust_id|amount|category          |product                          |city       |state     |payment_type|
++------+-------------------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|0     |2011-01-26 00:06:00|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |
+|1     |2011-01-26 00:05:00|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |
+|2     |2011-01-01 00:06:00|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |
+|3     |2011-01-05 00:06:00|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |
+|4     |2011-01-17 00:12:00|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |
++------+-------------------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+
+df_txn_date = df_txn.withColumn("txn_date",to_timestamp(df_txn["txn_date"],"mm-dd-yyyy"))
+df_txn_date.printSchema()
+
+root
+ |-- txn_id: integer (nullable = true)
+ |-- txn_date: timestamp (nullable = true)
+ |-- cust_id: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- category: string (nullable = true)
+ |-- product: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state: string (nullable = true)
+ |-- payment_type: string (nullable = true)
+
+============================================================================================================
+
+# scenario 6 convert string column to date column and change the date format DD/MM/YYYY while displaying the date
+# convert the txn_date from string to date and change the date format DD/MM/YYYY while displaying the date
+
+df_txn.withColumn("txn_date", date_format(to_timestamp(df_txn["txn_date"], "mm-dd-yyyy"),"dd/mm/yyyy")).show(5, truncate=False)
+
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+|0     |26/06/2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |
+|1     |26/05/2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |
+|2     |01/06/2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |
+|3     |05/06/2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |
+|4     |17/12/2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+
+only showing top 5 rows
+
+
+===========================================================================================================
+# scenario 7 convert string column to date column and apply a filter 
+# convert the txn_date from string to date and list the data where txn_date > '30/09/2011'
+#methond 1
+df_txn.withColumn("txn_date", to_date(df_txn["txn_date"], "MM-dd-yyyy")) \
+	.filter("txn_date > '2011-09-30'") \
+	.sort("txn_date").show(5, truncate=False)
+	
++------+----------+-------+------+------------------+--------------+--------------+----------+------------+
+|txn_id|txn_date  |cust_id|amount|category          |product       |city          |state     |payment_type|
++------+----------+-------+------+------------------+--------------+--------------+----------+------------+
+|1299  |2011-10-01|4004004|66.64 |Outdoor Recreation|Skateboarding |Las Vegas     |Nevada    |credit      |
+|1583  |2011-10-01|4001947|170.47|Outdoor Recreation|Fishing       |Orange        |California|credit      |
+|781   |2011-10-01|4003064|154.68|Water Sports      |Kitesurfing   |Gilbert       |Arizona   |credit      |
+|1353  |2011-10-01|4004866|110.99|Racquet Sports    |Squash        |Sacramento    |California|credit      |
+|1084  |2011-10-01|4009449|162.58|Outdoor Recreation|Shooting Games|St. Petersburg|Florida   |credit      |
++------+----------+-------+------+------------------+--------------+--------------+----------+------------+
+only showing top 5 rows
+
+#method 2 
+df_txn.withColumn("txn_date", date_format(to_date(df_txn["txn_date"], "MM-dd-yyyy"), "dd/MM/yyyy")) \
+	.filter("to_date(txn_date,'dd/MM/yyyy') > '2011-09-30'") \
+	.sort(to_date("txn_date",'dd/MM/yyyy')).show(5, truncate=False)
+	
++------+----------+-------+------+------------------+--------------+--------------+----------+------------+
+|txn_id|txn_date  |cust_id|amount|category          |product       |city          |state     |payment_type|
++------+----------+-------+------+------------------+--------------+--------------+----------+------------+
+|1299  |2011-10-01|4004004|66.64 |Outdoor Recreation|Skateboarding |Las Vegas     |Nevada    |credit      |
+|1583  |2011-10-01|4001947|170.47|Outdoor Recreation|Fishing       |Orange        |California|credit      |
+|781   |2011-10-01|4003064|154.68|Water Sports      |Kitesurfing   |Gilbert       |Arizona   |credit      |
+|1353  |2011-10-01|4004866|110.99|Racquet Sports    |Squash        |Sacramento    |California|credit      |
+|1084  |2011-10-01|4009449|162.58|Outdoor Recreation|Shooting Games|St. Petersburg|Florida   |credit      |
++------+----------+-------+------+------------------+--------------+--------------+----------+------------+
+only showing top 5 rows
+
+===========================================================================================================
+
+# scenario 8 find the date difference on txn_date from current_Date
+df_txn.withColumn("txn_date", to_date(df_txn["txn_date"], "MM-dd-yyyy")) \
+	  .withColumn("date_diff",datediff(current_date(),col("txn_date"))) \
+	  .sort(to_date("txn_date", 'dd/MM/yyyy')).show(5, truncate=False)
+
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+---------+
+|txn_id|txn_date  |cust_id|amount|category          |product                       |city    |state     |payment_type|date_diff|
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+---------+
+|1462  |2011-01-01|4004446|29.7  |Team Sports       |Softball                      |Pasadena|California|cash        |4616     |
+|3198  |2011-01-01|4002352|126.8 |Team Sports       |Cricket                       |Everett |Washington|credit      |4616     |
+|2171  |2011-01-01|4006131|198.2 |Outdoor Recreation|Camping & Backpacking & Hiking|El Paso |Texas     |credit      |4616     |
+|107   |2011-01-01|4006017|177.45|Games             |Dice & Dice Sets              |Orange  |California|credit      |4616     |
+|2249  |2011-01-01|4004935|68.89 |Water Sports      |Scuba Diving & Snorkeling     |Columbus|Georgia   |credit      |4616     |
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+---------+
+only showing top 5 rows
+
+# scenario 9 find the month difference on txn_date from current_Date
+df_txn.withColumn("txn_date", to_date(df_txn["txn_date"], "MM-dd-yyyy")) \
+	  .withColumn("months_diff",months_between(current_date(),col("txn_date"))) \
+	  .sort(to_date("txn_date", 'dd/MM/yyyy')).show(5, truncate=False)
+	  
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+------------+
+|txn_id|txn_date  |cust_id|amount|category          |product                       |city    |state     |payment_type|months_diff |
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+------------+
+|1462  |2011-01-01|4004446|29.7  |Team Sports       |Softball                      |Pasadena|California|cash        |151.67741935|
+|3198  |2011-01-01|4002352|126.8 |Team Sports       |Cricket                       |Everett |Washington|credit      |151.67741935|
+|2171  |2011-01-01|4006131|198.2 |Outdoor Recreation|Camping & Backpacking & Hiking|El Paso |Texas     |credit      |151.67741935|
+|107   |2011-01-01|4006017|177.45|Games             |Dice & Dice Sets              |Orange  |California|credit      |151.67741935|
+|2249  |2011-01-01|4004935|68.89 |Water Sports      |Scuba Diving & Snorkeling     |Columbus|Georgia   |credit      |151.67741935|
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+------------+
+only showing top 5 rows
+
+df_txn.withColumn("txn_date", to_date(df_txn["txn_date"], "MM-dd-yyyy")) \
+          .withColumn("months_diff",round(months_between(current_date(),col("txn_date")),2)) \
+          .sort(to_date("txn_date", 'dd/MM/yyyy')).show(5, truncate=False)
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+-----------+
+|txn_id|txn_date  |cust_id|amount|category          |product                       |city    |state     |payment_type|months_diff|
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+-----------+
+|1462  |2011-01-01|4004446|29.7  |Team Sports       |Softball                      |Pasadena|California|cash        |151.68     |
+|3198  |2011-01-01|4002352|126.8 |Team Sports       |Cricket                       |Everett |Washington|credit      |151.68     |
+|2171  |2011-01-01|4006131|198.2 |Outdoor Recreation|Camping & Backpacking & Hiking|El Paso |Texas     |credit      |151.68     |
+|107   |2011-01-01|4006017|177.45|Games             |Dice & Dice Sets              |Orange  |California|credit      |151.68     |
+|2249  |2011-01-01|4004935|68.89 |Water Sports      |Scuba Diving & Snorkeling     |Columbus|Georgia   |credit      |151.68     |
++------+----------+-------+------+------------------+------------------------------+--------+----------+------------+-----------+
+
+Task 2
+======
+Explore the difference between CreateOrReplaceTempView and CreateGlobalTempView
+
+What is the difference between CreateOrReplaceTempView and CreateGlobalTempView
+answer : createOrReplaceTempView has been introduced in Spark 2.0 to replace registerTempTable. CreateTempView creates an in-memory reference to the 
+Dataframe in use. The lifetime for this depends on the spark session in which the Dataframe was created in. createGlobalTempView, on the other hand, 
+allows you to create the references that can be used across spark sessions. So depending upon whether you need to share data across sessions, you can 
+use either of the methods. By default, the notebooks in the same cluster share the same spark session, but there is an option to set up clusters where 
+each notebook has its own session. So all it boils down to is that where do you create the data frame and where do you want to access it.
+
+What is create or replace temp view in PySpark?
+The createOrReplaceTempView() is used to create a temporary view/table from the PySpark DataFrame or Dataset objects. Since it is a temporary view, 
+the lifetime of the table/view is tied to the current SparkSession. Hence, It will be automatically removed when your SparkSession ends.
+
+What is global temporary view?
+Global temporary views are primarily used to share within a session and then get automatically dropped once the session ends. These session-scoped views 
+also serve as a temporary table on which SQL queries can be made and are stored in database global_temp.
+
+What is the difference between temp view and global temp view?
+TEMPORARY views are session-scoped and will be dropped when session ends because it skips persisting the definition in the underlying metastore, if any. 
+GLOBAL TEMPORARY views are tied to a system preserved temporary database global_temp. 
+
+Give me the usecase where CreateOrReplaceTempView or CreateGlobalTempView
+
+https://itecnote.com/tecnote/apache-spark-spark-createorreplacetempview-vs-createglobaltempview/
+
+https://www.edureka.co/community/2229/difference-createorreplacetempview-registertemptable
+
+a. Create the dataframe from txn file and create the new column txndate1 ( default date format) ==dftxn 
+create a new dataframe from txn_dataframe , add the below column and populate the data
+1) dayonmonth (txndate1) --> DAY
+2) month  (txndate1) --> MONTH 
+3) year  (txndate1) --> YEAR 
+
+df_txn_1= df_txn.withColumn("txn_date_1", to_date(df_txn["txn_date"], "MM-dd-yyyy"))
+df_txn_1.withColumn("DayOfMonth",dayofweek(col("txn_date_1"))) \
+	.withColumn("Month", month(col("txn_date_1"))) \
+	.withColumn("Year", year(col("txn_date_1"))) \
+	.sort(to_date("txn_date", 'dd/MM/yyyy')).show(5, truncate=False)
+		
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+-----+----+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|txn_date_1|DayOfMonth|Month|Year|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+-----+----+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |2011-06-26|1         |6    |2011|
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |2011-05-26|5         |5    |2011|
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |2011-06-01|4         |6    |2011|
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |2011-06-05|1         |6    |2011|
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |2011-12-17|7         |12   |2011|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+-----+----+
+only showing top 5 rows
+
+b.Create the dataframe from txn file and create the new column txndate1 ( default date format) ==dftxn
+you need to create 2 new columns 
+1) ADDED_DATE --> ON TXNDATE1 --> 2 --> 25 --> 27  --
+2) SUB_date --> ON txndate1 --> 2 --> 25 --> 23 
+
+df_txn_1= df_txn.withColumn("txn_date_1", to_date(df_txn["txn_date"], "MM-dd-yyyy"))
+df_txn_1.withColumn("txn_date+2",date_add(col("txn_date_1"),2)) \
+        .withColumn("txn_date-2", date_sub(col("txn_date_1"), 2)) \
+        .sort(to_date("txn_date", 'dd/MM/yyyy')).show(5, truncate=False)
+
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+----------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|txn_date_1|txn_date+2|txn_date-2|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+----------+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |2011-06-26|2011-06-28|2011-06-24|
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |2011-05-26|2011-05-28|2011-05-24|
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |2011-06-01|2011-06-03|2011-05-30|
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |2011-06-05|2011-06-07|2011-06-03|
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |2011-12-17|2011-12-19|2011-12-15|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+----------+
+only showing top 5 rows
+
+or the same can be achieved using the below by passing negative values to get the revert functionality
+
+df_txn_1= df_txn.withColumn("txn_date_1", to_date(df_txn["txn_date"], "MM-dd-yyyy"))
+df_txn_1.withColumn("txn_date+2",date_sub(col("txn_date_1"),-2)) \
+        .withColumn("txn_date-2", date_add(col("txn_date_1"), -2)) \
+        .sort(to_date("txn_date", 'dd/MM/yyyy')).show(5, truncate=False)
+
+
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+----------+
+|txn_id|txn_date  |cust_id|amount|category          |product                          |city       |state     |payment_type|txn_date_1|txn_date+2|txn_date-2|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+----------+
+|0     |06-26-2011|4007024|40.33 |null              |Cardio Machine Accessories       |Clarksville|Tennessee |credit      |2011-06-26|2011-06-28|2011-06-24|
+|1     |05-26-2011|4006742|198.44|Exercise & Fitness|Weightlifting Gloves             |Long Beach |California|credit      |2011-05-26|2011-05-28|2011-05-24|
+|2     |06-01-2011|4009775|5.58  |Exercise & Fitness|Weightlifting Machine Accessories|Anaheim    |California|credit      |2011-06-01|2011-06-03|2011-05-30|
+|3     |06-05-2011|4002199|198.19|Gymnastics        |Gymnastics Rings                 |Milwaukee  |Wisconsin |credit      |2011-06-05|2011-06-07|2011-06-03|
+|4     |12-17-2011|4002613|98.81 |Team Sports       |Field Hockey                     |Nashville  |Tennessee |credit      |2011-12-17|2011-12-19|2011-12-15|
++------+----------+-------+------+------------------+---------------------------------+-----------+----------+------------+----------+----------+----------+
+only showing top 5 rows
+
+c. Create the dataframe from txn file and create the new column txndate1 ( default date format) ==dftxn
+txndate1 --> date 
+convert txndate1 to timestamo column 
+to_timestamp col
+
+df_txn_1= df_txn.withColumn("txn_date_1", to_date(df_txn["txn_date"], "MM-dd-yyyy"))
+df_txn_1.withColumn("txn_date_1", to_timestamp("txn_date_1")) \
+        .sort("txn_date_1","txn_id").show(5, truncate=False)
+		
++------+----------+-------+------+------------------+----------------+---------+----------+------------+-------------------+
+|txn_id|txn_date  |cust_id|amount|category          |product         |city     |state     |payment_type|txn_date_1         |
++------+----------+-------+------+------------------+----------------+---------+----------+------------+-------------------+
+|107   |01-01-2011|4006017|177.45|Games             |Dice & Dice Sets|Orange   |California|credit      |2011-01-01 00:00:00|
+|281   |01-01-2011|4009900|181.6 |Gymnastics        |Balance Beams   |Madison  |Wisconsin |credit      |2011-01-01 00:00:00|
+|1082  |01-01-2011|4002800|132.07|Exercise & Fitness|Foam Rollers    |Irving   |Texas     |credit      |2011-01-01 00:00:00|
+|1317  |01-01-2011|4007516|142.92|Winter Sports     |Snowboarding    |Vancouver|Washington|credit      |2011-01-01 00:00:00|
+|1462  |01-01-2011|4004446|29.7  |Team Sports       |Softball        |Pasadena |California|cash        |2011-01-01 00:00:00|
++------+----------+-------+------+------------------+----------------+---------+----------+------------+-------------------+
+only showing top 5 rows
+
+==========================================================================================================================================
+Handling Complex Data in pyspark
+================================
+
+Complex data refers schema less data, example json or xml files.
+
+processing JSON file (Java script object notation)
+====================
+
+JSON documents consists of key value pair elements organized with using {},",",[]
+
+1. Simple JSON documents
+========================
+When a JSON document doesn't have any array data or nested struct data is called simple JSON.
+
+Examples for simple JSON
+sample 1
+========
+{
+  "device_id": 1,
+  "device_name": "sensor-mac-xztr9HZ4Z6YT",
+  "humidity": 36,
+  "long": 56,
+  "scale": "Celius",
+  "temp": 14,
+  "timestamp": 1447975124.005187,
+  "zipcode": 96484
+}
+sample 2
+========
+{
+  "id": "001",
+  "type": "cake",
+  "name": "Cream",
+  "image": {
+    "url": "images/0001jpg",
+    "width": 200,
+    "height": 201
+  },
+  "thumbnail": {
+    "url": "images/thumbnails/0002.jpg",
+    "width": 34,
+    "height": 33
+  }
+}
+
+how to process simple json documents?
+Sample 1
+========
+    # ###reading simple json
+    df_simp_json = spark.read.format("json") \
+	      .option("multiline" , False)\
+          .load("file:///D:/Practising/PySpark/DATASETS/devices.json")
+    print('No of records in the json file ',df_simp_json.count())
+    df_simp_json.printSchema()
+    df_simp_json.show(truncate=False)
+	
+	
+Sample Data in the file "devices.json"	
+{"device_id": 1, "device_name": "sensor-mac-xztr9HZ4Z6YT", "humidity": 36,"long": 56, "scale": "Celius", "temp": 14, "timestamp": 1447975124.005187, "zipcode": 96484}
+{"device_id": 2, "device_name": "sensor-mac-able9bI4h6kR", "humidity": 36, "lat": 13, "long": 56, "scale": "Celius", "temp": 14, "timestamp": 1447975124.005187, "zipcode": 96484}
+{"device_id": 3, "device_name": "sensor-mac-aboutRPHN0rak", "humidity": 30, "lat": 35, "long": 54, "scale": "Celius", "temp": 17, "timestamp": 1447975124.054221, "zipcode": 96402}
+{"device_id": 4, "device_name": "sensor-mac-acrossSIdxLScj", "humidity": 35, "lat": 36, "long": 40, "scale": "Celius", "temp": 6, "timestamp": 1447975124.102157, "zipcode": 96025}
+{"device_id": 5, "device_name": "sensor-mac-afterEJOOMANT", "humidity": 62, "lat": 90, "long": 91, "scale": "Celius", "temp": 23, "timestamp": 1447975124.150419, "zipcode": 95638}
+{"device_id": 6, "device_name": "sensor-mac-allBMOfeOuD", "humidity": 97, "lat": 76, "long": 77, "scale": "Celius", "temp": 8, "timestamp": 1447975124.197694, "zipcode": 95478}
+{"device_id": 7, "device_name": "sensor-mac-almostRYxyBNj9", "humidity": 30, "lat": 95, "long": 76, "scale": "Celius", "temp": 5, "timestamp": 1447975124.246103, "zipcode": 95499}
+{"device_id": 8, "device_name": "sensor-mac-alsosTDq3ePw", "humidity": 74, "lat": 95, "long": 79, "scale": "Celius", "temp": 25, "timestamp": 1447975124.291892, "zipcode": 94857}
+{"device_id": 9, "device_name": "sensor-mac-am8CUlnzss", "humidity": 93, "lat": 37, "long": 29, "scale": "Celius", "temp": 24, "timestamp": 1447975124.349377, "zipcode": 96149}
+{"device_id": 10, "device_name": "sensor-mac-amongj68Lqjia", "humidity": 67, "lat": 32, "long": 31, "scale": "Celius", "temp": 6, "timestamp": 1447975124.399264, "zipcode": 96531}
+
+Note: When the data(entire record) is organized in the same line, then make sure to add the option ("multiline",False)
+output
+======
+
+No of records in the json file  322
+root
+ |-- device_id: long (nullable = true)
+ |-- device_name: string (nullable = true)
+ |-- humidity: long (nullable = true)
+ |-- lat: long (nullable = true)
+ |-- long: long (nullable = true)
+ |-- scale: string (nullable = true)
+ |-- temp: long (nullable = true)
+ |-- timestamp: double (nullable = true)
+ |-- zipcode: long (nullable = true)
+
++---------+--------------------------+--------+----+----+------+----+-------------------+-------+
+|device_id|device_name               |humidity|lat |long|scale |temp|timestamp          |zipcode|
++---------+--------------------------+--------+----+----+------+----+-------------------+-------+
+|1        |sensor-mac-xztr9HZ4Z6YT   |36      |null|56  |Celius|14  |1.447975124005187E9|96484  |
+|2        |sensor-mac-able9bI4h6kR   |36      |13  |56  |Celius|14  |1.447975124005187E9|96484  |
+|3        |sensor-mac-aboutRPHN0rak  |30      |35  |54  |Celius|17  |1.447975124054221E9|96402  |
+|4        |sensor-mac-acrossSIdxLScj |35      |36  |40  |Celius|6   |1.447975124102157E9|96025  |
+|5        |sensor-mac-afterEJOOMANT  |62      |90  |91  |Celius|23  |1.447975124150419E9|95638  |
+|6        |sensor-mac-allBMOfeOuD    |97      |76  |77  |Celius|8   |1.447975124197694E9|95478  |
+|7        |sensor-mac-almostRYxyBNj9 |30      |95  |76  |Celius|5   |1.447975124246103E9|95499  |
+|8        |sensor-mac-alsosTDq3ePw   |74      |95  |79  |Celius|25  |1.447975124291892E9|94857  |
+|9        |sensor-mac-am8CUlnzss     |93      |37  |29  |Celius|24  |1.447975124349377E9|96149  |
+|10       |sensor-mac-amongj68Lqjia  |67      |32  |31  |Celius|6   |1.447975124399264E9|96531  |
+|11       |sensor-mac-anKbFxnWkc     |77      |68  |44  |Celius|8   |1.447975124448621E9|95850  |
+|12       |sensor-mac-andeKYc1g3v    |96      |98  |87  |Celius|23  |1.447975124498138E9|95524  |
+|13       |sensor-mac-anyf4C4ssHP    |54      |78  |14  |Celius|33  |1.447975124546061E9|96025  |
+|14       |sensor-mac-arevx9V9q1o    |83      |64  |90  |Celius|29  |1.447975124596101E9|95470  |
+|15       |sensor-mac-asZWypbFbU     |89      |6   |70  |Celius|16  |1.447975124641159E9|96756  |
+|16       |sensor-mac-atV9GYdopQ     |73      |73  |13  |Celius|32  |1.447975124685129E9|96846  |
+|17       |sensor-mac-be8Ab7Mq5a     |53      |29  |54  |Celius|25  |1.447975124734084E9|95323  |
+|18       |sensor-mac-becausebs1k83V1|97      |8   |60  |Celius|15  |1.447975124783517E9|96577  |
+|19       |sensor-mac-beenTil0UmrA   |62      |67  |72  |Celius|31  |1.447975124832391E9|96358  |
+|20       |sensor-mac-butYnx5AWrQ    |29      |57  |16  |Celius|5   |1.447975124881703E9|96669  |
++---------+--------------------------+--------+----+----+------+----+-------------------+-------+
+only showing top 20 rows
+
+Sample 2
+========
+    ##sample for simple json with multiple struct column    #
+    df_comp_json = spark.read.format("json") \
+        .option("multiline" , False)\
+        .load("file:///D:/Practising/PySpark/DATASETS/jsn_str_original.json")
+    print('No of records in the json file ',df_comp_json.count())
+    df_comp_json.printSchema()
+    df_comp_json.show(truncate=False)
+	
+Sample Data from jsn_str.json
+
+{"id": "001","type": "cake","name": "Cream","image": {"url": "images/0001jpg","width": 200,"height": 201},"thumbnail": {"url": "images/thumbnails/0002.jpg","width": 34,"height": 33}}
+{"id": "002","type": "bun cake","name": "Cream","image": {"url": "images/0003jpg","width": 200,"height": 201},"thumbnail": {"url": "images/thumbnails/0002.jpg","width": 34,"height": 33}}
+{"id": "003","type": "pastry cake","name": "Cream","image": {"url": "images/0004jpg","width": 200,"height": 201},"thumbnail": {"url": "images/thumbnails/0002.jpg","width": 35,"height": 45}}
+{"id": "004","type": "sweet cake","name": "Cream","image": {"url": "images/0005jpg","width": 200,"height": 201},"thumbnail": {"url": "images/thumbnails/0002.jpg","width": 36,"height": 47}}
+
+output 
+======
+No of records in the json file  4
+root
+ |-- id: string (nullable = true)
+ |-- image: struct (nullable = true)
+ |    |-- height: long (nullable = true)
+ |    |-- url: string (nullable = true)
+ |    |-- width: long (nullable = true)
+ |-- name: string (nullable = true)
+ |-- thumbnail: struct (nullable = true)
+ |    |-- height: long (nullable = true)
+ |    |-- url: string (nullable = true)
+ |    |-- width: long (nullable = true)
+ |-- type: string (nullable = true)
+
++---+--------------------------+-----+------------------------------------+-----------+
+|id |image                     |name |thumbnail                           |type       |
++---+--------------------------+-----+------------------------------------+-----------+
+|001|{201, images/0001jpg, 200}|Cream|{33, images/thumbnails/0002.jpg, 34}|cake       |
+|002|{201, images/0003jpg, 200}|Cream|{33, images/thumbnails/0002.jpg, 34}|bun cake   |
+|003|{201, images/0004jpg, 200}|Cream|{45, images/thumbnails/0002.jpg, 35}|pastry cake|
+|004|{201, images/0005jpg, 200}|Cream|{47, images/thumbnails/0002.jpg, 36}|sweet cake |
++---+--------------------------+-----+------------------------------------+-----------+
+
+to select the individual columns from a struct element use .notation, in the above example
+image and thumbnail fields are struct type and they have subfields
+to display/access the subfields use struct_field_name.sub_field_name.
+
+image.height or thumbnail.width, if we want to display all the columns from the struct field use struct_field_name.*
+
+
+	df_comp_json.select("id","name","type","image.url","thumbnail.*") \
+             .filter(col("thumbnail.width") >= 35).show(truncate=False)
+
++---+-----+-----------+--------------+------+--------------------------+-----+
+|id |name |type       |url           |height|url                       |width|
++---+-----+-----------+--------------+------+--------------------------+-----+
+|003|Cream|pastry cake|images/0004jpg|45    |images/thumbnails/0002.jpg|35   |
+|004|Cream|sweet cake |images/0005jpg|47    |images/thumbnails/0002.jpg|36   |
++---+-----+-----------+--------------+------+--------------------------+-----+
+
+
+Formatted JSON files
+use the link https://jsonformatter.org/json-parser#google_vignette to format the json files.
+When the json file is formated then each key item will be there in a separate line, know if you don't set the option ("multiline",True"), 
+it will throw the error.
+
+ # # #sample for reading formatted json file
+    df_comp_json = spark.read.format("json") \
+        .option("multiline", False)\
+        .load("file:///D:/Practising/PySpark/DATASETS/jsn_str_formatted.json")
+    print('No of records in the json file ',df_comp_json.count())
+    df_comp_json.printSchema()
+    df_comp_json.show(truncate=False)
+	
+output
+======
+Error	
+
+No of records in the json file  61
+root
+ |-- _corrupt_record: string (nullable = true)
+
+Traceback (most recent call last):
+  File "D:\Practising\PySpark\Project01\Batch14_PySpark_Core\Complex_Data_Processing.py", line 36, in <module>
+    df_comp_json.show(truncate=False)
+  File "C:\Users\Windows 10\PySparkLib\spark-3.1.3-bin-hadoop3.2\python\lib\pyspark.zip\pyspark\sql\dataframe.py", line 486, in show
+  File "C:\Users\Windows 10\PySparkLib\spark-3.1.3-bin-hadoop3.2\python\lib\py4j-0.10.9-src.zip\py4j\java_gateway.py", line 1304, in __call__
+  File "C:\Users\Windows 10\PySparkLib\spark-3.1.3-bin-hadoop3.2\python\lib\pyspark.zip\pyspark\sql\utils.py", line 117, in deco
+pyspark.sql.utils.AnalysisException: Since Spark 2.3, the queries from raw JSON/CSV files are disallowed when the
+referenced columns only include the internal corrupt record column
+(named _corrupt_record by default). For example:
+spark.read.schema(schema).json(file).filter($"_corrupt_record".isNotNull).count()
+and spark.read.schema(schema).json(file).select("_corrupt_record").show().
+Instead, you can cache or save the parsed results and then send the same query.
+For example, val df = spark.read.schema(schema).json(file).cache() and then
+df.filter($"_corrupt_record".isNotNull).count().
+
+now changed the option "multiline" to True.
+
+Note: when the JSON is formatted and if it has multiple records then it should be in a [] each record is separated by a ","
+
+ # # #sample for reading formatted json file
+    df_comp_json = spark.read.format("json") \
+        .option("multiline", False)\
+        .load("file:///D:/Practising/PySpark/DATASETS/jsn_str_formatted.json")
+    print('No of records in the json file ',df_comp_json.count())
+    df_comp_json.printSchema()
+    df_comp_json.show(truncate=False)
+	
+No of records in the json file  4
+root
+ |-- id: string (nullable = true)
+ |-- image: struct (nullable = true)
+ |    |-- height: long (nullable = true)
+ |    |-- url: string (nullable = true)
+ |    |-- width: long (nullable = true)
+ |-- name: string (nullable = true)
+ |-- thumbnail: struct (nullable = true)
+ |    |-- height: long (nullable = true)
+ |    |-- url: string (nullable = true)
+ |    |-- width: long (nullable = true)
+ |-- type: string (nullable = true)
+
++---+--------------------------+-----+------------------------------------+-----------+
+|id |image                     |name |thumbnail                           |type       |
++---+--------------------------+-----+------------------------------------+-----------+
+|001|{201, images/0001jpg, 200}|Cream|{33, images/thumbnails/0002.jpg, 34}|cake       |
+|002|{201, images/0003jpg, 200}|Cream|{33, images/thumbnails/0002.jpg, 34}|bun cake   |
+|003|{201, images/0004jpg, 200}|Cream|{45, images/thumbnails/0002.jpg, 35}|pastry cake|
+|004|{201, images/0005jpg, 200}|Cream|{47, images/thumbnails/0002.jpg, 36}|sweet cake |
++---+--------------------------+-----+------------------------------------+-----------+
+
+	
+2. Complex JSON documents
+=========================
+
+when the JSON contains multiple nested struct or nested string fields it become complex.
+
+Sample for nested struct fields
+===============================
+[
+{
+	"Country": "Australia",
+	"User": {
+		"name": {
+			"first_name" : "Nanda",
+			"middle_name" : "Kumar",
+			"last_name" : "Govindan"
+		},
+		"address": {
+			"unit":"8",
+			"number": "39",
+			"street": "Ross Street",
+			"suburb" : "North Parramatta",
+			"city": "Sydney",
+			"state": "NSW",	
+			"postcode": "2151"
+		},
+		"Age":42,
+		"phone":"+61405891583"
+	}
+},
+{
+	"Country": "Australia",
+	"User": {
+		"name": {
+			"first_name" : "Ganesh",
+			"middle_name" : "Murugan",
+			"last_name": "Paramasivan"
+		},
+		"address": {
+			"number": "24",
+			"street": "Campbell Street",
+			"suburb": "Parramatta",
+			"postcode": "2150"
+		},
+		"Age":34
+	}
+}
+]
+
+    df_comp_json = spark.read.format("json") \
+    .option("multiline" , True)\
+    .load("file:///D:/Practising/PySpark/DATASETS/place.json")
+    print(df_comp_json.count())
+    df_comp_json.printSchema()
+    df_comp_json.show(truncate=False)
+	
+output
+======
+
+No of records in the json file  2
+root
+ |-- Country: string (nullable = true)
+ |-- User: struct (nullable = true)
+ |    |-- Age: long (nullable = true)
+ |    |-- address: struct (nullable = true)
+ |    |    |-- city: string (nullable = true)
+ |    |    |-- number: string (nullable = true)
+ |    |    |-- postcode: string (nullable = true)
+ |    |    |-- state: string (nullable = true)
+ |    |    |-- street: string (nullable = true)
+ |    |    |-- suburb: string (nullable = true)
+ |    |    |-- unit: string (nullable = true)
+ |    |-- name: struct (nullable = true)
+ |    |    |-- first_name: string (nullable = true)
+ |    |    |-- last_name: string (nullable = true)
+ |    |    |-- middle_name: string (nullable = true)
+ |    |-- phone: string (nullable = true)
+
++---------+-------------------------------------------------------------------------------------------------------+
+|Country  |User                                                                                                   |
++---------+-------------------------------------------------------------------------------------------------------+
+|Australia|{42, {Sydney, 39, 2151, NSW, Ross Street, North Parramatta, 8}, {Nanda, Govindan, Kumar}, +61405891583}|
+|Australia|{34, {null, 24, 2150, null, Campbell Street, Parramatta, null}, {Ganesh, Paramasivan, Murugan}, null}  |
++---------+-------------------------------------------------------------------------------------------------------+
+
+accessing columns from the struct fields
+
+    df_comp_json.select("user.name.first_name","user.name.last_name",\
+                        "user.address.city","user.address.postcode",\
+                        "user.phone","country")\
+                        .sort("user.name.first_name").show()
+
++----------+-----------+------+--------+------------+---------+
+|first_name|  last_name|  city|postcode|       phone|  country|
++----------+-----------+------+--------+------------+---------+
+|    Ganesh|Paramasivan|  null|    2150|        null|Australia|
+|     Nanda|   Govindan|Sydney|    2151|+61405891583|Australia|
++----------+-----------+------+--------+------------+---------+
+
+
+Sample for nested array
+=======================
+[
+  {
+    "Id": 1,
+    "Country": "Australia",
+    "User": {
+      "name": {
+        "first_name": "Nanda",
+        "middle_name": "Kumar",
+        "last_name": "Govindan"
+      },
+      "address": {
+        "unit": "8",
+        "number": "39",
+        "street": "Ross Street",
+        "suburb": "North Parramatta",
+        "city": "Sydney",
+        "state": "NSW",
+        "postcode": "2151"
+      },
+      "Age": 42,
+      "phone": "+61405891583",
+      "skills": [
+        {
+          "technology": "Oracle",
+          "experience": 14
+        },
+        {
+          "technology": "MSSQL",
+          "experience": 4
+        },
+        {
+          "technology": "MySQL",
+          "experience": 2
+        },
+        {
+          "technology": "Snowflake",
+          "experience": 0.5
+        },
+        {
+          "technology": "Forms & Reports",
+          "experience": 8
+        }
+      ]
+    },
+    "email": "nanda.gnk@gmail.com"
+  },
+  {
+    "Id": 2,
+    "Country": "Australia",
+    "User": {
+      "name": {
+        "first_name": "Ganesh",
+        "middle_name": "Murugan",
+        "last_name": "Paramasivan"
+      },
+      "address": {
+        "number": "24",
+        "street": "Campbell Street",
+        "suburb": "Parramatta",
+        "postcode": "2150"
+      },
+      "Age": 34,
+      "skills": [
+        {
+          "technology": "Oracle",
+          "experience": 4
+        },
+        {
+          "technology": "MSSQL",
+          "experience": 12
+        },
+        {
+          "technology": "MySQL",
+          "experience": 4
+        },
+        {
+          "technology": "Snowflake",
+          "experience": 0.5
+        },
+        {
+          "technology": "SSIS",
+          "experience": 5
+        }
+      ]
+    },
+    "email": "ganesh.m@xyz.com"
+  }
+]
+
+processing nested array json
+
+    df_comp_json = spark.read.format("json") \
+    .option("multiline" , True)\
+    .load("file:///D:/Practising/PySpark/DATASETS/profile_info.json")
+    print('No of records in the json file ', df_comp_json.count())
+    df_comp_json.printSchema()
+    df_comp_json.show(truncate= False)
+
+
+output
+======
+No of records in the json file  2
+root
+ |-- Country: string (nullable = true)
+ |-- Id: long (nullable = true)
+ |-- User: struct (nullable = true)
+ |    |-- Age: long (nullable = true)
+ |    |-- address: struct (nullable = true)
+ |    |    |-- city: string (nullable = true)
+ |    |    |-- number: string (nullable = true)
+ |    |    |-- postcode: string (nullable = true)
+ |    |    |-- state: string (nullable = true)
+ |    |    |-- street: string (nullable = true)
+ |    |    |-- suburb: string (nullable = true)
+ |    |    |-- unit: string (nullable = true)
+ |    |-- name: struct (nullable = true)
+ |    |    |-- first_name: string (nullable = true)
+ |    |    |-- last_name: string (nullable = true)
+ |    |    |-- middle_name: string (nullable = true)
+ |    |-- phone: string (nullable = true)
+ |    |-- skills: array (nullable = true)
+ |    |    |-- element: struct (containsNull = true)
+ |    |    |    |-- experience: double (nullable = true)
+ |    |    |    |-- technology: string (nullable = true)
+ |-- email: string (nullable = true)
+
++---------+---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------+
+|Country  |Id |User                                                                                                                                                                                           |email              |
++---------+---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------+
+|Australia|1  |{42, {Sydney, 39, 2151, NSW, Ross Street, North Parramatta, 8}, {Nanda, Govindan, Kumar}, +61405891583, [{14.0, Oracle}, {4.0, MSSQL}, {2.0, MySQL}, {0.5, Snowflake}, {8.0, Forms & Reports}]}|nanda.gnk@gmail.com|
+|Australia|2  |{34, {null, 24, 2150, null, Campbell Street, Parramatta, null}, {Ganesh, Paramasivan, Murugan}, null, [{4.0, Oracle}, {12.0, MSSQL}, {4.0, MySQL}, {0.5, Snowflake}, {5.0, SSIS}]}             |ganesh.m@xyz.com   |
++---------+---+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------+
+
+Explode
+=======
+
+Note: To convert the array of elements present in the rows into columns use explode function, but only one explode is allowed per select.
+
+    df_comp_json.select("id","user.name.first_name",\
+        explode(df_comp_json["user.skills.experience"]).alias("Exp")).show()
+		
+output
+======
++---+--------------------+----+
+| id|user.name.first_name| Exp|
++---+--------------------+----+
+|  1|               Nanda|14.0|
+|  1|               Nanda| 4.0|
+|  1|               Nanda| 2.0|
+|  1|               Nanda| 0.5|
+|  1|               Nanda| 8.0|
+|  2|              Ganesh| 4.0|
+|  2|              Ganesh|12.0|
+|  2|              Ganesh| 4.0|
+|  2|              Ganesh| 0.5|
+|  2|              Ganesh| 5.0|
++---+--------------------+----+
+
+Generating a sequence number for each row for "Experience".
+
+    df_comp_json.select("id",col("user.name.first_name").alias("Name"),\
+         explode(df_comp_json["user.skills.experience"]).alias("Experience")) \
+         .withColumn("seq_no",monotonically_increasing_id()).show()
+
+	df2=df_comp_json.select("id",col("user.name.first_name").alias("Name"),\
+         explode(df_comp_json["user.skills.experience"]).alias("experience")) \
+         .withColumn("seq_no",monotonically_increasing_id())			 
+		 
+output 
+======
+No of records in the json file  2
++---+------+----------+------+
+| id|  Name|Experience|seq_no|
++---+------+----------+------+
+|  1| Nanda|      14.0|     0|
+|  1| Nanda|       4.0|     1|
+|  1| Nanda|       2.0|     2|
+|  1| Nanda|       0.5|     3|
+|  1| Nanda|       8.0|     4|
+|  2|Ganesh|       4.0|     5|
+|  2|Ganesh|      12.0|     6|
+|  2|Ganesh|       4.0|     7|
+|  2|Ganesh|       0.5|     8|
+|  2|Ganesh|       5.0|     9|
++---+------+----------+------+
+
+similarly generating another df for technology
+
+    df_comp_json.select("id",col("user.name.first_name").alias("Name"),\
+         explode(df_comp_json["user.skills.technology"]).alias("technology")) \
+         .withColumn("seq_no",monotonically_increasing_id()).show()
+		 
+    df1=df_comp_json.select("id",col("user.name.first_name").alias("Name"),\
+         explode(df_comp_json["user.skills.technology"]).alias("technology")) \
+         .withColumn("seq_no",monotonically_increasing_id())	 
+    
+output
+====== 
+
++---+------+---------------+------+
+| id|  Name|     technology|seq_no|
++---+------+---------------+------+
+|  1| Nanda|         Oracle|     0|
+|  1| Nanda|          MSSQL|     1|
+|  1| Nanda|          MySQL|     2|
+|  1| Nanda|      Snowflake|     3|
+|  1| Nanda|Forms & Reports|     4|
+|  2|Ganesh|         Oracle|     5|
+|  2|Ganesh|          MSSQL|     6|
+|  2|Ganesh|          MySQL|     7|
+|  2|Ganesh|      Snowflake|     8|
+|  2|Ganesh|           SSIS|     9|
++---+------+---------------+------+
+
+now joining these two dataframe to get the technology and experience in a signle df by joining id,name and seq_no.
+
+The reason for introduing seq_no into the above dataframe is to get a unique join key
+
+Now join the two dataframe to get the required result set.
+
+    df1.join(df2, ["id","Name","seq_no"],"inner")\
+        .drop("seq_no").orderBy("id","experience").show()
+		
+output
+======
++---+------+---------------+----------+
+| id|  Name|     technology|experience|
++---+------+---------------+----------+
+|  1| Nanda|      Snowflake|       0.5|
+|  1| Nanda|          MySQL|       2.0|
+|  1| Nanda|          MSSQL|       4.0|
+|  1| Nanda|Forms & Reports|       8.0|
+|  1| Nanda|         Oracle|      14.0|
+|  2|Ganesh|      Snowflake|       0.5|
+|  2|Ganesh|          MySQL|       4.0|
+|  2|Ganesh|         Oracle|       4.0|
+|  2|Ganesh|           SSIS|       5.0|
+|  2|Ganesh|          MSSQL|      12.0|
++---+------+---------------+----------+
+
+applying a filter condition
+
+    df1.join(df2, ["id","Name","seq_no"],"inner")\
+        .filter(df2.experience>=5)\
+        .drop("seq_no").show()
+
+No of records in the json file  2
++---+------+---------------+----------+
+| id|  Name|     technology|experience|
++---+------+---------------+----------+
+|  1| Nanda|         Oracle|      14.0|
+|  1| Nanda|Forms & Reports|       8.0|
+|  2|Ganesh|          MSSQL|      12.0|
+|  2|Ganesh|           SSIS|       5.0|
++---+------+---------------+----------+
+
+join this with the main dataframe and get the remaining columns 		
+
+    df3=df_comp_json.select(col("Id").alias("id"),\
+                            col("country"),col("email"),\
+                            col("user.age").alias("age"),\
+                            col("user.address.city").alias("city"),\
+                            col("user.phone").alias("phone"))
+							
+    df1.join(df2, ["id", "Name", "seq_no"], "inner") \
+        .filter(df2.experience >= 5) \
+        .join(df3, "id", "inner") \
+        .select(df1.id,df1.Name,df3.age,\
+                df1.technology,df2.experience,\
+                df3.city,df3.phone,df3.email).show()
+
+No of records in the json file  2
++---+------+---+---------------+----------+------+------------+-------------------+
+| id|  Name|age|     technology|experience|  city|       phone|              email|
++---+------+---+---------------+----------+------+------------+-------------------+
+|  1| Nanda| 42|         Oracle|      14.0|Sydney|+61405891583|nanda.gnk@gmail.com|
+|  1| Nanda| 42|Forms & Reports|       8.0|Sydney|+61405891583|nanda.gnk@gmail.com|
+|  2|Ganesh| 34|          MSSQL|      12.0|  null|        null|   ganesh.m@xyz.com|
+|  2|Ganesh| 34|           SSIS|       5.0|  null|        null|   ganesh.m@xyz.com|
++---+------+---+---------------+----------+------+------------+-------------------+
