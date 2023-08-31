@@ -1218,3 +1218,1019 @@ No of records in the json file  2
 |  2|Ganesh| 34|          MSSQL|      12.0|  null|        null|   ganesh.m@xyz.com|
 |  2|Ganesh| 34|           SSIS|       5.0|  null|        null|   ganesh.m@xyz.com|
 +---+------+---+---------------+----------+------+------------+-------------------+
+
+	##========================================================##
+    ##This can be achieved in much simpler way refer the below##
+    ##========================================================##
+    
+    df = df_comp_json.select ("*",explode(df_comp_json["user.skills"]).alias("skills"))
+    ###This will convert the array column skills into a struct column
+    df.printSchema()
+
+root
+ |-- Country: string (nullable = true)
+ |-- Id: long (nullable = true)
+ |-- User: struct (nullable = true)
+ |    |-- Age: long (nullable = true)
+ |    |-- address: struct (nullable = true)
+ |    |    |-- city: string (nullable = true)
+ |    |    |-- number: string (nullable = true)
+ |    |    |-- postcode: string (nullable = true)
+ |    |    |-- state: string (nullable = true)
+ |    |    |-- street: string (nullable = true)
+ |    |    |-- suburb: string (nullable = true)
+ |    |    |-- unit: string (nullable = true)
+ |    |-- name: struct (nullable = true)
+ |    |    |-- first_name: string (nullable = true)
+ |    |    |-- last_name: string (nullable = true)
+ |    |    |-- middle_name: string (nullable = true)
+ |    |-- phone: string (nullable = true)
+ |    |-- skills: array (nullable = true)
+ |    |    |-- element: struct (containsNull = true)
+ |    |    |    |-- experience: double (nullable = true)
+ |    |    |    |-- technology: string (nullable = true)
+ |-- email: string (nullable = true)
+ |-- skills: struct (nullable = true)
+ |    |-- experience: double (nullable = true)
+ |    |-- technology: string (nullable = true)
+ 
+
+	##now we can easily query each element in the struct field
+    df.select("id",col("user.name.first_name").alias("Name"),\
+              col("user.age").alias("age"),\
+              col("user.address.city").alias("city"),\
+              col("user.phone").alias("phone_no"), \
+              col("email").alias("mail_id"),\
+              col("skills.technology").alias("Technology"),\
+              col("skills.experience").alias("Year_of_Experience")).show(truncate=False)
+
+output
+======			  
++---+------+---+------+------------+-------------------+---------------+------------------+
+|id |Name  |age|city  |phone_no    |mail_id            |Technology     |Year_of_Experience|
++---+------+---+------+------------+-------------------+---------------+------------------+
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|Oracle         |14.0              |
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|MSSQL          |4.0               |
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|MySQL          |2.0               |
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|Snowflake      |0.5               |
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|Forms & Reports|8.0               |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |Oracle         |4.0               |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |MSSQL          |12.0              |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |MySQL          |4.0               |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |Snowflake      |0.5               |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |SSIS           |5.0               |
++---+------+---+------+------------+-------------------+---------------+------------------+
+
+	## now we can easily query each element in the struct field with filter condition
+    df.filter(col("skills.experience")>=5)\
+      .select("id", col("user.name.first_name").alias("Name"), \
+              col("user.age").alias("age"), \
+              col("user.address.city").alias("city"), \
+              col("user.phone").alias("phone_no"), \
+              col("email").alias("mail_id"), \
+              col("skills.technology").alias("Technology"), \
+              col("skills.experience").alias("Year_of_Experience")).show(truncate=False)
+			  
+output
+======			  
++---+------+---+------+------------+-------------------+---------------+------------------+
+|id |Name  |age|city  |phone_no    |mail_id            |Technology     |Year_of_Experience|
++---+------+---+------+------------+-------------------+---------------+------------------+
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|Oracle         |14.0              |
+|1  |Nanda |42 |Sydney|+61405891583|nanda.gnk@gmail.com|Forms & Reports|8.0               |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |MSSQL          |12.0              |
+|2  |Ganesh|34 |null  |null        |ganesh.m@xyz.com   |SSIS           |5.0               |
++---+------+---+------+------------+-------------------+---------------+------------------+
+
+####===================================================================================####
+	##selecing the nested array elements using index
+    df_comp_json.select(df_comp_json["id"],\
+                        df_comp_json["user.name.first_name"],\
+                        df_comp_json["user.skills"][0],\
+                        df_comp_json["user.skills"][1],\
+                        df_comp_json["user.skills"][2],\
+                        df_comp_json["user.skills"][3],\
+                        df_comp_json["user.skills"][4]).show()
+
+output
+======
++---+----------+--------------------------+--------------------------+--------------------------+--------------------------+--------------------------+
+| id|first_name|user.skills AS `skills`[0]|user.skills AS `skills`[1]|user.skills AS `skills`[2]|user.skills AS `skills`[3]|user.skills AS `skills`[4]|
++---+----------+--------------------------+--------------------------+--------------------------+--------------------------+--------------------------+
+|  1|     Nanda|            {14.0, Oracle}|              {4.0, MSSQL}|              {2.0, MySQL}|          {0.5, Snowflake}|      {8.0, Forms & Rep...|
+|  2|    Ganesh|             {4.0, Oracle}|             {12.0, MSSQL}|              {4.0, MySQL}|          {0.5, Snowflake}|               {5.0, SSIS}|
++---+----------+--------------------------+--------------------------+--------------------------+--------------------------+--------------------------+
+
+Task for Complex JSON Data
+==========================
+
+Take the file Array_Complex.JSON
+
+{
+	"results": [{
+		"gender": "male",
+		"name": {
+			"title": "mr",
+			"first": "brad",
+			"last": "gibson"
+		},
+		"location": {
+			"street": "9278 new road",
+			"city": "kilcoole",
+			"state": "waterford",
+			"postcode": "93027",
+			"coordinates": {
+				"latitude": "20.9267",
+				"longitude": "-7.9310"
+			},
+			"timezone": {
+				"offset": "-3:30",
+				"description": "Newfoundland"
+			}
+		},
+		"email": "brad.gibson@example.com",
+		"login": {
+			"uuid": "155e77ee-ba6d-486f-95ce-0e0c0fb4b919",
+			"username": "silverswan131",
+			"password": "firewall",
+			"salt": "TQA1Gz7x",
+			"md5": "dc523cb313b63dfe5be2140b0c05b3bc",
+			"sha1": "7a4aa07d1bedcc6bcf4b7f8856643492c191540d",
+			"sha256": "74364e96174afa7d17ee52dd2c9c7a4651fe1254f471a78bda0190135dcd3480"
+		},
+		"dob": {
+			"date": "1993-07-20T09:44:18.674Z",
+			"age": 26
+		},
+		"registered": {
+			"date": "2002-05-21T10:59:49.966Z",
+			"age": 17
+		},
+		"phone": "011-962-7516",
+		"cell": "081-454-0666",
+		"id": {
+			"name": "PPS",
+			"value": "0390511T"
+		},
+		"picture": {
+			"large": "https://randomuser.me/api/portraits/men/75.jpg",
+			"medium": "https://randomuser.me/api/portraits/med/men/75.jpg",
+			"thumbnail": "https://randomuser.me/api/portraits/thumb/men/75.jpg"
+		},
+		"nat": "IE"
+	}],
+	"info": {
+		"seed": "fea8be3e64777240",
+		"results": 1,
+		"page": 1,
+		"version": "1.3"
+	}
+}
+
+Task:
+Convert this json into a Dataframe, Identify the array data and flatten the Array data
+
+    ### Task for processig complex json with nested array data
+    df_comp_json = spark.read.format("json") \
+        .option("multiline", True) \
+        .load("file:///D:/Practising/PySpark/DATASETS/array_complex.json")
+    print('No of records in the json file ', df_comp_json.count())
+    df_comp_json.printSchema()
+    df_comp_json.show(truncate= False)
+
+No of records in the json file  1
+root
+ |-- info: struct (nullable = true)
+ |    |-- page: long (nullable = true)
+ |    |-- results: long (nullable = true)
+ |    |-- seed: string (nullable = true)
+ |    |-- version: string (nullable = true)
+ |-- results: array (nullable = true)
+ |    |-- element: struct (containsNull = true)
+ |    |    |-- cell: string (nullable = true)
+ |    |    |-- dob: struct (nullable = true)
+ |    |    |    |-- age: long (nullable = true)
+ |    |    |    |-- date: string (nullable = true)
+ |    |    |-- email: string (nullable = true)
+ |    |    |-- gender: string (nullable = true)
+ |    |    |-- id: struct (nullable = true)
+ |    |    |    |-- name: string (nullable = true)
+ |    |    |    |-- value: string (nullable = true)
+ |    |    |-- location: struct (nullable = true)
+ |    |    |    |-- city: string (nullable = true)
+ |    |    |    |-- coordinates: struct (nullable = true)
+ |    |    |    |    |-- latitude: string (nullable = true)
+ |    |    |    |    |-- longitude: string (nullable = true)
+ |    |    |    |-- postcode: string (nullable = true)
+ |    |    |    |-- state: string (nullable = true)
+ |    |    |    |-- street: string (nullable = true)
+ |    |    |    |-- timezone: struct (nullable = true)
+ |    |    |    |    |-- description: string (nullable = true)
+ |    |    |    |    |-- offset: string (nullable = true)
+ |    |    |-- login: struct (nullable = true)
+ |    |    |    |-- md5: string (nullable = true)
+ |    |    |    |-- password: string (nullable = true)
+ |    |    |    |-- salt: string (nullable = true)
+ |    |    |    |-- sha1: string (nullable = true)
+ |    |    |    |-- sha256: string (nullable = true)
+ |    |    |    |-- username: string (nullable = true)
+ |    |    |    |-- uuid: string (nullable = true)
+ |    |    |-- name: struct (nullable = true)
+ |    |    |    |-- first: string (nullable = true)
+ |    |    |    |-- last: string (nullable = true)
+ |    |    |    |-- title: string (nullable = true)
+ |    |    |-- nat: string (nullable = true)
+ |    |    |-- phone: string (nullable = true)
+ |    |    |-- picture: struct (nullable = true)
+ |    |    |    |-- large: string (nullable = true)
+ |    |    |    |-- medium: string (nullable = true)
+ |    |    |    |-- thumbnail: string (nullable = true)
+ |    |    |-- registered: struct (nullable = true)
+ |    |    |    |-- age: long (nullable = true)
+ |    |    |    |-- date: string (nullable = true)
+
++-----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|info                         |results                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
++-----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|{1, 1, fea8be3e64777240, 1.3}|[{081-454-0666, {26, 1993-07-20T09:44:18.674Z}, brad.gibson@example.com, male, {PPS, 0390511T}, {kilcoole, {20.9267, -7.9310}, 93027, waterford, 9278 new road, {Newfoundland, -3:30}}, {dc523cb313b63dfe5be2140b0c05b3bc, firewall, TQA1Gz7x, 7a4aa07d1bedcc6bcf4b7f8856643492c191540d, 74364e96174afa7d17ee52dd2c9c7a4651fe1254f471a78bda0190135dcd3480, silverswan131, 155e77ee-ba6d-486f-95ce-0e0c0fb4b919}, {brad, gibson, mr}, IE, 011-962-7516, {https://randomuser.me/api/portraits/men/75.jpg, https://randomuser.me/api/portraits/med/men/75.jpg, https://randomuser.me/api/portraits/thumb/men/75.jpg}, {17, 2002-05-21T10:59:49.966Z}}]|
++-----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+
+    df1= df_comp_json.select("info.*", explode(df_comp_json.results).alias("results_exploded"))
+    df1.printSchema()
+
+No of records in the json file  1
+root
+ |-- page: long (nullable = true)
+ |-- results: long (nullable = true)
+ |-- seed: string (nullable = true)
+ |-- version: string (nullable = true)
+ |-- results_exploded: struct (nullable = true)
+ |    |-- cell: string (nullable = true)
+ |    |-- dob: struct (nullable = true)
+ |    |    |-- age: long (nullable = true)
+ |    |    |-- date: string (nullable = true)
+ |    |-- email: string (nullable = true)
+ |    |-- gender: string (nullable = true)
+ |    |-- id: struct (nullable = true)
+ |    |    |-- name: string (nullable = true)
+ |    |    |-- value: string (nullable = true)
+ |    |-- location: struct (nullable = true)
+ |    |    |-- city: string (nullable = true)
+ |    |    |-- coordinates: struct (nullable = true)
+ |    |    |    |-- latitude: string (nullable = true)
+ |    |    |    |-- longitude: string (nullable = true)
+ |    |    |-- postcode: string (nullable = true)
+ |    |    |-- state: string (nullable = true)
+ |    |    |-- street: string (nullable = true)
+ |    |    |-- timezone: struct (nullable = true)
+ |    |    |    |-- description: string (nullable = true)
+ |    |    |    |-- offset: string (nullable = true)
+ |    |-- login: struct (nullable = true)
+ |    |    |-- md5: string (nullable = true)
+ |    |    |-- password: string (nullable = true)
+ |    |    |-- salt: string (nullable = true)
+ |    |    |-- sha1: string (nullable = true)
+ |    |    |-- sha256: string (nullable = true)
+ |    |    |-- username: string (nullable = true)
+ |    |    |-- uuid: string (nullable = true)
+ |    |-- name: struct (nullable = true)
+ |    |    |-- first: string (nullable = true)
+ |    |    |-- last: string (nullable = true)
+ |    |    |-- title: string (nullable = true)
+ |    |-- nat: string (nullable = true)
+ |    |-- phone: string (nullable = true)
+ |    |-- picture: struct (nullable = true)
+ |    |    |-- large: string (nullable = true)
+ |    |    |-- medium: string (nullable = true)
+ |    |    |-- thumbnail: string (nullable = true)
+ |    |-- registered: struct (nullable = true)
+ |    |    |-- age: long (nullable = true)
+ |    |    |-- date: string (nullable = true)
+ 
+ 
+    ### now we can easily query the required columns
+    df1.select("*",\
+               col("results_exploded.id.name").alias("Id_Name"), \
+               col("results_exploded.id.value").alias("Id_Value"),\
+               col("results_exploded.name.first").alias("First_Name"),\
+               col("results_exploded.dob.date").alias("D.O.Birth"),\
+               col("results_exploded.email").alias("Email"),\
+               col("results_exploded.login.username").alias("Username"))\
+       .drop("results_exploded").show(truncate=False)
+
++----+-------+----------------+-------+-------+--------+----------+------------------------+-----------------------+-------------+
+|page|results|seed            |version|Id_Name|Id_Value|First_Name|D.O.Birth               |Email                  |Username     |
++----+-------+----------------+-------+-------+--------+----------+------------------------+-----------------------+-------------+
+|1   |1      |fea8be3e64777240|1.3    |PPS    |0390511T|brad      |1993-07-20T09:44:18.674Z|brad.gibson@example.com|silverswan131|
++----+-------+----------------+-------+-------+--------+----------+------------------------+-----------------------+-------------+
+
+https://sparkbyexamples.com/pyspark/pyspark-explode-array-and-map-columns-to-rows/#:~:text=PySpark%20function%20explode(e%3A%20Column,it%20contains%20all%20array%20elements.
+
+https://saturncloud.io/blog/converting-multiple-array-of-structs-columns-in-pyspark-sql-a-comprehensive-guide/
+
+============================================================================================================================
+============================================================================================================================
+Spark to RDBMS integration
+==========================
+Conneting to RDBMS from Spark
+
+https://kontext.tech/article/1060/pyspark-read-data-from-oracle-database
+
+Scenario connect to oracle read a table and perform transactions on the table and store the result into MySql database.
+
+    ####Source Systerm details####
+    sql = "select * from emp"
+    source_user = "HR"
+    source_pwd = "hratoraclexe"
+    # Change this to your Oracle's details accordingly
+    source_server = "DESKTOP-E4HB1LH"
+    source_port = 1521
+    source_service_name = "XE"
+    source_jdbcUrl = f"jdbc:oracle:thin:@{source_server}:{source_port}/{source_service_name}"
+    source_jdbcDriver = "oracle.jdbc.driver.OracleDriver"
+
+    ####Destination Systerm details####
+    dest_user = "devdbuser"
+    dest_pwd = "DevDBUser@2023"
+    # Change this to your Oracle's details accordingly
+    dest_server = "DESKTOP-E4HB1LH"
+    dest_port = 3306
+    dest_db_name = "devdb"
+    dest_jdbcUrl = f"jdbc:mysql://{dest_server}:{dest_port}/{dest_db_name}"
+    dest_jdbcDriver = "com.mysql.cj.jdbc.Driver"
+
+    df_oracle = spark.read.format("jdbc")\
+        .option("url",source_jdbcUrl) \
+        .option("query", sql) \
+        .option("user",source_user) \
+        .option("password", source_pwd) \
+        .option("driver", source_jdbcDriver).load()
+
+    #df_oracle.printSchema()
+
+    print("No of records in the table : ",df_oracle.count())
+
+    ###applying transformation on the df
+    df_result=df_oracle.withColumn("Name",concat("first_name",lit(" "),"last_name").alias("Name"))\
+                .withColumn("Join_Date",date_format("hire_date","dd/MM/yyyy"))\
+                .select("employee_id","name","Job_id","join_date","salary","commission_pct","department_id")\
+                .filter((col("salary")>5000) & (col("commission_pct").isNull()) & (col("department_id") == 50))\
+                .sort("join_date")
+
+    ###Writing the result to mysql db
+    df_result.write.format("jdbc")\
+             .mode("overwrite") \
+             .option("url", dest_jdbcUrl) \
+             .option("dbtable", "emp_result") \
+             .option("user", dest_user) \
+             .option("password", dest_pwd) \
+             .option("driver", dest_jdbcDriver).save()
+			 
+output
+======
+connect to MySQL
+use devdb;
+select * from emp_result;
+
+122	Payam Kaufling	ST_MAN	01/05/2003	7900.00		50
+121	Adam Fripp	    ST_MAN	10/04/2005	8200.00		50
+123	Shanta Vollman	ST_MAN	10/10/2005	6500.00		50
+124	Kevin Mourgos	ST_MAN	16/11/2007	5800.00		50
+120	Matthew Weiss	ST_MAN	18/07/2004	8000.00		50
+
+===================================================================================================================
+===================================================================================================================
+==========================
+Spark to HIVE integaration
+==========================
+
+=======================================
+How to access hive tables? from PySpark
+=======================================
+
+In Hive there is a table cust_nanda
+
+open a terminal in clouldxlab and check the table cust_nanda
+
+hive> 
+    > select count(1) from cust_nanda;
+Query ID = nandagnk2141_20230831133015_423468f0-565c-4ce8-9d0a-46c1cfd931ed
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_33004, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_33004/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_33004
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2023-08-31 13:30:27,851 Stage-1 map = 0%,  reduce = 0%
+2023-08-31 13:30:35,499 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.2 sec
+2023-08-31 13:30:45,185 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 5.67 sec
+MapReduce Total cumulative CPU time: 5 seconds 670 msec
+Ended Job = job_1648130833540_33004
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.67 sec   HDFS Read: 963833 HDFS Write: 6 SUCCESS
+Total MapReduce CPU Time Spent: 5 seconds 670 msec
+OK
+12440
+Time taken: 31.338 seconds, Fetched: 1 row(s)
+
+it took 31.338 seconds the get the count of records in the table from hive.
+
+hive> desc formatted cust_nanda
+    > ;
+OK
+# col_name              data_type               comment             
+                 
+customer_id             int                                         
+customer_fname          string                                      
+customer_lname          string                                      
+customer_email          string                                      
+customer_password       string                                      
+customer_street         string                                      
+customer_city           string                                      
+customer_state          string                                      
+customer_zipcode        string                                      
+                 
+# Detailed Table Information             
+Database:               default                  
+Owner:                  nandagnk2141             
+CreateTime:             Sun Nov 13 13:31:26 UTC 2022     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/cust_nanda        
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        comment                 Imported by sqoop on 2022/11/13 13:31:21
+        numFiles                4                   
+        numRows                 0                   
+        rawDataSize             0                   
+        totalSize               954017              
+        transient_lastDdlTime   1668346286          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat       
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        field.delim             \u0001              
+        line.delim              \n                  
+        serialization.format    \u0001              
+Time taken: 0.081 seconds, Fetched: 41 row(s)
+
+now, I'm going to access the table from pyspark
+
+open an another terminal from cloudxlab and connect to pyspark
+
+[nandagnk2141@cxln5 ~]$ pyspark
+SPARK_MAJOR_VERSION is set to 2, using Spark2
+Python 2.7.5 (default, Apr  9 2019, 14:30:50) 
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 2.1.1.2.6.2.0-205
+      /_/
+Using Python version 2.7.5 (default, Apr  9 2019 14:30:50)
+SparkSession available as 'spark'.
+>>> df = spark.sql("select * from cust_nanda");
+>>> df.printSchema()
+root
+ |-- customer_id: integer (nullable = true)
+ |-- customer_fname: string (nullable = true)
+ |-- customer_lname: string (nullable = true)
+ |-- customer_email: string (nullable = true)
+ |-- customer_password: string (nullable = true)
+ |-- customer_street: string (nullable = true)
+ |-- customer_city: string (nullable = true)
+ |-- customer_state: string (nullable = true)
+ |-- customer_zipcode: string (nullable = true
+ 
+>>> df.count()
+12440                                                                           
+
+>>> df.show(10,truncate=False)
++-----------+--------------+--------------+--------------+-----------------+---------------------------+-------------+--------------+----------------+
+|customer_id|customer_fname|customer_lname|customer_email|customer_password|customer_street            |customer_city|customer_state|customer_zipcode|
++-----------+--------------+--------------+--------------+-----------------+---------------------------+-------------+--------------+----------------+
+|1          |Richard       |Hernandez     |XXXXXXXXX     |XXXXXXXXX        |6303 Heather Plaza         |Brownsville  |TX            |78521           |
+|2          |Mary          |Barrett       |XXXXXXXXX     |XXXXXXXXX        |9526 Noble Embers Ridge    |Littleton    |CO            |80126           |
+|3          |Ann           |Smith         |XXXXXXXXX     |XXXXXXXXX        |3422 Blue Pioneer Bend     |Caguas       |PR            |00725           |
+|4          |Mary          |Jones         |XXXXXXXXX     |XXXXXXXXX        |8324 Little Common         |San Marcos   |CA            |92069           |
+|5          |Robert        |Hudson        |XXXXXXXXX     |XXXXXXXXX        |10 Crystal River Mall      |Caguas       |PR            |00725           |
+|6          |Mary          |Smith         |XXXXXXXXX     |XXXXXXXXX        |3151 Sleepy Quail Promenade|Passaic      |NJ            |07055           |
+|7          |Melissa       |Wilcox        |XXXXXXXXX     |XXXXXXXXX        |9453 High Concession       |Caguas       |PR            |00725           |
+|8          |Megan         |Smith         |XXXXXXXXX     |XXXXXXXXX        |3047 Foggy Forest Plaza    |Lawrence     |MA            |01841           |
+|9          |Mary          |Perez         |XXXXXXXXX     |XXXXXXXXX        |3616 Quaking Street        |Caguas       |PR            |00725           |
+|10         |Melissa       |Smith         |XXXXXXXXX     |XXXXXXXXX        |8598 Harvest Beacon Plaza  |Stafford     |VA            |22554           |
++-----------+--------------+--------------+--------------+-----------------+---------------------------+-------------+--------------+----------------+
+only showing top 10 rows
+
+pyspark is returning the count in fraction of seconds compare to hive.
+
+>>> df.filter(col("customer_city") == "Stafford")\
+... .select("customer_id","customer_fname","customer_street","customer_city","customer_state","customer_zipcode").show(10,truncate=False)
++-----------+--------------+-------------------------+-------------+--------------+----------------+
+|customer_id|customer_fname|customer_street          |customer_city|customer_state|customer_zipcode|
++-----------+--------------+-------------------------+-------------+--------------+----------------+
+|10         |Melissa       |8598 Harvest Beacon Plaza|Stafford     |VA            |22554           |
+|691        |Mary          |3310 Blue Quay           |Stafford     |VA            |22554           |
+|3610       |Jordan        |2355 Amber Panda Vista   |Stafford     |VA            |22554           |
+|4260       |Debra         |6772 Broad Fawn Park     |Stafford     |VA            |22554           |
+|6036       |Barbara       |938 Crystal Leaf Beach   |Stafford     |VA            |22554           |
+|6577       |Mary          |1165 Quiet Inlet         |Stafford     |VA            |22554           |
+|7482       |Mary          |40 Gentle Zephyr Moor    |Stafford     |VA            |22554           |
+|12410      |Melissa       |8598 Harvest Beacon Plaza|Stafford     |VA            |22554           |
+|12420      |Melissa       |8598 Harvest Beacon Plaza|Stafford     |VA            |22554           |
+|12430      |Melissa       |8598 Harvest Beacon Plaza|Stafford     |VA            |22554           |
++-----------+--------------+-------------------------+-------------+--------------+----------------+
+only showing top 10 rows
+
+======================
+writing data into hive
+======================
+
+read the data from txn_records and apply transformation and save the result back to hive.
+>>> df_txn=spark.sql("select * from txn_records");
+>>> df_txn.printSchema()
+root
+ |-- key: integer (nullable = true)
+ |-- txndate: string (nullable = true)
+ |-- custno: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- category: string (nullable = true)
+ |-- product: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state: string (nullable = true)
+ |-- spendby: string (nullable = true)
+>>> df_txn.count()
+95904
+
+>>> df_txn.show(10,truncate=False)
++---+----------+-------+------+----------------------+---------------------------------+--------------+--------------+-------+
+|key|txndate   |custno |amount|category              |product                          |city          |state         |spendby|
++---+----------+-------+------+----------------------+---------------------------------+--------------+--------------+-------+
+|0  |06-26-2011|4007024|40.33 |                      |Cardio Machine Accessories       |Clarksville   |Tennessee     |credit |
+|1  |05-26-2011|4006742|198.44|Exercise & Fitness    |Weightlifting Gloves             |Long Beach    |California    |credit |
+|2  |06-01-2011|4009775|5.58  |Exercise & Fitness    |Weightlifting Machine Accessories|Anaheim       |California    |credit |
+|3  |06-05-2011|4002199|198.19|Gymnastics            |Gymnastics Rings                 |Milwaukee     |Wisconsin     |credit |
+|4  |12-17-2011|4002613|98.81 |Team Sports           |Field Hockey                     |Nashville     |Tennessee     |credit |
+|5  |02-14-2011|4007591|193.63|Outdoor Recreation    |Camping & Backpacking & Hiking   |Chicago       |Illinois      |credit |
+|6  |10-28-2011|4002190|27.89 |Puzzles               |Jigsaw Puzzles                   |Charleston    |South Carolina|credit |
+|7  |07-14-2011|4002964|96.01 |Outdoor Play Equipment|Sandboxes                        |Columbus      |Ohio          |credit |
+|8  |01-17-2011|4007361|10.44 |Winter Sports         |Snowmobiling                     |Des Moines    |Iowa          |credit |
+|9  |05-17-2011|4004798|152.46|Jumping               |Bungee Jumping                   |St. Petersburg|Florida       |credit |
++---+----------+-------+------+----------------------+---------------------------------+--------------+--------------+-------+
+only showing top 10 rows
+
+>>> df_txn1 = df_txn.filter(((col("state") == "Florida") & (col("category")=="Jumping")) | (col("amount")>200))\
+... .select("key","txndate","custno","amount","product","spendby")
+>>> df_txn1.count()
+177
+>>> df_txn1.printSchema()
+root
+ |-- key: integer (nullable = true)
+ |-- txndate: string (nullable = true)
+ |-- custno: integer (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- product: string (nullable = true)
+ |-- spendby: string (nullable = true)
+
+>>> df_txn1.write.format("parquet").mode("overwrite").saveAsTable("gnanda80.txn_records_parquet")
+
+Note: When you write a table in hive from spark, it will be created as internal table.
+
+now check the table in hive.
+
+hive> desc txn_records_parquet;
+OK
+key                     int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+spendby                 string                                      
+Time taken: 0.079 seconds, Fetched: 6 row(s)
+hive> select count(1) from txn_records_parquet;
+Query ID = nandagnk2141_20230831141057_473e90fd-d157-4e00-9d6c-ac154f0d41df
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_33006, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_33006/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_33006
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2023-08-31 14:11:07,418 Stage-1 map = 0%,  reduce = 0%
+2023-08-31 14:11:14,694 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.86 sec
+2023-08-31 14:11:21,958 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 7.7 sec
+MapReduce Total cumulative CPU time: 7 seconds 700 msec
+Ended Job = job_1648130833540_33006
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.7 sec   HDFS Read: 15304 HDFS Write: 4 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 700 msec
+OK
+177
+Time taken: 25.606 seconds, Fetched: 1 row(s)
+hive> desc formatted txn_records_parquet;
+OK
+# col_name              data_type               comment             
+                 
+key                     int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+  set hive.exec.reducers.max=<number>
+product                 string                                      
+spendby                 string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Thu Aug 31 14:09:45 UTC 2023     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_parquet   
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        numFiles                1                   
+        spark.sql.sources.provider      parquet             
+        spark.sql.sources.schema.numParts       1                   
+        spark.sql.sources.schema.part.0 {\"type\":\"struct\",\"fields\":[{\"name\":\"key\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"txndate\"
+,\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"custno\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"amount\",\"type\":\"dou
+ble\",\"nullable\":true,\"metadata\":{}},{\"name\":\"product\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"spendby\",\"type\":\"string\",\"nullab
+le\":true,\"metadata\":{}}]}
+        totalSize               4840                
+        transient_lastDdlTime   1693490985          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe      
+InputFormat:            org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat    
+OutputFormat:           org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat   
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        path                    hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_parquet
+        serialization.format    1                   
+Time taken: 0.172 seconds, Fetched: 37 row(s)
+
+hive> select * from txn_records_parquet limit 5;
+OK
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+9       05-17-2011      4004798 152.46  Bungee Jumping  credit
+1856    05-18-2011      4003378 91.7    Bungee Jumping  credit
+1954    01-06-2011      4006835 59.27   Trampoline Accessories  credit
+2056    01-13-2011      4002727 99.57   Trampolines     credit
+2083    11-15-2011      4000041 108.56  Trampoline Accessories  credit
+Time taken: 0.058 seconds, Fetched: 5 row(s)
+
+=======================================
+now, write the file in orc file format.
+=======================================
+
+>>> df_txn1.write.format("orc").mode("overwrite").saveAsTable("gnanda80.txn_records_orc")
+
+hive> desc txn_records_orc;
+OK
+key                     int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+spendby                 string                                      
+Time taken: 0.092 seconds, Fetched: 6 row(s)
+hive> select count(1) from txn_records_orc;
+Query ID = nandagnk2141_20230831141839_19b1eac3-e998-4c53-b119-e2474d4e25ee
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1648130833540_33007, Tracking URL = http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_33007/
+Kill Command = /usr/hdp/2.6.2.0-205/hadoop/bin/hadoop job  -kill job_1648130833540_33007
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2023-08-31 14:18:45,265 Stage-1 map = 0%,  reduce = 0%
+2023-08-31 14:18:52,542 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.73 sec
+2023-08-31 14:18:57,728 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.85 sec
+MapReduce Total cumulative CPU time: 6 seconds 850 msec
+Ended Job = job_1648130833540_33007
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.85 sec   HDFS Read: 15307 HDFS Write: 4 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 850 msec
+OK
+177
+Time taken: 20.754 seconds, Fetched: 1 row(s)
+hive> desc formatted txn_records_orc
+    > ;
+OK
+# col_name              data_type               comment             
+                 
+key                     int                                         
+txndate                 string                                      
+custno                  int                                         
+amount                  double                                      
+product                 string                                      
+spendby                 string                                      
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Thu Aug 31 14:17:41 UTC 2023     
+LastAccessTime:         UNKNOWN                  
+MapReduce Total cumulative CPU time: 6 seconds 850 msec
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_orc       
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        numFiles                1                   
+        spark.sql.sources.provider      orc                 
+        spark.sql.sources.schema.numParts       1                   
+        spark.sql.sources.schema.part.0 {\"type\":\"struct\",\"fields\":[{\"name\":\"key\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"txndate\"
+,\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"custno\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"amount\",\"type\":\"dou
+ble\",\"nullable\":true,\"metadata\":{}},{\"name\":\"product\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"spendby\",\"type\":\"string\",\"nullab
+le\":true,\"metadata\":{}}]}
+        totalSize               3788                
+        transient_lastDdlTime   1693491461          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.ql.io.orc.OrcSerde        
+InputFormat:            org.apache.hadoop.hive.ql.io.orc.OrcInputFormat  
+OutputFormat:           org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat         
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        path                    hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_orc
+        serialization.format    1                   
+Time taken: 0.068 seconds, Fetched: 37 row(s)
+hive> select * from txn_records_orc limit 5;
+OK
+9       05-17-2011      4004798 152.46  Bungee Jumping  credit
+1856    05-18-2011      4003378 91.7    Bungee Jumping  credit
+1954    01-06-2011      4006835 59.27   Trampoline Accessories  credit
+2056    01-13-2011      4002727 99.57   Trampolines     credit
+2083    11-15-2011      4000041 108.56  Trampoline Accessories  credit
+Time taken: 0.046 seconds, Fetched: 5 row(s) 
+
+=======================================
+now, write the file in json file format.
+=======================================
+>>> df_txn1.write.format("json").mode("overwrite").saveAsTable("gnanda80.txn_records_json")
+23/08/31 14:24:03 WARN HiveExternalCatalog: Couldn't find corresponding Hive SerDe for data source provider json. Persisting data source table `gnanda80`.`txn_records_j
+son` into Hive metastore in Spark SQL specific format, which is NOT compatible with Hive.
+
+hive> desc txn_records_json;
+OK
+col                     array<string>           from deserializer   
+Time taken: 0.072 seconds, Fetched: 1 row(s)
+
+hive> desc formatted txn_records_json;
+OK
+# col_name              data_type               comment             
+                 
+col                     array<string>           from deserializer   
+                 
+# Detailed Table Information             
+Database:               gnanda80                 
+Owner:                  nandagnk2141             
+CreateTime:             Thu Aug 31 14:24:03 UTC 2023     
+LastAccessTime:         UNKNOWN                  
+Protect Mode:           None                     
+Retention:              0                        
+Location:               hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_json      
+Table Type:             MANAGED_TABLE            
+Table Parameters:                
+        numFiles                1                   
+        spark.sql.sources.provider      json                
+        spark.sql.sources.schema.numParts       1                   
+        spark.sql.sources.schema.part.0 {\"type\":\"struct\",\"fields\":[{\"name\":\"key\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"txndate\"
+,\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"custno\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"amount\",\"type\":\"dou
+ble\",\"nullable\":true,\"metadata\":{}},{\"name\":\"product\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"spendby\",\"type\":\"string\",\"nullab
+le\":true,\"metadata\":{}}]}
+        totalSize               20508               
+        transient_lastDdlTime   1693491843          
+                 
+# Storage Information            
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe       
+InputFormat:            org.apache.hadoop.mapred.SequenceFileInputFormat         
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat        
+Compressed:             No                       
+Num Buckets:            -1                       
+Bucket Columns:         []                       
+Sort Columns:           []                       
+Storage Desc Params:             
+        path                    hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_json
+        serialization.format    1                   
+Time taken: 0.069 seconds, Fetched: 32 row(s)
+
+hive won't support querying the data in JSON format.
+
+hive> select * from txn_records_json;
+OK
+Failed with exception java.io.IOException:java.io.IOException: hdfs://cxln1.c.thelab-240901.internal:8020/apps/hive/warehouse/gnanda80.db/txn_records_json/part-00000-0c
+c9e9d8-e4f6-4eec-a055-28f9b14d82d0.json not a SequenceFile
+Time taken: 0.078 seconds
+hive> 
+
+but we can read the data from the file directly.
+
+[nandagnk2141@cxln5 ~]$ hdfs dfs -cat /apps/hive/warehouse/gnanda80.db/txn_records_json/part-00000-0cc9e9d8-e4f6-4eec-a055-28f9b14d82d0.json
+{"key":9,"txndate":"05-17-2011","custno":4004798,"amount":152.46,"product":"Bungee Jumping","spendby":"credit"}
+{"key":1856,"txndate":"05-18-2011","custno":4003378,"amount":91.7,"product":"Bungee Jumping","spendby":"credit"}
+{"key":1954,"txndate":"01-06-2011","custno":4006835,"amount":59.27,"product":"Trampoline Accessories","spendby":"credit"}
+{"key":2056,"txndate":"01-13-2011","custno":4002727,"amount":99.57,"product":"Trampolines","spendby":"credit"}
+{"key":2083,"txndate":"11-15-2011","custno":4000041,"amount":108.56,"product":"Trampoline Accessories","spendby":"credit"}
+{"key":2135,"txndate":"10-10-2011","custno":4003243,"amount":167.93,"product":"Trampolines","spendby":"credit"}
+{"key":2330,"txndate":"04-01-2011","custno":4006738,"amount":197.61,"product":"Pogo Sticks","spendby":"credit"}
+{"key":2427,"txndate":"08-02-2011","custno":4004501,"amount":12.49,"product":"Trampolines","spendby":"credit"}
+{"key":3036,"txndate":"11-27-2011","custno":4001780,"amount":146.18,"product":"Trampolines","spendby":"credit"}
+{"key":4345,"txndate":"02-19-2011","custno":4006013,"amount":128.44,"product":"Jumping Stilts","spendby":"credit"}
+{"key":4443,"txndate":"01-14-2011","custno":4009878,"amount":64.51,"product":"Trampolines","spendby":"credit"}
+{"key":6024,"txndate":"09-09-2011","custno":4003668,"amount":40.79,"product":"Trampoline Accessories","spendby":"credit"}
+{"key":6075,"txndate":"12-04-2011","custno":4002943,"amount":134.18,"product":"Jumping Stilts","spendby":"credit"}
+{"key":6644,"txndate":"02-20-2011","custno":4005475,"amount":55.91,"product":"Trampolines","spendby":"credit"}
+{"key":7311,"txndate":"12-13-2011","custno":4008093,"amount":191.3,"product":"Trampoline Accessories","spendby":"credit"}
+
+
+>>> df_txn1.write.format("csv").mode("overwrite").saveAsTable("gnanda80.txn_records_csv")
+23/08/31 14:37:13 WARN HiveExternalCatalog: Couldn't find corresponding Hive SerDe for data source provider csv. Persisting data source table `gnanda80`.`txn_records_cs
+v` into Hive metastore in Spark SQL specific format, which is NOT compatible with Hive.
+>>> 
+
+CSV format also not supported by Hive.
+
+=================================================================================================================
+=================================================================================================================
+==========================
+Read JSON data from API.
+==========================
+
+sample API ->  https://randomuser.me/api
+
+actual data in the api
+{"results":[{"gender":"male","name":{"title":"Mr","first":"Emaús","last":"Ferreira"},"location":{"street":{"number":9268,"name":"Rua São Luiz "},"city":"Uberaba","state":"Alagoas","country":"Brazil","postcode":31435,"coordinates":{"latitude":"-75.3650","longitude":"-113.7088"},"timezone":{"offset":"+3:00","description":"Baghdad, Riyadh, Moscow, St. Petersburg"}},"email":"emaus.ferreira@example.com","login":{"uuid":"578ece03-8ce5-4cd3-bb0d-cca98be67512","username":"angrysnake783","password":"printer","salt":"FX5tWZmE","md5":"68653b29cef026c387cc85d54ba2fb8f","sha1":"ff9e999de869130ee45dfe4dfebb6b3057e24753","sha256":"d828c8380abe092e98ee46e760ca14ddafd3062f9e730bf2b117982ae4d458b4"},"dob":{"date":"1990-06-14T12:44:44.501Z","age":33},"registered":{"date":"2014-12-18T16:35:39.182Z","age":8},"phone":"(57) 9343-0173","cell":"(59) 3248-3873","id":{"name":"CPF","value":"991.972.722-13"},"picture":{"large":"https://randomuser.me/api/portraits/men/62.jpg","medium":"https://randomuser.me/api/portraits/med/men/62.jpg","thumbnail":"https://randomuser.me/api/portraits/thumb/men/62.jpg"},"nat":"BR"}],"info":{"seed":"f9ce721abb23d265","results":1,"page":1,"version":"1.4"}}
+
+formatted the data for better understanding
+{
+  "results": [
+    {
+      "gender": "male",
+      "name": {
+        "title": "Mr",
+        "first": "Emaús",
+        "last": "Ferreira"
+      },
+      "location": {
+        "street": {
+          "number": 9268,
+          "name": "Rua São Luiz "
+        },
+        "city": "Uberaba",
+        "state": "Alagoas",
+        "country": "Brazil",
+        "postcode": 31435,
+        "coordinates": {
+          "latitude": "-75.3650",
+          "longitude": "-113.7088"
+        },
+        "timezone": {
+          "offset": "+3:00",
+          "description": "Baghdad, Riyadh, Moscow, St. Petersburg"
+        }
+      },
+      "email": "emaus.ferreira@example.com",
+      "login": {
+        "uuid": "578ece03-8ce5-4cd3-bb0d-cca98be67512",
+        "username": "angrysnake783",
+        "password": "printer",
+        "salt": "FX5tWZmE",
+        "md5": "68653b29cef026c387cc85d54ba2fb8f",
+        "sha1": "ff9e999de869130ee45dfe4dfebb6b3057e24753",
+        "sha256": "d828c8380abe092e98ee46e760ca14ddafd3062f9e730bf2b117982ae4d458b4"
+      },
+      "dob": {
+        "date": "1990-06-14T12:44:44.501Z",
+        "age": 33
+      },
+      "registered": {
+        "date": "2014-12-18T16:35:39.182Z",
+        "age": 8
+      },
+      "phone": "(57) 9343-0173",
+      "cell": "(59) 3248-3873",
+      "id": {
+        "name": "CPF",
+        "value": "991.972.722-13"
+      },
+      "picture": {
+        "large": "https://randomuser.me/api/portraits/men/62.jpg",
+        "medium": "https://randomuser.me/api/portraits/med/men/62.jpg",
+        "thumbnail": "https://randomuser.me/api/portraits/thumb/men/62.jpg"
+      },
+      "nat": "BR"
+    }
+  ],
+  "info": {
+    "seed": "f9ce721abb23d265",
+    "results": 1,
+    "page": 1,
+    "version": "1.4"
+  }
+}
+
+
+how to read the data from API, let's see.
+
+step 1 import urllib2
+step 2 read the data as an object using the method urllib2.urlopen(URL)
+step 3 create an RDD using the object created as part of step 2
+step 4 create a dataframe from the RDD created in step 3.
+
+
+import urllib2
+contents = urllib2.urlopen("https://randomuser.me/api").read()
+rdd = sc.parallelize([contents])
+df = spark.read.json(rdd)
+df.count()
+df.printSchema()
+df.show(truncate=False)
+
+
+>>> import urllib2
+>>> contents = urllib2.urlopen("https://randomuser.me/api").read()
+>>> rdd = sc.parallelize([contents])
+>>> df = spark.read.json(rdd)
+>>> df.count()
+1
+>>> df.printSchema()
+root
+ |-- info: struct (nullable = true)
+ |    |-- page: long (nullable = true)
+ |    |-- results: long (nullable = true)
+ |    |-- seed: string (nullable = true)
+ |    |-- version: string (nullable = true)
+ |-- results: array (nullable = true)
+ |    |-- element: struct (containsNull = true)
+ |    |    |-- cell: string (nullable = true)
+ |    |    |-- dob: struct (nullable = true)
+ |    |    |    |-- age: long (nullable = true)
+ |    |    |    |-- date: string (nullable = true)
+ |    |    |-- email: string (nullable = true)
+ |    |    |-- gender: string (nullable = true)
+ |    |    |-- id: struct (nullable = true)
+ |    |    |    |-- name: string (nullable = true)
+ |    |    |    |-- value: string (nullable = true)
+ |    |    |-- location: struct (nullable = true)
+ |    |    |    |-- city: string (nullable = true)
+ |    |    |    |-- coordinates: struct (nullable = true)
+ |    |    |    |    |-- latitude: string (nullable = true)
+ |    |    |    |    |-- longitude: string (nullable = true)
+ |    |    |    |-- country: string (nullable = true)
+ |    |    |    |-- postcode: long (nullable = true)
+ |    |    |    |-- state: string (nullable = true)
+ |    |    |    |-- street: struct (nullable = true)
+ |    |    |    |    |-- name: string (nullable = true)
+ |    |    |    |    |-- number: long (nullable = true)
+ |    |    |    |-- timezone: struct (nullable = true)
+ |    |    |    |    |-- description: string (nullable = true)
+ |    |    |    |    |-- offset: string (nullable = true)
+ |    |    |-- login: struct (nullable = true)
+ |    |    |    |-- md5: string (nullable = true)
+ |    |    |    |-- password: string (nullable = true)
+ |    |    |    |-- salt: string (nullable = true)
+ |    |    |    |-- sha1: string (nullable = true)
+ |    |    |    |-- sha256: string (nullable = true)
+ |    |    |    |-- username: string (nullable = true)
+ |    |    |    |-- uuid: string (nullable = true)
+ |    |    |-- name: struct (nullable = true)
+ 
+ =========================================================================================================
