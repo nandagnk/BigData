@@ -2234,3 +2234,167 @@ root
  |    |    |-- name: struct (nullable = true)
  
  =========================================================================================================
+ 
+ =========================================================================================================
+ CGI Technical Challenge
+ =======================
+ 
+TECHNICAL CHALLENGE
+EMERGING TECH PRACTICE – DATA ENGINEERING RECRUITMENT
+
+1.1 Summary
+The purpose of this challenge is to assess a candidate’s skills within the Data Engineering technology landscape. 
+It will simulate, in a small-scale lab, a caricature of what a typical task a Data Engineer can face on a daily basis.
+This document is organized as follows:
+➢ Exercise: A business description of the challenge
+➢ Deliverables: What CGI expects from the challenge
+➢ Resources: Where to download the exercise’s resources
+➢ Evaluation: Timeframes and evaluation criteria
+1.2 Exercise
+
+A Retail client wants to analyse the amount of sales generated on its stores, to better understand its business 
+and assess possible opportunities to refine and optimize its internal processes.
+As such, the Retail client presented to CGI the following use cases:
+‒ Considering only the first 100 days of sales, which were the 5 stores that produced more revenue;
+‒ Considering only the first 100 days of sales, for each store what were the two best selling products
+To tackle this use case, the Retail client supplied CGI with two data sources:
+1. Sales_train_validation.csv: Contains the historical daily unit sales data per product and store [d_1 - d_1913], 
+   for the sake of these exercises consider just the first 100 days.
+2. Sell_prices.csv: Contains information about the price of the products sold per store and date.
+3. Calendar.csv: Contains information about the dates on which the products are sold.
+
+The Retail client expects CGI to deliver a small report, describing the use case, accompanied with technical
+documentation to support its IT team, and the technical solution.
+
+Resources
+This exercise uses data sets from Kaggle that can be downloaded at the following link.
+https://www.kaggle.com/c/m5-forecasting-accuracy/data
+(You must signup/sign in before you can download the datasets)
+Multiple resources to install and run PySpark exist on the internet, regardless of OS, but if the candidate is 
+having trouble setting up a development environment, he/she can reach out to CGI for help. As mentioned above, 
+if you are not familiar with setting up Interactive development environments, we recommend you to sign up for free 
+community edition of databricks, which is fairly straight forward.
+
+========
+Solution
+========
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+from pyspark.sql.window import Window
+
+if __name__ == '__main__':
+    print('Application Batch14 PySpark SPARK-SQL Assignment 1')
+    spark = SparkSession.builder.appName("Working with DSL").master("local").getOrCreate()
+    sc = spark.sparkContext
+    spark.sparkContext.setLogLevel("Error")
+
+    ##Creating datafrme for Calander's data set
+    df_cal = spark.read.format("csv")\
+                .options(inferschema=True,delimiter=",",header=True)\
+                .load("file:///D:\Practising\PySpark\DATASETS\CGI_Task/calendar.csv")
+    # df_cal.printSchema()
+
+    ##spliting the column d values from d_1 to 1 for the first 100 days only
+    ##as per the requirement
+    df_cal_sd=df_cal.select("date","wm_yr_wk","d")\
+              .filter((substring(col("d"),3, 4))<=100)\
+              .withColumn("days",expr("substring(d,3, 4)"))
+
+    ##Creating dataframe for sell prices data set
+    df_price = spark.read.format("csv") \
+        .options(inferschema=True, delimiter=",", header=True) \
+        .load("file:///D:\Practising\PySpark\DATASETS\CGI_Task/sell_prices.csv")
+    # df_price.printSchema()
+
+    ## creating dataframe for sales_train_validation dataset
+    df_sale = spark.read.format("csv") \
+        .options(inferschema=True, delimiter=",", header=True) \
+        .load("file:///D:\Practising\PySpark\DATASETS\CGI_Task/sales_train_validation.csv")
+    # df_sale.printSchema()
+
+    ##creating stack for first 100 day data to unpivot the sales_train_validation dataset
+    ##to convert the columns d_1, d_2,.....d_100 to rows.
+    str1="stack(100"
+    for i in range(100):
+        str1=str1+",'d_"+str(i+1)+"',d_"+str(i+1)
+    str1 = str1+")as (day, sale)"
+
+    #unpivot = str1
+    ##creating a new dataframe from df_sales with colums to rows convertion transfromtion
+    df_dailysales = df_sale.select('store_id', 'item_id', expr(str1))
+
+    ##creating a new dataframe with revenue for each items
+    df_dailyrevenue=df_price.join(df_cal_sd,"wm_yr_wk","inner")\
+    .join(df_dailysales,['store_id', 'item_id'],"inner")\
+	.filter(df_dailysales['day']==df_cal_sd['d'])\
+    .select(col("store_id").alias("Store") ,col("item_id").alias("Product"),\
+            col("sell_price").alias("price"),col("date").alias("txn_date"),\
+            col("d"),col("sale").alias("Qty_sold"))\
+    .withColumn("Revenue",expr("(price*Qty_sold)"))
+
+    print("=============================================================================================================")
+    print("Analysis 1 ‒ Considering only the first 100 days of sales, which were the 5 stores that produced more revenue")
+    print("=============================================================================================================")
+    df_dailyrevenue.groupby("Store").agg(sum("Revenue").alias("Total_revenue"))\
+        .withColumn("Total_revenue",col("Total_revenue")\
+                    .cast(DecimalType(18, 2)))\
+        .sort(desc("Total_revenue")).limit(5).show()
+
+    print("=================================================================================================================")
+    print("Analysis 2 ‒ Considering only the first 100 days of sales, for each store what were the two best selling products")
+    print("=================================================================================================================")
+    df_dailyrevenue.groupby("Store","Product").agg(sum("Revenue").alias("Total_revenue")) \
+            .withColumn("Total_revenue", col("Total_revenue") \
+                        .cast(DecimalType(18, 2))) \
+            .withColumn("row_number", row_number().over\
+                (Window.partitionBy("Store").orderBy(desc("Total_revenue"))))\
+            .filter("row_number in (1,2)").orderBy("store", "row_number") \
+            .drop("row_number").show(50)
+
+=======			
+outcome
+=======			
+=============================================================================================================
+Analysis 1 ‒ Considering only the first 100 days of sales, which were the 5 stores that produced more revenue
+=============================================================================================================
++-----+-------------+
+|Store|Total_revenue|
++-----+-------------+
+| CA_3|   1129280.96|
+| CA_1|    838689.38|
+| TX_2|    810773.26|
+| WI_3|    809274.13|
+| CA_2|    698924.40|
++-----+-------------+
+
+=================================================================================================================
+Analysis 2 ‒ Considering only the first 100 days of sales, for each store what were the two best selling products
+=================================================================================================================
++-----+---------------+-------------+
+|Store|        Product|Total_revenue|
++-----+---------------+-------------+
+| CA_1|    FOODS_3_587|     17006.60|
+| CA_1|    FOODS_2_244|      8625.52|
+| CA_2|HOUSEHOLD_1_224|      6763.38|
+| CA_2|HOUSEHOLD_1_357|      5386.50|
+| CA_3|    FOODS_3_587|     20670.80|
+| CA_3|    FOODS_2_244|     15711.16|
+| CA_4|    FOODS_3_587|      5381.48|
+| CA_4|    FOODS_3_202|      3731.76|
+| TX_1|    FOODS_3_586|      9011.72|
+| TX_1|    FOODS_3_587|      8531.68|
+| TX_2|    FOODS_3_586|     12633.28|
+| TX_2|    FOODS_3_202|      9612.88|
+| TX_3|    FOODS_3_586|     14749.68|
+| TX_3|    FOODS_3_555|      9503.08|
+| WI_1|  HOBBIES_1_108|      7490.16|
+| WI_1|    FOODS_3_226|      5196.28|
+| WI_2|    FOODS_3_587|      6562.08|
+| WI_2|HOUSEHOLD_1_072|      5971.52|
+| WI_3|    FOODS_3_587|      9950.92|
+| WI_3|    FOODS_3_150|      8277.94|
++-----+---------------+-------------+
+
+Process finished with exit code 0
